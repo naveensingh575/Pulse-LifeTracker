@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useDashboard } from '../../context/DashboardContext';
 import { getISTDateString, formatISTDisplayDate } from '../../utils/dateUtils';
 import {
@@ -263,12 +264,12 @@ export const RoutineWidget = () => {
           <div className="flex flex-col sm:flex-row items-center justify-between gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
             <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Evening Review Actions:</span>
             <div className="flex items-center space-x-2">
-              <a
-                href="/journal"
-                className="flex items-center space-x-1 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition shadow-sm"
+              <Link
+                to="/journal"
+                className="flex items-center space-x-1 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition shadow-sm cursor-pointer"
               >
                 <span>✍️ Write Reflection Journal</span>
-              </a>
+              </Link>
 
               <a
                 href={createGoogleCalendarUrl({
