@@ -83,9 +83,22 @@
 
 ---
 
+## ⚡ Deploying on Vercel
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fnaveensingh575%2FPulse-LifeTracker)
+
+### Method 1: 1-Click Import (Recommended)
+1. Log into your Vercel account: [https://vercel.com/navi-77a0](https://vercel.com/navi-77a0).
+2. Go to **[Vercel New Project](https://vercel.com/new)**.
+3. Click **"Import"** next to **`naveensingh575/Pulse-LifeTracker`**.
+4. Framework preset will automatically be detected as **Vite**.
+5. Click **"Deploy"** — your application will be live globally in ~30 seconds with automatic continuous deployments on every push.
+
+---
+
 ## 🌐 Deploying to GitHub Pages
 
-This repository is pre-configured with automated GitHub Actions deployment.
+This repository is also pre-configured with automated GitHub Actions deployment.
 
 1. Go to your repository settings on GitHub: `https://github.com/naveensingh575/Pulse-LifeTracker/settings/pages`
 2. Under **Build and deployment** $\rightarrow$ **Source**, select **GitHub Actions**.
@@ -100,3 +113,4 @@ This repository is pre-configured with automated GitHub Actions deployment.
 ## 📄 License
 
 MIT License. Designed with focus for high-performance daily execution.
+
