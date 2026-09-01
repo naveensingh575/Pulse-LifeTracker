@@ -128,7 +128,7 @@ export const AuthPage = () => {
             <PulseLogo size="lg" />
             <div>
               <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
-                PULSE <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-bold uppercase tracking-wider">Cloud Connected</span>
+                PULSE <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-bold uppercase tracking-wider">Life Tracker</span>
               </h1>
               <p className="text-xs text-indigo-600 dark:text-cyan-400 font-bold italic tracking-wide">
                 "Your Life, in Rhythm."
@@ -142,9 +142,9 @@ export const AuthPage = () => {
 
           <div className="space-y-3 pt-2">
             {[
-              'Secure Cloud Sync across Phone, Laptop & Tablet',
-              'Strict Row-Level Database Privacy & Security (RLS)',
-              '7-Day & 30-Day Habit Rhythm Engine',
+              'Securely Sync across Plateforms & Devices',
+              'Strict Database Privacy & Security',
+              'Daily, 7-Day & 30-Day Habit Rhythm Engine',
               'Income-First Cashflow & Monthly Budget Allocation',
               'Multi-Exercise Gym Workout Builder & Cardio Tracker'
             ].map((feat, idx) => (
@@ -157,7 +157,7 @@ export const AuthPage = () => {
 
           <div className="p-3.5 bg-indigo-50/50 dark:bg-indigo-950/30 rounded-2xl border border-indigo-200/60 dark:border-indigo-500/20 text-xs flex items-center space-x-3 text-indigo-900 dark:text-indigo-200">
             <ShieldCheck className="w-5 h-5 text-indigo-500 shrink-0" />
-            <span>Encrypted cloud storage powered by PostgreSQL. Your data remains strictly private to your verified email account.</span>
+            <span>Encrypted storage. Your data remains strictly private to your verified account.</span>
           </div>
         </div>
 
