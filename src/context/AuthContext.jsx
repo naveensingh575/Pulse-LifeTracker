@@ -1,57 +1,109 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from '../lib/supabaseClient';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(() => {
-    const saved = localStorage.getItem('pulse_user');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        return null;
-      }
-    }
-    // Default to null so user goes through Google Sign-In or selects Google Account
-    return null;
-  });
+  const [user, setUser] = useState(null);
+  const [session, setSession] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // Helper to format Supabase user into friendly profile
+  const formatUser = (supaUser) => {
+    if (!supaUser) return null;
+    const meta = supaUser.user_metadata || {};
+    const name = meta.full_name || meta.name || supaUser.email?.split('@')[0] || 'Pulse User';
+    const avatar = meta.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}`;
+    const provider = supaUser.app_metadata?.provider || 'email';
+
+    return {
+      id: supaUser.id,
+      email: supaUser.email,
+      name,
+      avatar,
+      provider,
+      raw: supaUser
+    };
+  };
 
   useEffect(() => {
-    if (user) {
-      localStorage.setItem('pulse_user', JSON.stringify(user));
-    } else {
-      localStorage.removeItem('pulse_user');
-    }
-  }, [user]);
+    // 1. Initial Session Check
+    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+      setSession(currentSession);
+      setUser(currentSession ? formatUser(currentSession.user) : null);
+      setLoading(false);
+    }).catch(() => {
+      setLoading(false);
+    });
 
-  const loginWithGoogle = (googleProfile) => {
-    const profile = googleProfile || {
-      name: 'Naveen Kumar',
-      email: 'naveen.kumar@gmail.com',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-      provider: 'google'
+    // 2. Real-time Auth State Listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      setSession(newSession);
+      setUser(newSession ? formatUser(newSession.user) : null);
+      setLoading(false);
+    });
+
+    return () => {
+      subscription?.unsubscribe();
     };
-    setUser(profile);
-    return profile;
+  }, []);
+
+  // Sign in with Email & Password
+  const signInWithEmail = async (email, password) => {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+    if (error) throw error;
+    return data;
   };
 
-  const loginWithEmail = (email, name) => {
-    const profile = {
-      name: name || email.split('@')[0] || 'User',
-      email: email,
-      avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name || email)}`,
-      provider: 'email'
-    };
-    setUser(profile);
-    return profile;
+  // Sign up with Email, Password & Name
+  const signUpWithEmail = async (email, password, name) => {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: name || email.split('@')[0]
+        }
+      }
+    });
+    if (error) throw error;
+    return data;
   };
 
-  const logout = () => {
+  // Sign in with Google OAuth
+  const loginWithGoogle = async () => {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin
+      }
+    });
+    if (error) throw error;
+    return data;
+  };
+
+  // Sign Out
+  const logout = async () => {
+    await supabase.auth.signOut();
     setUser(null);
+    setSession(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, loginWithGoogle, loginWithEmail, logout }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        session,
+        loading,
+        signInWithEmail,
+        signUpWithEmail,
+        loginWithGoogle,
+        logout
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
