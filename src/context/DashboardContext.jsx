@@ -290,6 +290,22 @@ export const DashboardProvider = ({ children }) => {
   useEffect(() => {
     if (userId) {
       fetchUserData();
+
+      // Real-time synchronization across devices & browsers
+      const channel = supabase
+        .channel('pulse-realtime-sync')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public' },
+          () => {
+            fetchUserData();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     } else {
       // Clear data on logout
       setGoals([]);

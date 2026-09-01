@@ -212,7 +212,7 @@ export const AuthPage = () => {
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Naveen Kumar"
+                    placeholder="Enter your full name"
                     value={name}
                     onChange={e => setName(e.target.value)}
                     className="w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500"
