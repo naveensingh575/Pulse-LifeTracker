@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useDashboard } from '../../context/DashboardContext';
+import { getISTDateString, getISTDateDiffDays } from '../../utils/dateUtils';
 import { Clock, Plus, AlertTriangle, Trash2, Tag } from 'lucide-react';
 
 export const RemindersList = () => {
@@ -8,19 +9,15 @@ export const RemindersList = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
-    date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    date: getISTDateString(),
     category: 'Work',
     tag: '',
     priority: 'medium'
   });
 
-  const today = new Date('2026-08-26');
-
-  // Calculate days remaining helper
+  // Calculate days remaining helper in IST
   const getDaysDiff = (dateStr) => {
-    const target = new Date(dateStr);
-    const diffTime = target - today;
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return getISTDateDiffDays(getISTDateString(), dateStr);
   };
 
   const handleSubmit = (e) => {

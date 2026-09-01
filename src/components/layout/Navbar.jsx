@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useDashboard } from '../../context/DashboardContext';
 import { useAuth } from '../../context/AuthContext';
 import { PulseLogo } from '../common/PulseLogo';
+import { getISTDateString, formatISTDisplayDate } from '../../utils/dateUtils';
 import { Sun, Moon, Sparkles, Calendar, LogOut, ChevronDown } from 'lucide-react';
 
 export const Navbar = () => {
@@ -9,12 +10,7 @@ export const Navbar = () => {
   const { user, logout } = useAuth();
   const [showUserMenu, setShowUserMenu] = useState(false);
 
-  const currentDateStr = new Date('2026-08-26').toLocaleDateString('en-IN', {
-    weekday: 'long',
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric'
-  });
+  const currentDateStr = formatISTDisplayDate(getISTDateString());
 
   return (
     <header className="sticky top-0 z-30 w-full backdrop-blur-xl bg-white/80 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800/80 transition-colors">
