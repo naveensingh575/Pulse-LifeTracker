@@ -882,6 +882,16 @@ export const DashboardProvider = ({ children }) => {
     return journalEntries.find(e => e.date === dateStr) || null;
   };
 
+  const getDayCompletionStats = useCallback((dateStr = getISTDateString()) => {
+    if (!habits || habits.length === 0) {
+      return { completed: 0, total: 0, percentage: 0 };
+    }
+    const total = habits.length;
+    const completed = habits.filter(h => h.completions && Boolean(h.completions[dateStr])).length;
+    const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+    return { completed, total, percentage };
+  }, [habits]);
+
   return (
     <DashboardContext.Provider
       value={{
@@ -913,6 +923,7 @@ export const DashboardProvider = ({ children }) => {
         toggleHabitDay,
         addHabit,
         deleteHabit,
+        getDayCompletionStats,
 
         // Activities
         activities,
@@ -945,6 +956,7 @@ export const DashboardProvider = ({ children }) => {
         addTask,
         updateTaskPriority,
         toggleTaskComplete,
+        toggleTask: toggleTaskComplete,
         deleteTask,
 
         // Journal
