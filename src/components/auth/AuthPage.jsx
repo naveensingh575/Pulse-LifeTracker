@@ -2,32 +2,52 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { PulseLogo } from '../common/PulseLogo';
-import { Sparkles, ArrowRight, Lock, Mail, CheckCircle2, User, AlertCircle, Loader2 } from 'lucide-react';
+import {
+  ArrowRight,
+  Lock,
+  Mail,
+  CheckCircle2,
+  User,
+  AlertCircle,
+  Loader2,
+  Send,
+  Sparkles,
+  ShieldCheck,
+  Check
+} from 'lucide-react';
 
 export const AuthPage = () => {
-  const { signInWithEmail, signUpWithEmail, loginWithGoogle } = useAuth();
+  const { signInWithEmail, signUpWithEmail, resendConfirmationEmail } = useAuth();
   const navigate = useNavigate();
 
   const [mode, setMode] = useState('signin'); // 'signin' | 'signup'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  
   const [authError, setAuthError] = useState('');
   const [authSuccess, setAuthSuccess] = useState('');
+  const [needsConfirmation, setNeedsConfirmation] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState(false);
 
   // RFC 5322 Compliant Email Validation
   const validateEmail = (emailStr) => {
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    return emailRegex.test(emailStr);
+    return emailRegex.test(emailStr.trim());
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setAuthError('');
     setAuthSuccess('');
+    setNeedsConfirmation(false);
+    setResendSuccess(false);
 
-    if (!validateEmail(email)) {
+    const cleanEmail = email.trim();
+
+    if (!validateEmail(cleanEmail)) {
       setAuthError('Please enter a valid email address (e.g. name@domain.com).');
       return;
     }
@@ -41,31 +61,55 @@ export const AuthPage = () => {
 
     try {
       if (mode === 'signup') {
-        const result = await signUpWithEmail(email, password, name);
+        const result = await signUpWithEmail(cleanEmail, password, name);
+        
+        // If Supabase has email confirmations enabled and session is not yet active
         if (result?.user && !result.session) {
-          setAuthSuccess('Account created! Please check your email for a confirmation link, or sign in.');
+          setNeedsConfirmation(true);
+          setAuthSuccess(`Verification email sent to ${cleanEmail}! Please check your inbox to activate your account.`);
           setMode('signin');
         } else {
-          setAuthSuccess('Account created successfully! Logging in...');
+          setAuthSuccess('Account created successfully! Entering PULSE...');
           setTimeout(() => navigate('/'), 600);
         }
       } else {
-        await signInWithEmail(email, password);
+        await signInWithEmail(cleanEmail, password);
         navigate('/');
       }
     } catch (err) {
-      setAuthError(err.message || 'Authentication failed. Please check your credentials.');
+      const msg = err.message || '';
+      if (msg.toLowerCase().includes('email not confirmed')) {
+        setNeedsConfirmation(true);
+        setAuthError('Your email address has not been confirmed yet. Please check your inbox for the activation link.');
+      } else if (msg.toLowerCase().includes('invalid login credentials')) {
+        setAuthError('Incorrect email or password. Please verify your credentials or create a new account.');
+      } else if (msg.toLowerCase().includes('user already registered')) {
+        setAuthError('An account with this email already exists. Please switch to Sign In.');
+      } else {
+        setAuthError(msg || 'Authentication failed. Please check your details.');
+      }
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleGoogleLogin = async () => {
-    setAuthError('');
+  const handleResendLink = async () => {
+    if (!validateEmail(email)) {
+      setAuthError('Please enter your email above to resend the confirmation link.');
+      return;
+    }
+
+    setIsResending(true);
+    setResendSuccess(false);
     try {
-      await loginWithGoogle();
+      await resendConfirmationEmail(email);
+      setResendSuccess(true);
+      setAuthSuccess(`A fresh confirmation link has been sent to ${email}.`);
+      setAuthError('');
     } catch (err) {
-      setAuthError(err.message || 'Google authentication failed.');
+      setAuthError(err.message || 'Failed to resend confirmation email. Please try again in a few minutes.');
+    } finally {
+      setIsResending(false);
     }
   };
 
@@ -84,7 +128,7 @@ export const AuthPage = () => {
             <PulseLogo size="lg" />
             <div>
               <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
-                PULSE <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-bold uppercase tracking-wider">Cloud Connected</span>
+                PULSE <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-bold uppercase tracking-wider">Cloud Connected</span>
               </h1>
               <p className="text-xs text-indigo-600 dark:text-cyan-400 font-bold italic tracking-wide">
                 "Your Life, in Rhythm."
@@ -98,10 +142,10 @@ export const AuthPage = () => {
 
           <div className="space-y-3 pt-2">
             {[
-              'Cloud Sync across Phone, Laptop & Tablet',
-              'Strict Row-Level Database Privacy & Security',
-              '7-Day & 30-Day Habit Streak Engine',
-              'Income-First Cashflow & Monthly Budget Isolation',
+              'Secure Cloud Sync across Phone, Laptop & Tablet',
+              'Strict Row-Level Database Privacy & Security (RLS)',
+              '7-Day & 30-Day Habit Rhythm Engine',
+              'Income-First Cashflow & Monthly Budget Allocation',
               'Multi-Exercise Gym Workout Builder & Cardio Tracker'
             ].map((feat, idx) => (
               <div key={idx} className="flex items-center space-x-2.5 text-xs font-medium text-slate-700 dark:text-slate-300">
@@ -110,24 +154,27 @@ export const AuthPage = () => {
               </div>
             ))}
           </div>
+
+          <div className="p-3.5 bg-indigo-50/50 dark:bg-indigo-950/30 rounded-2xl border border-indigo-200/60 dark:border-indigo-500/20 text-xs flex items-center space-x-3 text-indigo-900 dark:text-indigo-200">
+            <ShieldCheck className="w-5 h-5 text-indigo-500 shrink-0" />
+            <span>Encrypted cloud storage powered by PostgreSQL. Your data remains strictly private to your verified email account.</span>
+          </div>
         </div>
 
         {/* Right Side: Auth Form Card */}
-        <div className="bg-white dark:bg-slate-900/90 rounded-3xl p-8 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-5">
+        <div className="bg-white dark:bg-slate-900/90 rounded-3xl p-7 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-5">
           
           {/* Header & Tabs */}
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100">
-                  {mode === 'signin' ? 'Sign In to PULSE' : 'Create Your Account'}
-                </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  {mode === 'signin'
-                    ? 'Enter your credentials to access your synced dashboard.'
-                    : 'Sign up to start tracking your life routines and finances.'}
-                </p>
-              </div>
+            <div>
+              <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100">
+                {mode === 'signin' ? 'Sign In to Your Account' : 'Create a New Account'}
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                {mode === 'signin'
+                  ? 'Enter your verified email and password to access your dashboard.'
+                  : 'Sign up with your email to start tracking your daily operating pulse.'}
+              </p>
             </div>
 
             {/* Mode Switcher Tabs */}
@@ -138,6 +185,7 @@ export const AuthPage = () => {
                   setMode('signin');
                   setAuthError('');
                   setAuthSuccess('');
+                  setNeedsConfirmation(false);
                 }}
                 className={`py-2 rounded-lg transition cursor-pointer ${
                   mode === 'signin'
@@ -153,6 +201,7 @@ export const AuthPage = () => {
                   setMode('signup');
                   setAuthError('');
                   setAuthSuccess('');
+                  setNeedsConfirmation(false);
                 }}
                 className={`py-2 rounded-lg transition cursor-pointer ${
                   mode === 'signup'
@@ -167,46 +216,49 @@ export const AuthPage = () => {
 
           {/* Feedback Alerts */}
           {authError && (
-            <div className="p-3 bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/30 rounded-xl flex items-center space-x-2 text-rose-600 dark:text-rose-400 text-xs font-semibold animate-in fade-in duration-150">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>{authError}</span>
+            <div className="p-3.5 bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/30 rounded-xl space-y-2 text-rose-700 dark:text-rose-300 text-xs font-medium animate-in fade-in duration-150">
+              <div className="flex items-start space-x-2">
+                <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+                <span>{authError}</span>
+              </div>
+
+              {needsConfirmation && (
+                <div className="pt-2 border-t border-rose-200 dark:border-rose-500/30 flex items-center justify-between">
+                  <span className="text-[11px] text-slate-600 dark:text-slate-400">Didn't receive the activation email?</span>
+                  <button
+                    type="button"
+                    onClick={handleResendLink}
+                    disabled={isResending}
+                    className="text-indigo-600 dark:text-cyan-400 hover:underline font-bold text-xs flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                  >
+                    {isResending ? <Loader2 className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />}
+                    <span>Resend Link</span>
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
           {authSuccess && (
-            <div className="p-3 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 rounded-xl flex items-center space-x-2 text-emerald-600 dark:text-emerald-400 text-xs font-semibold animate-in fade-in duration-150">
-              <CheckCircle2 className="w-4 h-4 shrink-0" />
-              <span>{authSuccess}</span>
+            <div className="p-3.5 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 rounded-xl space-y-1.5 text-emerald-700 dark:text-emerald-300 text-xs font-medium animate-in fade-in duration-150">
+              <div className="flex items-start space-x-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                <span>{authSuccess}</span>
+              </div>
+              
+              {needsConfirmation && (
+                <p className="text-[11px] text-slate-600 dark:text-slate-400 pl-6 leading-relaxed">
+                  Tip: Check your spam/junk folder if you don't see the email within 1 minute.
+                </p>
+              )}
             </div>
           )}
-
-          {/* Google OAuth Button */}
-          <button
-            type="button"
-            onClick={handleGoogleLogin}
-            className="w-full flex items-center justify-center space-x-3 py-2.5 px-4 rounded-xl bg-slate-50 dark:bg-slate-950 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 font-semibold text-xs transition-all shadow-sm hover:border-indigo-500 cursor-pointer"
-          >
-            <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
-              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
-            </svg>
-            <span>Continue with Google</span>
-          </button>
-
-          <div className="relative flex items-center justify-center">
-            <div className="border-t border-slate-200 dark:border-slate-800 w-full" />
-            <span className="bg-white dark:bg-slate-900 px-3 text-[10px] uppercase tracking-wider text-slate-400 font-semibold absolute">
-              or with email & password
-            </span>
-          </div>
 
           {/* Email & Password Form */}
           <form onSubmit={handleSubmit} className="space-y-3.5">
             {mode === 'signup' && (
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Full Name</label>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Your Full Name</label>
                 <div className="relative">
                   <User className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                   <input
@@ -240,15 +292,23 @@ export const AuthPage = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Password</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">Password</label>
+                {mode === 'signup' && (
+                  <span className="text-[10px] text-slate-400">Min. 6 characters</span>
+                )}
+              </div>
               <div className="relative">
                 <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                 <input
                   type="password"
                   required
-                  placeholder="At least 6 characters"
+                  placeholder="••••••••"
                   value={password}
-                  onChange={e => setPassword(e.target.value)}
+                  onChange={e => {
+                    setPassword(e.target.value);
+                    if (authError) setAuthError('');
+                  }}
                   className="w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500"
                 />
               </div>
@@ -257,16 +317,16 @@ export const AuthPage = () => {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-indigo-600/30 transition flex items-center justify-center space-x-2 mt-2 cursor-pointer disabled:opacity-50"
+              className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-indigo-600/30 transition flex items-center justify-center space-x-2 mt-3 cursor-pointer disabled:opacity-50 active:scale-95"
             >
               {isSubmitting ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>{mode === 'signin' ? 'Signing in...' : 'Creating account...'}</span>
+                  <span>{mode === 'signin' ? 'Authenticating...' : 'Creating account...'}</span>
                 </>
               ) : (
                 <>
-                  <span>{mode === 'signin' ? 'Sign In to PULSE' : 'Create My Free Account'}</span>
+                  <span>{mode === 'signin' ? 'Sign In to Dashboard' : 'Create Free Account'}</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}

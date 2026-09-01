@@ -22,6 +22,7 @@ export const AuthProvider = ({ children }) => {
       name,
       avatar,
       provider,
+      emailConfirmed: Boolean(supaUser.email_confirmed_at || supaUser.confirmed_at),
       raw: supaUser
     };
   };
@@ -51,7 +52,7 @@ export const AuthProvider = ({ children }) => {
   // Sign in with Email & Password
   const signInWithEmail = async (email, password) => {
     const { data, error } = await supabase.auth.signInWithPassword({
-      email,
+      email: email.trim().toLowerCase(),
       password
     });
     if (error) throw error;
@@ -60,25 +61,30 @@ export const AuthProvider = ({ children }) => {
 
   // Sign up with Email, Password & Name
   const signUpWithEmail = async (email, password, name) => {
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanName = name ? name.trim() : cleanEmail.split('@')[0];
+
     const { data, error } = await supabase.auth.signUp({
-      email,
+      email: cleanEmail,
       password,
       options: {
         data: {
-          full_name: name || email.split('@')[0]
-        }
+          full_name: cleanName
+        },
+        emailRedirectTo: window.location.origin
       }
     });
     if (error) throw error;
     return data;
   };
 
-  // Sign in with Google OAuth
-  const loginWithGoogle = async () => {
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
+  // Resend Email Verification link
+  const resendConfirmationEmail = async (email) => {
+    const { data, error } = await supabase.auth.resend({
+      type: 'signup',
+      email: email.trim().toLowerCase(),
       options: {
-        redirectTo: window.location.origin
+        emailRedirectTo: window.location.origin
       }
     });
     if (error) throw error;
@@ -100,7 +106,7 @@ export const AuthProvider = ({ children }) => {
         loading,
         signInWithEmail,
         signUpWithEmail,
-        loginWithGoogle,
+        resendConfirmationEmail,
         logout
       }}
     >
