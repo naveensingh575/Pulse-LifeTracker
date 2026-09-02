@@ -6,7 +6,8 @@ import {
   getISTWeekDays,
   getISTDate,
   getISTDateDiffDays,
-  isDateEditable
+  isDateEditable,
+  detectDeviceDefaultCurrency
 } from '../utils/dateUtils';
 
 export const SUPPORTED_CURRENCIES = [
@@ -119,9 +120,13 @@ export const DashboardProvider = ({ children }) => {
     setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
   };
 
-  // Currency state: defaults to '$', customizable to ₹, €, £, ¥, etc.
+  // Currency state: defaults to auto-detected device currency for first-time users, then respects localStorage
   const [currency, setCurrencyState] = useState(() => {
-    return localStorage.getItem('pulse_currency') || '$';
+    const saved = localStorage.getItem('pulse_currency');
+    if (saved) return saved;
+    const detected = detectDeviceDefaultCurrency();
+    localStorage.setItem('pulse_currency', detected);
+    return detected;
   });
 
   const setCurrency = (newCurrency) => {

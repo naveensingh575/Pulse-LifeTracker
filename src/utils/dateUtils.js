@@ -12,6 +12,61 @@ export const getUserTimeZone = () => {
   }
 };
 
+// Detect default currency based on user's device timezone and locale
+export const detectDeviceDefaultCurrency = () => {
+  try {
+    const tz = (Intl.DateTimeFormat().resolvedOptions().timeZone || '').toLowerCase();
+    const lang = (navigator.language || (navigator.languages && navigator.languages[0]) || '').toLowerCase();
+
+    // India (INR - ₹)
+    if (tz.includes('calcutta') || tz.includes('kolkata') || tz.includes('india') || lang.includes('en-in') || lang.includes('hi')) {
+      return '₹';
+    }
+    // United Kingdom (GBP - £)
+    if (tz.includes('london') || tz.includes('belfast') || lang === 'en-gb') {
+      return '£';
+    }
+    // Japan (JPY - ¥)
+    if (tz.includes('tokyo') || lang.includes('ja')) {
+      return '¥';
+    }
+    // Canada (CAD - C$)
+    if (
+      tz.includes('toronto') || tz.includes('vancouver') || tz.includes('montreal') ||
+      tz.includes('edmonton') || tz.includes('winnipeg') || tz.includes('halifax') ||
+      lang.includes('en-ca') || lang.includes('fr-ca')
+    ) {
+      return 'C$';
+    }
+    // Australia (AUD - A$)
+    if (
+      tz.includes('sydney') || tz.includes('melbourne') || tz.includes('brisbane') ||
+      tz.includes('perth') || tz.includes('adelaide') || tz.includes('australia') ||
+      lang.includes('en-au')
+    ) {
+      return 'A$';
+    }
+    // UAE / Middle East (AED)
+    if (tz.includes('dubai') || tz.includes('muscat') || lang.includes('ar-ae')) {
+      return 'AED';
+    }
+    // Europe (EUR - €)
+    if (
+      tz.includes('paris') || tz.includes('berlin') || tz.includes('madrid') || tz.includes('rome') ||
+      tz.includes('amsterdam') || tz.includes('brussels') || tz.includes('vienna') || tz.includes('dublin') ||
+      tz.includes('athens') || tz.includes('lisbon') || tz.includes('helsinki') || tz.includes('europe') ||
+      lang.includes('fr-') || lang.includes('de-') || lang.includes('es-') || lang.includes('it-') || lang.includes('nl-')
+    ) {
+      return '€';
+    }
+  } catch (e) {
+    // fallback
+  }
+
+  // Americas & international default
+  return '$';
+};
+
 // Returns a Date object representing the current local date
 export const getLocalDate = (date = new Date()) => {
   return typeof date === 'string' || typeof date === 'number' ? new Date(date) : date;

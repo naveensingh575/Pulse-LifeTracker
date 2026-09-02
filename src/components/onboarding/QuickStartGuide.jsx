@@ -7,9 +7,8 @@ import {
   Plus, 
   ArrowRight, 
   Flame, 
-  DollarSign, 
+  Wallet, 
   CheckSquare, 
-  Layers,
   ChevronRight
 } from 'lucide-react';
 
@@ -33,7 +32,7 @@ export const QuickStartGuide = ({ onDismiss }) => {
   } = useDashboard();
 
   const [customHabit, setCustomHabit] = useState('');
-  const [budgetInput, setBudgetInput] = useState(monthlyBudget || 3000);
+  const [budgetInput, setBudgetInput] = useState(monthlyBudget || (currency === '₹' ? 30000 : 2500));
   const [taskInput, setTaskInput] = useState('');
   const [isAddingHabit, setIsAddingHabit] = useState(false);
   const [isSettingBudget, setIsSettingBudget] = useState(false);
@@ -219,7 +218,7 @@ export const QuickStartGuide = ({ onDismiss }) => {
                 2
               </span>
               <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                <DollarSign className="w-4 h-4 text-emerald-500" />
+                <Wallet className="w-4 h-4 text-emerald-500" />
                 Monthly Budget Ceiling
               </h3>
             </div>
@@ -249,12 +248,12 @@ export const QuickStartGuide = ({ onDismiss }) => {
                   </span>
                   <input
                     type="number"
-                    min="1"
-                    step="50"
+                    min="0"
+                    step="any"
                     value={budgetInput}
                     onChange={(e) => setBudgetInput(e.target.value)}
                     className="w-full pl-8 pr-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg text-xs font-mono font-bold border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                    placeholder="e.g. 2500"
+                    placeholder={`e.g. ${currency === '₹' ? '30000' : '2500'}`}
                   />
                 </div>
                 <button
