@@ -23,7 +23,7 @@ export const PulseLogo = ({ size = 'md', className = '', animated = true }) => {
         {/* Subtle background glow */}
         <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/10 via-cyan-500/15 to-indigo-500/10 pointer-events-none" />
 
-        {/* Life Pulse Waveform SVG */}
+        {/* High-Peak Vitality Pulse Waveform SVG */}
         <svg
           width={iconSizes[size] || 22}
           height={iconSizes[size] || 22}
@@ -33,47 +33,39 @@ export const PulseLogo = ({ size = 'md', className = '', animated = true }) => {
           className={animated ? 'animate-pulse' : ''}
         >
           <defs>
-            <linearGradient id="pulseWaveGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <linearGradient id="highPeakPulseGrad" x1="0%" y1="100%" x2="100%" y2="0%">
               <stop offset="0%" stopColor="#10b981" />
-              <stop offset="50%" stopColor="#06b6d4" />
+              <stop offset="45%" stopColor="#06b6d4" />
               <stop offset="100%" stopColor="#6366f1" />
             </linearGradient>
-            <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+            <filter id="peakGlow" x="-30%" y="-30%" width="160%" height="160%">
               <feGaussianBlur stdDeviation="1.5" result="blur" />
               <feComposite in="SourceGraphic" in2="blur" operator="over" />
             </filter>
           </defs>
 
-          {/* Background baseline */}
+          {/* High-Energy Peak Waveform */}
           <path
-            d="M2 12h3.5"
-            stroke="url(#pulseWaveGrad)"
-            strokeWidth="2.2"
-            strokeLinecap="round"
-          />
-
-          {/* Heartbeat ECG / Life Pulse Peak */}
-          <path
-            d="M5.5 12l2.5-6.5 3.5 13 3-9 2 4.5 2-2H22"
-            stroke="url(#pulseWaveGrad)"
+            d="M2 13h3.2l2.3 2.5 4-11.5 3.5 13.5 3-8 2 3.5H22"
+            stroke="url(#highPeakPulseGrad)"
             strokeWidth="2.2"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
 
-          {/* Vitality Pulsing Node */}
+          {/* Glowing Peak Summit Apex (Representing Peak Performance & High Energy) */}
           <circle
             cx="11.5"
-            cy="18.5"
-            r="1.8"
+            cy="4"
+            r="2"
             fill="#06b6d4"
             className="animate-ping origin-center opacity-75"
           />
           <circle
             cx="11.5"
-            cy="18.5"
-            r="1.5"
-            fill="#10b981"
+            cy="4"
+            r="1.6"
+            fill="#38bdf8"
           />
         </svg>
       </div>
