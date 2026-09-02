@@ -83,8 +83,8 @@ export const Navbar = () => {
                   <div className="px-3 py-2 border-b border-slate-100 dark:border-slate-800 space-y-0.5">
                     <p className="text-xs font-bold text-slate-900 dark:text-slate-100">{user.name}</p>
                     <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">{user.email}</p>
-                    <span className="inline-block text-[9px] font-mono px-1.5 py-0.2 rounded bg-indigo-500/10 text-indigo-600 dark:text-cyan-400 border border-indigo-500/20">
-                      Supabase Cloud User
+                    <span className="inline-block text-[9px] font-mono px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-semibold">
+                      ● Active Account
                     </span>
                   </div>
 
