@@ -281,8 +281,8 @@ export const GoalsHeader = () => {
                     </div>
                     
                     <div className="flex justify-between items-center text-[10px] font-mono text-slate-600 dark:text-slate-400 font-medium">
-                      <span>{goal.unit === '₹' ? `₹${Number(goal.currentAmount).toLocaleString('en-IN')}` : `${goal.currentAmount} ${goal.unit}`}</span>
-                      <span>{goal.unit === '₹' ? `₹${Number(goal.targetAmount).toLocaleString('en-IN')}` : `${goal.targetAmount} ${goal.unit}`}</span>
+                      <span>{['$', '₹', '€', '£', '¥', 'CAD', 'AUD'].includes(goal.unit) ? `${goal.unit}${Number(goal.currentAmount).toLocaleString()}` : `${goal.currentAmount} ${goal.unit}`}</span>
+                      <span>{['$', '₹', '€', '£', '¥', 'CAD', 'AUD'].includes(goal.unit) ? `${goal.unit}${Number(goal.targetAmount).toLocaleString()}` : `${goal.targetAmount} ${goal.unit}`}</span>
                     </div>
                   </div>
                 </div>

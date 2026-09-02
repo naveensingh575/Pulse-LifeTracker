@@ -34,7 +34,9 @@ export const MoneyTracker = () => {
     setMonthlyAllocation,
     transactions,
     addTransaction,
-    deleteTransaction
+    deleteTransaction,
+    currency,
+    formatCurrency
   } = useDashboard();
 
   // Time-Horizon state: 'day' | 'week' | 'month'
@@ -305,7 +307,7 @@ export const MoneyTracker = () => {
             <ArrowDownLeft className="w-3.5 h-3.5 text-emerald-500" />
           </div>
           <p className="text-lg font-extrabold text-emerald-600 dark:text-emerald-400 font-mono">
-            +₹{periodIncome.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+            +{formatCurrency(periodIncome)}
           </p>
           <p className="text-[10px] text-slate-500 font-medium">Salary & revenue inflow</p>
         </div>
@@ -330,10 +332,10 @@ export const MoneyTracker = () => {
           
           <div className="flex items-baseline justify-between text-xs">
             <span className={`text-base font-extrabold font-mono ${budgetColor.text}`}>
-              ₹{periodExpenses.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+              {formatCurrency(periodExpenses)}
             </span>
             <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400">
-              / ₹{expenseBudget.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+              / {formatCurrency(expenseBudget)}
             </span>
           </div>
 
@@ -347,7 +349,7 @@ export const MoneyTracker = () => {
           <p className="text-[10px] text-slate-500 font-medium flex justify-between">
             <span>Remaining:</span>
             <span className={`font-bold font-mono ${remainingExpenseBudget >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
-              ₹{remainingExpenseBudget.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+              {formatCurrency(remainingExpenseBudget)}
             </span>
           </p>
         </div>
@@ -361,11 +363,11 @@ export const MoneyTracker = () => {
             </div>
           </div>
           <p className="text-lg font-extrabold text-indigo-600 dark:text-cyan-400 font-mono">
-            ₹{periodInvested.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+            {formatCurrency(periodInvested)}
           </p>
           <p className="text-[10px] text-slate-500 font-medium">
             {investmentGoal > 0
-              ? `Goal: ₹${investmentGoal.toLocaleString('en-IN')} (${Math.round((periodInvested / investmentGoal) * 100)}%)`
+              ? `Goal: ${formatCurrency(investmentGoal)} (${Math.round((periodInvested / investmentGoal) * 100)}%)`
               : 'Stocks, SIPs & Mutual Funds'}
           </p>
         </div>
@@ -377,7 +379,7 @@ export const MoneyTracker = () => {
             <PiggyBank className={`w-3.5 h-3.5 ${leftoverCash >= 0 ? 'text-emerald-500' : 'text-rose-500'}`} />
           </div>
           <p className={`text-lg font-extrabold font-mono ${leftoverCash >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
-            ₹{leftoverCash.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+            {formatCurrency(leftoverCash)}
           </p>
           <p className="text-[10px] text-slate-500 font-medium">
             Income − (Expense + Invested)
@@ -395,7 +397,7 @@ export const MoneyTracker = () => {
               <span>Income Allocation Distribution</span>
             </span>
             <span className="font-mono text-slate-500 text-[11px]">
-              Total Inflow: ₹{periodIncome.toLocaleString('en-IN')}
+              Total Inflow: {formatCurrency(periodIncome)}
             </span>
           </div>
 
@@ -406,7 +408,7 @@ export const MoneyTracker = () => {
               <div
                 className="bg-rose-500 transition-all duration-300"
                 style={{ width: `${Math.min(100, Math.round((periodExpenses / periodIncome) * 100))}%` }}
-                title={`Expenses Spent: ₹${periodExpenses} (${Math.round((periodExpenses / periodIncome) * 100)}%)`}
+                title={`Expenses Spent: ${formatCurrency(periodExpenses)} (${Math.round((periodExpenses / periodIncome) * 100)}%)`}
               />
             )}
             {/* Investments Portion */}
@@ -414,7 +416,7 @@ export const MoneyTracker = () => {
               <div
                 className="bg-indigo-500 transition-all duration-300"
                 style={{ width: `${Math.min(100, Math.round((periodInvested / periodIncome) * 100))}%` }}
-                title={`Investments: ₹${periodInvested} (${Math.round((periodInvested / periodIncome) * 100)}%)`}
+                title={`Investments: ${formatCurrency(periodInvested)} (${Math.round((periodInvested / periodIncome) * 100)}%)`}
               />
             )}
             {/* Leftover Surplus Portion */}
@@ -422,7 +424,7 @@ export const MoneyTracker = () => {
               <div
                 className="bg-emerald-500 transition-all duration-300"
                 style={{ width: `${Math.min(100, Math.round((leftoverCash / periodIncome) * 100))}%` }}
-                title={`Leftover Surplus: ₹${leftoverCash} (${Math.round((leftoverCash / periodIncome) * 100)}%)`}
+                title={`Leftover Surplus: ${formatCurrency(leftoverCash)} (${Math.round((leftoverCash / periodIncome) * 100)}%)`}
               />
             )}
           </div>
@@ -430,15 +432,15 @@ export const MoneyTracker = () => {
           <div className="flex flex-wrap items-center gap-4 text-[10px] font-mono text-slate-500 dark:text-slate-400 pt-0.5">
             <div className="flex items-center space-x-1.5">
               <span className="w-2 h-2 rounded-full bg-rose-500" />
-              <span>Expenses: ₹{periodExpenses.toLocaleString('en-IN')} ({Math.round((periodExpenses / periodIncome) * 100)}%)</span>
+              <span>Expenses: {formatCurrency(periodExpenses)} ({Math.round((periodExpenses / periodIncome) * 100)}%)</span>
             </div>
             <div className="flex items-center space-x-1.5">
               <span className="w-2 h-2 rounded-full bg-indigo-500" />
-              <span>Investments: ₹{periodInvested.toLocaleString('en-IN')} ({Math.round((periodInvested / periodIncome) * 100)}%)</span>
+              <span>Investments: {formatCurrency(periodInvested)} ({Math.round((periodInvested / periodIncome) * 100)}%)</span>
             </div>
             <div className="flex items-center space-x-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500" />
-              <span>Surplus Cash: ₹{Math.max(0, leftoverCash).toLocaleString('en-IN')} ({Math.max(0, Math.round((leftoverCash / periodIncome) * 100))}%)</span>
+              <span>Surplus Cash: {formatCurrency(Math.max(0, leftoverCash))} ({Math.max(0, Math.round((leftoverCash / periodIncome) * 100))}%)</span>
             </div>
           </div>
         </div>
@@ -540,7 +542,7 @@ export const MoneyTracker = () => {
                         : 'text-rose-600 dark:text-rose-400'
                     }`}
                   >
-                    {tx.type === 'income' ? '+' : tx.type === 'investment' ? '📈 ' : '-'}₹{Number(tx.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    {tx.type === 'income' ? '+' : tx.type === 'investment' ? '📈 ' : '-'}{currency}{Number(tx.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                   </span>
 
                   <button
@@ -585,7 +587,7 @@ export const MoneyTracker = () => {
             <form onSubmit={handleSaveBudgetModal} className="space-y-3">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Target Expense Living Budget (₹)
+                  Target Expense Living Budget ({currency})
                 </label>
                 <input
                   type="number"
@@ -603,7 +605,7 @@ export const MoneyTracker = () => {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Target Investment Goal (Optional ₹)
+                  Target Investment Goal (Optional {currency})
                 </label>
                 <input
                   type="number"

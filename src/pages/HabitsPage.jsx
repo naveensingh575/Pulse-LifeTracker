@@ -96,7 +96,7 @@ export const HabitsPage = () => {
               Habits Tracker & Streak Hub
             </h2>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Daily Checklist, 7-Day Weekly Strip & Dynamic Monthly Heatmap in IST
+              Daily Checklist, 7-Day Weekly Strip & Dynamic Monthly Heatmap
             </p>
           </div>
         </div>
@@ -426,7 +426,7 @@ export const HabitsPage = () => {
 
               <div className="flex items-center space-x-2 text-[11px]">
                 <span className="inline-block w-2.5 h-2.5 rounded-full ring-2 ring-indigo-500" />
-                <span>Highlighted Border = Today (IST)</span>
+                <span>Highlighted Border = Today</span>
               </div>
             </div>
 

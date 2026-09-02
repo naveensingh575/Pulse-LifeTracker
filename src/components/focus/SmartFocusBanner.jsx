@@ -11,7 +11,8 @@ export const SmartFocusBanner = () => {
     habits,
     isHabitDoneOn,
     tasks,
-    goals
+    goals,
+    formatCurrency
   } = useDashboard();
 
   const navigate = useNavigate();
@@ -122,7 +123,7 @@ export const SmartFocusBanner = () => {
       badge: 'Runway Alert',
       color: 'rose',
       title: `${spentPct}% Monthly Budget Consumed`,
-      desc: `₹${Math.max(0, remainingBudget).toLocaleString('en-IN')} remaining. Slow discretionary dining and shopping.`,
+      desc: `${formatCurrency(Math.max(0, remainingBudget))} remaining. Slow discretionary dining and shopping.`,
       actionText: 'Review Cashflow',
       route: '/finance'
     });
@@ -132,7 +133,7 @@ export const SmartFocusBanner = () => {
       icon: Wallet,
       badge: 'Healthy Runway',
       color: 'emerald',
-      title: `₹${Math.max(0, remainingBudget).toLocaleString('en-IN')} Budget Buffer`,
+      title: `${formatCurrency(Math.max(0, remainingBudget))} Budget Buffer`,
       desc: `Spending pace is healthy with ${100 - spentPct}% budget available.`,
       actionText: 'Finance Pulse',
       route: '/finance'

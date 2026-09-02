@@ -1,12 +1,29 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useDashboard } from '../context/DashboardContext';
+import { QuickStartGuide } from '../components/onboarding/QuickStartGuide';
 import { SmartFocusBanner } from '../components/focus/SmartFocusBanner';
 import { RoutineWidget } from '../components/routines/RoutineWidget';
 import { PrioritizedTasks } from '../components/dashboard/PrioritizedTasks';
 import { RemindersList } from '../components/reminders/RemindersList';
 import { HabitSnapshot } from '../components/dashboard/HabitSnapshot';
 import { FinanceSnapshot } from '../components/dashboard/FinanceSnapshot';
+import { Sparkles, LayoutDashboard } from 'lucide-react';
 
 export const OverviewPage = () => {
+  const { habits, tasks, isLoadingData } = useDashboard();
+  
+  // Show onboarding by default if brand new user (0 habits and 0 tasks)
+  const isBrandNewUser = !isLoadingData && habits?.length === 0 && tasks?.length === 0;
+  const [showOnboarding, setShowOnboarding] = useState(true);
+
+  if (isBrandNewUser && showOnboarding) {
+    return (
+      <div className="space-y-6 animate-in fade-in duration-200">
+        <QuickStartGuide onDismiss={() => setShowOnboarding(false)} />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       

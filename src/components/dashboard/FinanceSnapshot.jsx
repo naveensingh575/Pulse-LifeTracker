@@ -16,7 +16,9 @@ export const FinanceSnapshot = () => {
   const {
     transactions,
     addTransaction,
-    getMonthlyAllocation
+    getMonthlyAllocation,
+    currency,
+    formatCurrency
   } = useDashboard();
 
   const [isQuickExpenseOpen, setIsQuickExpenseOpen] = useState(false);
@@ -113,10 +115,10 @@ export const FinanceSnapshot = () => {
         <div className="flex items-baseline justify-between">
           <div className="flex items-baseline space-x-2">
             <span className="text-2xl font-extrabold text-slate-900 dark:text-slate-100 font-mono">
-              ₹{monthExpenses.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+              {formatCurrency(monthExpenses)}
             </span>
             <span className="text-xs text-slate-500 font-mono">
-              / ₹{monthlyBudgetCap.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+              / {formatCurrency(monthlyBudgetCap)}
             </span>
           </div>
 
@@ -136,7 +138,7 @@ export const FinanceSnapshot = () => {
         <div className="flex items-center justify-between text-[11px] text-slate-500 font-medium">
           <span>Remaining Budget:</span>
           <span className={`font-mono font-bold ${remainingBudget >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
-            ₹{remainingBudget.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+            {formatCurrency(remainingBudget)}
           </span>
         </div>
       </div>
@@ -147,10 +149,10 @@ export const FinanceSnapshot = () => {
           <ArrowUpRight className="w-4 h-4 text-emerald-500 shrink-0" />
           <div>
             <p className="font-bold text-slate-900 dark:text-slate-100">
-              ₹{todayExpenses.toLocaleString('en-IN')} spent today
+              {formatCurrency(todayExpenses)} spent today
             </p>
             <p className="text-[10px] text-slate-500">
-              Safe Daily Allowance: <strong className="text-slate-700 dark:text-slate-300">₹{Math.round(safeDailyPace).toLocaleString('en-IN')}/day</strong>
+              Safe Daily Allowance: <strong className="text-slate-700 dark:text-slate-300">{formatCurrency(Math.round(safeDailyPace))}/day</strong>
             </p>
           </div>
         </div>
@@ -170,7 +172,7 @@ export const FinanceSnapshot = () => {
           <div className="w-full max-w-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-4 shadow-2xl text-slate-900 dark:text-slate-100">
             <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
               <h4 className="text-sm font-bold flex items-center gap-1.5">
-                <span className="text-emerald-500 font-extrabold text-base">₹</span>
+                <span className="text-emerald-500 font-extrabold text-base">{currency}</span>
                 Log Quick Expense
               </h4>
               <button onClick={() => setIsQuickExpenseOpen(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer">

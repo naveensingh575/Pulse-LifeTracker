@@ -1,34 +1,44 @@
 /**
- * IST (Indian Standard Time - Asia/Kolkata / UTC+05:30) Timezone & Calendar Engine
+ * Universal Local Timezone & Dynamic Calendar Engine
+ * Auto-detects device timezone with seamless backward-compatible aliases
  */
 
-// Format any date into IST Date representation
-export const getISTDate = (date = new Date()) => {
-  const d = typeof date === 'string' || typeof date === 'number' ? new Date(date) : date;
-  // Convert to IST (UTC + 5.5 hours)
-  const utc = d.getTime() + (d.getTimezoneOffset() * 60000);
-  const istOffset = 5.5 * 60 * 60000;
-  return new Date(utc + istOffset);
+// Get user's device local timezone (e.g., "Asia/Kolkata", "America/New_York", "Europe/London")
+export const getUserTimeZone = () => {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+  } catch (e) {
+    return 'UTC';
+  }
 };
 
-// Returns YYYY-MM-DD formatted string in IST
-export const getISTDateString = (date = new Date()) => {
-  const ist = getISTDate(date);
-  const year = ist.getFullYear();
-  const month = String(ist.getMonth() + 1).padStart(2, '0');
-  const day = String(ist.getDate()).padStart(2, '0');
+// Returns a Date object representing the current local date
+export const getLocalDate = (date = new Date()) => {
+  return typeof date === 'string' || typeof date === 'number' ? new Date(date) : date;
+};
+
+// Returns YYYY-MM-DD formatted string in user's local timezone
+export const getLocalDateString = (date = new Date()) => {
+  const d = getLocalDate(date);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 };
 
-// Returns yesterday's date string in IST
+// Backward-compatible aliases
+export const getISTDate = getLocalDate;
+export const getISTDateString = getLocalDateString;
+
+// Returns yesterday's date string
 export const getYesterdayDateString = () => {
-  const ist = getISTDate();
-  ist.setDate(ist.getDate() - 1);
-  return getISTDateString(ist);
+  const d = getLocalDate();
+  d.setDate(d.getDate() - 1);
+  return getLocalDateString(d);
 };
 
 // Calculate difference in calendar days (dateStrA - dateStrB)
-export const getISTDateDiffDays = (dateStrA, dateStrB) => {
+export const getLocalDateDiffDays = (dateStrA, dateStrB) => {
   const [y1, m1, d1] = dateStrA.split('-').map(Number);
   const [y2, m2, d2] = dateStrB.split('-').map(Number);
   const dateA = new Date(y1, m1 - 1, d1);
@@ -37,43 +47,47 @@ export const getISTDateDiffDays = (dateStrA, dateStrB) => {
   return Math.round(diffTime / (1000 * 60 * 60 * 24));
 };
 
-// Helper to get start of Monday for a given week in IST
+export const getISTDateDiffDays = getLocalDateDiffDays;
+
+// Helper to get start of Monday for a given week
 export const getMondayOfWeek = (refDate = new Date()) => {
-  const ist = getISTDate(refDate);
-  const dayOfWeek = ist.getDay(); // 0 is Sun, 1 is Mon, 6 is Sat
+  const d = getLocalDate(refDate);
+  const dayOfWeek = d.getDay(); // 0 is Sun, 1 is Mon, 6 is Sat
   const distanceToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-  const monday = new Date(ist);
-  monday.setDate(ist.getDate() + distanceToMonday);
+  const monday = new Date(d);
+  monday.setDate(d.getDate() + distanceToMonday);
   monday.setHours(0, 0, 0, 0);
   return monday;
 };
 
 // Check if a date is editable: all days of Last Week + this week up to Today
 export const isDateEditable = (dateStr) => {
-  const todayStr = getISTDateString();
+  const todayStr = getLocalDateString();
   
   // Future dates (tomorrow onward) are strictly disabled
   if (dateStr > todayStr) return false;
 
-  // Calculate Monday of last week in IST
+  // Calculate Monday of last week
   const currentMonday = getMondayOfWeek();
   const lastWeekMonday = new Date(currentMonday);
   lastWeekMonday.setDate(currentMonday.getDate() - 7);
-  const lastWeekMondayStr = getISTDateString(lastWeekMonday);
+  const lastWeekMondayStr = getLocalDateString(lastWeekMonday);
 
   // Editable if between Last Week's Monday and Today
   return dateStr >= lastWeekMondayStr && dateStr <= todayStr;
 };
 
-// Returns current year and month (1-12) in IST
-export const getISTYearMonth = (date = new Date()) => {
-  const ist = getISTDate(date);
+// Returns current year and month (1-12)
+export const getLocalYearMonth = (date = new Date()) => {
+  const d = getLocalDate(date);
   return {
-    year: ist.getFullYear(),
-    month: ist.getMonth() + 1, // 1-indexed (1 = Jan, 12 = Dec)
-    day: ist.getDate()
+    year: d.getFullYear(),
+    month: d.getMonth() + 1, // 1-indexed (1 = Jan, 12 = Dec)
+    day: d.getDate()
   };
 };
+
+export const getISTYearMonth = getLocalYearMonth;
 
 const MONTH_NAMES_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const MONTH_NAMES_FULL = [
@@ -85,25 +99,25 @@ const DAY_NAMES_FULL = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 
 
 export { MONTH_NAMES_SHORT, MONTH_NAMES_FULL, DAY_NAMES_SHORT, DAY_NAMES_FULL };
 
-// Calculate ISO Week Number in IST
+// Calculate ISO Week Number
 export const getISOWeekNumber = (refDate = new Date()) => {
-  const ist = getISTDate(refDate);
-  const d = new Date(Date.UTC(ist.getFullYear(), ist.getMonth(), ist.getDate()));
-  const dayNum = d.getUTCDay() || 7;
-  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-  return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+  const d = getLocalDate(refDate);
+  const target = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const dayNum = target.getUTCDay() || 7;
+  target.setUTCDate(target.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(target.getUTCFullYear(), 0, 1));
+  return Math.ceil((((target - yearStart) / 86400000) + 1) / 7);
 };
 
-// Get 7 days of the active week in IST (Monday to Sunday)
-export const getISTWeekDays = (refDate = new Date()) => {
+// Get 7 days of the active week (Monday to Sunday)
+export const getLocalWeekDays = (refDate = new Date()) => {
   const monday = getMondayOfWeek(refDate);
-  const todayStr = getISTDateString();
+  const todayStr = getLocalDateString();
 
   return Array.from({ length: 7 }).map((_, idx) => {
     const current = new Date(monday);
     current.setDate(monday.getDate() + idx);
-    const dateStr = getISTDateString(current);
+    const dateStr = getLocalDateString(current);
     const isToday = dateStr === todayStr;
     const isPast = dateStr < todayStr;
     const isFuture = dateStr > todayStr;
@@ -126,9 +140,11 @@ export const getISTWeekDays = (refDate = new Date()) => {
   });
 };
 
+export const getISTWeekDays = getLocalWeekDays;
+
 // Get formatted week badge, e.g. "Week 35 • Aug 24 – Aug 30, 2026"
-export const getISTWeekBadge = (refDate = new Date()) => {
-  const weekDays = getISTWeekDays(refDate);
+export const getLocalWeekBadge = (refDate = new Date()) => {
+  const weekDays = getLocalWeekDays(refDate);
   const weekNum = getISOWeekNumber(refDate);
   const firstDay = weekDays[0];
   const lastDay = weekDays[6];
@@ -144,6 +160,8 @@ export const getISTWeekBadge = (refDate = new Date()) => {
   return `Week ${weekNum} • ${dateRange}`;
 };
 
+export const getISTWeekBadge = getLocalWeekBadge;
+
 // Get days count for a given month/year
 export const getDaysInMonth = (year, month) => {
   return new Date(year, month, 0).getDate();
@@ -151,7 +169,7 @@ export const getDaysInMonth = (year, month) => {
 
 // Generate full dynamic calendar grid for a given year & month (1-indexed month)
 export const getMonthCalendarGrid = (year, month) => {
-  const todayStr = getISTDateString();
+  const todayStr = getLocalDateString();
   const totalDays = getDaysInMonth(year, month);
   
   // First day of this month
@@ -224,8 +242,8 @@ export const getMonthCalendarGrid = (year, month) => {
   return days;
 };
 
-// Format a date string into readable IST display format, e.g. "Friday, Aug 28, 2026"
-export const formatISTDisplayDate = (dateStr) => {
+// Format a date string into readable display format, e.g. "Friday, Aug 28, 2026"
+export const formatDisplayDate = (dateStr) => {
   if (!dateStr) return '';
   const parts = dateStr.split('-');
   if (parts.length !== 3) return dateStr;
@@ -235,3 +253,5 @@ export const formatISTDisplayDate = (dateStr) => {
   const monthName = MONTH_NAMES_SHORT[m - 1];
   return `${dayName}, ${monthName} ${d}, ${y}`;
 };
+
+export const formatISTDisplayDate = formatDisplayDate;

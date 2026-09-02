@@ -9,6 +9,17 @@ import {
   isDateEditable
 } from '../utils/dateUtils';
 
+export const SUPPORTED_CURRENCIES = [
+  { symbol: '$', code: 'USD', name: 'US Dollar ($)' },
+  { symbol: '₹', code: 'INR', name: 'Indian Rupee (₹)' },
+  { symbol: '€', code: 'EUR', name: 'Euro (€)' },
+  { symbol: '£', code: 'GBP', name: 'British Pound (£)' },
+  { symbol: '¥', code: 'JPY', name: 'Japanese Yen (¥)' },
+  { symbol: 'C$', code: 'CAD', name: 'Canadian Dollar (C$)' },
+  { symbol: 'A$', code: 'AUD', name: 'Australian Dollar (A$)' },
+  { symbol: 'AED', code: 'AED', name: 'UAE Dirham (AED)' }
+];
+
 const DashboardContext = createContext();
 
 // Helper to calculate active streak from date-keyed completions
@@ -107,6 +118,21 @@ export const DashboardProvider = ({ children }) => {
   const toggleTheme = () => {
     setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
   };
+
+  // Currency state: defaults to '$', customizable to ₹, €, £, ¥, etc.
+  const [currency, setCurrencyState] = useState(() => {
+    return localStorage.getItem('pulse_currency') || '$';
+  });
+
+  const setCurrency = (newCurrency) => {
+    setCurrencyState(newCurrency);
+    localStorage.setItem('pulse_currency', newCurrency);
+  };
+
+  const formatCurrency = useCallback((amount = 0) => {
+    const num = Number(amount) || 0;
+    return `${currency}${num.toLocaleString()}`;
+  }, [currency]);
 
   // Navigation view state: 'overview' | 'analytics'
   const [activeView, setActiveView] = useState('overview');
@@ -929,6 +955,12 @@ export const DashboardProvider = ({ children }) => {
         activities,
         addActivity,
         deleteActivity,
+
+        // Currency & Localization
+        currency,
+        setCurrency,
+        formatCurrency,
+        SUPPORTED_CURRENCIES,
 
         // Monthly Allocations & Budget
         monthlyAllocations,

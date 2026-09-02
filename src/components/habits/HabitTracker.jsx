@@ -99,7 +99,7 @@ export const HabitTracker = ({ activeCategoryProp }) => {
             <div className="flex items-center gap-2">
               <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Daily Habit Tracker</h3>
               <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-700 dark:text-cyan-300 border border-indigo-500/20">
-                IST Timezone
+                7-Day Strip
               </span>
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5">

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useDashboard } from '../../context/DashboardContext';
 import {
   X,
   Target,
@@ -28,7 +29,7 @@ export const GOAL_ICONS = [
   { id: 'Home', label: 'Asset', emoji: '🏠', icon: Home },
   { id: 'Target', label: 'Focus', emoji: '🎯', icon: Target },
   { id: 'Flame', label: 'Habit', emoji: '🔥', icon: Flame },
-  { id: 'Heart', label: 'Wellness', emoji: '❤️', icon: Heart }
+  { id: 'Heart', label: 'Life', emoji: '❤️', icon: Heart }
 ];
 
 export const GOAL_COLOR_THEMES = [
@@ -42,12 +43,13 @@ export const GOAL_COLOR_THEMES = [
 ];
 
 export const GoalModal = ({ isOpen, onClose, onSave, onDelete, initialData }) => {
+  const { currency } = useDashboard();
   const [formData, setFormData] = useState({
     title: '',
     horizon: 'short', // 'short' | 'long'
     targetAmount: 100000,
     currentAmount: 0,
-    unit: '₹',
+    unit: currency || '₹',
     deadline: '',
     category: 'Financial',
     color: 'emerald',

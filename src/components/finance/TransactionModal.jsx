@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { useDashboard } from '../../context/DashboardContext';
 import { getISTDateString } from '../../utils/dateUtils';
 import { X, Plus, TrendingUp, ArrowDownLeft, ArrowUpRight, ShieldCheck } from 'lucide-react';
 
 export const TransactionModal = ({ isOpen, onClose, onSave }) => {
+  const { currency } = useDashboard();
   const [formData, setFormData] = useState({
     description: '',
     assetName: '',
@@ -72,8 +74,8 @@ export const TransactionModal = ({ isOpen, onClose, onSave }) => {
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50">
           <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-            <span className="text-emerald-600 dark:text-emerald-400 font-extrabold text-lg">₹</span>
-            Log Rupee Transaction
+            <span className="text-emerald-600 dark:text-emerald-400 font-extrabold text-lg">{currency}</span>
+            Log Transaction
           </h3>
           <button onClick={onClose} className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
             <X className="w-5 h-5" />
@@ -220,7 +222,7 @@ export const TransactionModal = ({ isOpen, onClose, onSave }) => {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Amount (₹)
+                Amount ({currency})
               </label>
               <input
                 type="number"
