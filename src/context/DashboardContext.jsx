@@ -99,9 +99,9 @@ export const DashboardProvider = ({ children }) => {
   const { user } = useAuth();
   const userId = user?.id;
 
-  // Theme state
+  // Theme state: defaults to 'light' for first-time users, then respects localStorage
   const [theme, setTheme] = useState(() => {
-    return localStorage.getItem('pulse_theme') || 'dark';
+    return localStorage.getItem('pulse_theme') || 'light';
   });
 
   const toggleTheme = () => {
