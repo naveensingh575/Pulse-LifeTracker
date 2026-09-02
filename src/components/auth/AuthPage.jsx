@@ -136,10 +136,6 @@ export const AuthPage = () => {
             </div>
           </div>
 
-          <h2 className="text-2xl sm:text-3xl font-extrabold leading-tight text-slate-900 dark:text-slate-100">
-            Personal life operating system for habits, workouts, goals & cashflow.
-          </h2>
-
           <div className="space-y-3 pt-2">
             {[
               'Securely Sync across Plateforms & Devices',
