@@ -143,7 +143,7 @@ export const GoalsHeader = () => {
             <Target className="w-4 h-4" />
           </div>
           <div>
-            <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">Target</h2>
+            <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">Targets</h2>
           </div>
         </div>
 
@@ -185,14 +185,6 @@ export const GoalsHeader = () => {
               <span className="text-[10px] opacity-80">({longGoalsCount})</span>
             </button>
           </div>
-
-          <button
-            onClick={handleOpenAdd}
-            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md shadow-indigo-600/30 transition cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Create Goal</span>
-          </button>
         </div>
       </div>
 

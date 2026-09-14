@@ -1,9 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { GoalsHeader } from '../components/goals/GoalsHeader';
 import { PredictiveFeasibility } from '../components/goals/PredictiveFeasibility';
-import { Target } from 'lucide-react';
+import { GoalModal } from '../components/goals/GoalModal';
+import { useDashboard } from '../context/DashboardContext';
+import { Target, Plus } from 'lucide-react';
 
 export const GoalsPage = () => {
+  const { addGoal } = useDashboard();
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       
@@ -19,6 +24,14 @@ export const GoalsPage = () => {
             </h2>
           </div>
         </div>
+
+        <button
+          onClick={() => setIsAddModalOpen(true)}
+          className="flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md shadow-indigo-600/30 transition cursor-pointer"
+        >
+          <Plus className="w-4 h-4" />
+          <span>Create Goal</span>
+        </button>
       </div>
 
       {/* Goal Cards Header Component */}
@@ -26,6 +39,13 @@ export const GoalsPage = () => {
 
       {/* Predictive Feasibility Engine */}
       <PredictiveFeasibility />
+
+      {/* Add Goal Modal */}
+      <GoalModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onSave={(data) => addGoal(data)}
+      />
 
     </div>
   );

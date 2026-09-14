@@ -163,10 +163,7 @@ export const PredictiveFeasibility = () => {
           </div>
           <div>
             <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
-              <span>Goal Feasibility & Predictive Advisory Engine</span>
-              <span className="text-[10px] px-2 py-0.2 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 font-mono font-bold border border-indigo-500/20">
-                Actionable Tasks Linked
-              </span>
+              <span>Goal Advisory Engine</span>
             </h3>
           </div>
         </div>
