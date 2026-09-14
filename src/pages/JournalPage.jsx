@@ -161,7 +161,7 @@ ${gratitude || '*No entries recorded.*'}
           </div>
           <div>
             <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-              Journal Pulse <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 font-mono">Daily Reflection</span>
+              Journal Pulse
             </h2>
           </div>
         </div>
