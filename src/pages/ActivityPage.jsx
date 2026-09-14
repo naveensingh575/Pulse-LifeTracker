@@ -58,10 +58,21 @@ export const ActivityPage = () => {
   const [selectedMonth, setSelectedMonth] = useState(currentISTYM.month); // 1-12
   const [selectedDate, setSelectedDate] = useState(todayStr);
 
-  const currentWeekDays = getISTWeekDays();
+  // Week navigation offset (0 = current week, -1 = last week, +1 = next week)
+  const [weekOffset, setWeekOffset] = useState(0);
+
+  const getWeekRefDate = () => {
+    const d = new Date();
+    d.setDate(d.getDate() + (weekOffset * 7));
+    return d;
+  };
+
+  const activeWeekRef = getWeekRefDate();
+  const currentWeekDays = getISTWeekDays(activeWeekRef);
   const weekStartStr = currentWeekDays[0].dateStr;
   const weekEndStr = currentWeekDays[6].dateStr;
-  const weekBadge = getISTWeekBadge();
+  const weekBadge = getISTWeekBadge(activeWeekRef);
+  const isCurrentWeek = weekOffset === 0;
 
   const years = [2025, 2026, 2027, 2028];
 
@@ -349,11 +360,39 @@ export const ActivityPage = () => {
 
           {/* If WEEK View is selected */}
           {timeframe === 'week' && (
-            <div className="flex items-center space-x-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="font-bold text-slate-500 dark:text-slate-400">Active Week:</span>
-              <span className="px-2.5 py-1 bg-indigo-500/10 text-indigo-700 dark:text-cyan-300 rounded-lg font-mono font-bold border border-indigo-500/20">
-                {weekBadge}
-              </span>
+              
+              <div className="flex items-center space-x-1.5 bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-200 dark:border-slate-800 text-xs">
+                <button
+                  onClick={() => setWeekOffset(prev => prev - 1)}
+                  className="p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 cursor-pointer transition"
+                  title="Previous Week"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                </button>
+
+                <span className="px-2 py-0.5 font-mono font-bold text-indigo-700 dark:text-cyan-300 text-xs">
+                  {weekBadge}
+                </span>
+
+                {!isCurrentWeek && (
+                  <button
+                    onClick={() => setWeekOffset(0)}
+                    className="px-1.5 py-0.5 text-[10px] font-extrabold text-indigo-600 dark:text-cyan-400 hover:underline cursor-pointer"
+                  >
+                    Current
+                  </button>
+                )}
+
+                <button
+                  onClick={() => setWeekOffset(prev => prev + 1)}
+                  className="p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 cursor-pointer transition"
+                  title="Next Week"
+                >
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
           )}
 
