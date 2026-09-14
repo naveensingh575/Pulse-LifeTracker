@@ -78,19 +78,19 @@ export const TasksPage = () => {
           </div>
           <div>
             <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-              Context Action Boards & To-Dos
+              To-Do List
             </h2>
           </div>
         </div>
 
-        {/* Right Header Actions: Status Filter & "+ New Task" Button */}
+        {/* Right Header Actions: Status Filter */}
         <div className="flex items-center space-x-3">
           <div className="flex items-center bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-200 dark:border-slate-800">
             {['pending', 'completed', 'all'].map(st => (
               <button
                 key={st}
                 onClick={() => setStatusFilter(st)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold capitalize transition ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold capitalize transition cursor-pointer ${
                   statusFilter === st ? 'bg-cyan-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                 }`}
               >
@@ -98,14 +98,6 @@ export const TasksPage = () => {
               </button>
             ))}
           </div>
-
-          <button
-            onClick={() => openAddModal(activeContext)}
-            className="flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-lg shadow-indigo-600/25 transition transform hover:scale-[1.02] active:scale-95"
-          >
-            <Plus className="w-4 h-4 stroke-[2.5]" />
-            <span>New Task</span>
-          </button>
         </div>
       </div>
 
@@ -195,6 +187,13 @@ export const TasksPage = () => {
           <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
             {activeContext === 'All' ? 'Action Feed' : `${activeContext} Tasks`} ({filteredTasks.length})
           </h3>
+          <button
+            onClick={() => openAddModal(activeContext)}
+            className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md shadow-indigo-600/25 transition transform hover:scale-[1.02] active:scale-95 cursor-pointer"
+          >
+            <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+            <span>New Task</span>
+          </button>
         </div>
 
         <div className="space-y-2">
