@@ -511,29 +511,49 @@ export const DashboardProvider = ({ children }) => {
     }
   };
 
-  const updateHabit = async (updatedHabit) => {
+  const updateHabit = async (arg1, arg2) => {
+    const updatedHabit = typeof arg1 === 'object' && arg1 !== null && !arg2 ? arg1 : { ...(arg2 || {}), id: (arg1?.id || arg1) };
+    const habitId = updatedHabit.id;
+    if (!habitId) {
+      console.warn('[PULSE] updateHabit missing habit id:', arg1, arg2);
+      return;
+    }
+
+    const name = (updatedHabit.name || '').trim();
+    const category = updatedHabit.category || 'Health';
+    const icon = updatedHabit.icon || 'Smile';
+    const frequency = updatedHabit.frequency || 'daily';
+    const createdAt = updatedHabit.createdAt || updatedHabit.created_at || getISTDateString();
+
     setHabits(prev =>
       prev.map(h => {
-        if (h.id !== updatedHabit.id) return h;
+        if (h.id !== habitId) return h;
+        const completions = h.completions || {};
+        const streak = calculateHabitStreak(completions, createdAt);
         return {
           ...h,
-          name: updatedHabit.name.trim(),
-          category: updatedHabit.category || h.category,
-          icon: updatedHabit.icon || h.icon,
-          frequency: updatedHabit.frequency || h.frequency,
-          createdAt: updatedHabit.createdAt || h.createdAt
+          name,
+          category,
+          icon,
+          frequency,
+          createdAt,
+          streak
         };
       })
     );
 
     if (userId) {
-      await supabase.from('habits').update({
-        name: updatedHabit.name.trim(),
-        category: updatedHabit.category,
-        icon: updatedHabit.icon,
-        frequency: updatedHabit.frequency,
-        created_at: updatedHabit.createdAt
-      }).eq('id', updatedHabit.id);
+      const { error } = await supabase.from('habits').update({
+        name,
+        category,
+        icon,
+        frequency,
+        created_at: createdAt
+      }).eq('id', habitId);
+
+      if (error) {
+        console.error('[PULSE Supabase updateHabit Error]:', error);
+      }
     }
   };
 
@@ -577,36 +597,52 @@ export const DashboardProvider = ({ children }) => {
     }
   };
 
-  const updateTransaction = async (updatedTx) => {
+  const updateTransaction = async (arg1, arg2) => {
+    const updatedTx = typeof arg1 === 'object' && arg1 !== null && !arg2 ? arg1 : { ...(arg2 || {}), id: (arg1?.id || arg1) };
+    const txId = updatedTx.id;
+    if (!txId) {
+      console.warn('[PULSE] updateTransaction missing tx id:', arg1, arg2);
+      return;
+    }
+
     const cleanAmt = Math.max(0, Number(updatedTx.amount) || 0);
-    const txDate = updatedTx.date || getISTDateString();
+    const txDate = updatedTx.date || updatedTx.transaction_date || getISTDateString();
+    const type = updatedTx.type || 'expense';
+    const category = updatedTx.category || 'Food';
+    const description = (updatedTx.description || '').trim() || (updatedTx.assetName || updatedTx.asset_name || 'Expense');
+    const assetName = updatedTx.assetName !== undefined ? updatedTx.assetName : (updatedTx.asset_name || '');
+    const notes = updatedTx.notes || '';
 
     setTransactions(prev =>
       prev.map(t => {
-        if (t.id !== updatedTx.id) return t;
+        if (t.id !== txId) return t;
         return {
           ...t,
-          type: updatedTx.type || t.type,
+          type,
           amount: cleanAmt,
-          category: updatedTx.category || t.category,
-          description: updatedTx.description || t.description,
-          assetName: updatedTx.assetName !== undefined ? updatedTx.assetName : t.assetName,
+          category,
+          description,
+          assetName,
           date: txDate,
-          notes: updatedTx.notes !== undefined ? updatedTx.notes : t.notes
+          notes
         };
       })
     );
 
     if (userId) {
-      await supabase.from('transactions').update({
-        type: updatedTx.type,
+      const { error } = await supabase.from('transactions').update({
+        type,
         amount: cleanAmt,
-        category: updatedTx.category,
-        description: updatedTx.description,
-        asset_name: updatedTx.assetName || null,
+        category,
+        description,
+        asset_name: assetName || null,
         transaction_date: txDate,
-        notes: updatedTx.notes || ''
-      }).eq('id', updatedTx.id);
+        notes
+      }).eq('id', txId);
+
+      if (error) {
+        console.error('[PULSE Supabase updateTransaction Error]:', error);
+      }
     }
   };
 
@@ -682,7 +718,8 @@ export const DashboardProvider = ({ children }) => {
     }
   };
 
-  const updateGoal = async (updatedGoal) => {
+  const updateGoal = async (arg1, arg2) => {
+    const updatedGoal = typeof arg1 === 'object' && arg1 !== null && !arg2 ? arg1 : { ...(arg2 || {}), id: (arg1?.id || arg1) };
     const normalized = normalizeGoal(updatedGoal);
     setGoals(prev => prev.map(g => (g.id === normalized.id ? normalized : g)));
 
@@ -877,33 +914,49 @@ export const DashboardProvider = ({ children }) => {
     }
   };
 
-  const updateTask = async (updatedTask) => {
-    const taskDueDate = updatedTask.dueDate || getISTDateString();
+  const updateTask = async (arg1, arg2) => {
+    const updatedTask = typeof arg1 === 'object' && arg1 !== null && !arg2 ? arg1 : { ...(arg2 || {}), id: (arg1?.id || arg1) };
+    const taskId = updatedTask.id;
+    if (!taskId) {
+      console.warn('[PULSE] updateTask missing task id:', arg1, arg2);
+      return;
+    }
+
+    const title = (updatedTask.title || '').trim();
+    const priority = updatedTask.priority || 'medium';
+    const category = updatedTask.category || 'Work';
+    const dueDate = updatedTask.dueDate || updatedTask.due_date || getISTDateString();
+    const linkedGoalTitle = updatedTask.linkedGoalTitle !== undefined ? updatedTask.linkedGoalTitle : (updatedTask.linked_goal_title || null);
+    const notes = updatedTask.notes || '';
 
     setTasks(prev =>
       prev.map(t => {
-        if (t.id !== updatedTask.id) return t;
+        if (t.id !== taskId) return t;
         return {
           ...t,
-          title: updatedTask.title.trim(),
-          priority: updatedTask.priority || t.priority,
-          category: updatedTask.category || t.category,
-          dueDate: taskDueDate,
-          linkedGoalTitle: updatedTask.linkedGoalTitle !== undefined ? updatedTask.linkedGoalTitle : t.linkedGoalTitle,
-          notes: updatedTask.notes !== undefined ? updatedTask.notes : t.notes
+          title,
+          priority,
+          category,
+          dueDate,
+          linkedGoalTitle,
+          notes
         };
       })
     );
 
     if (userId) {
-      await supabase.from('tasks').update({
-        title: updatedTask.title.trim(),
-        priority: updatedTask.priority,
-        category: updatedTask.category,
-        due_date: taskDueDate,
-        linked_goal_title: updatedTask.linkedGoalTitle || null,
-        notes: updatedTask.notes || ''
-      }).eq('id', updatedTask.id);
+      const { error } = await supabase.from('tasks').update({
+        title,
+        priority,
+        category,
+        due_date: dueDate,
+        linked_goal_title: linkedGoalTitle || null,
+        notes
+      }).eq('id', taskId);
+
+      if (error) {
+        console.error('[PULSE Supabase updateTask Error]:', error);
+      }
     }
   };
 
@@ -979,6 +1032,38 @@ export const DashboardProvider = ({ children }) => {
     }
   };
 
+  const updateDeadline = async (arg1, arg2) => {
+    const updated = typeof arg1 === 'object' && arg1 !== null && !arg2 ? arg1 : { ...(arg2 || {}), id: (arg1?.id || arg1) };
+    const deadlineId = updated.id;
+    if (!deadlineId) return;
+
+    setDeadlines(prev =>
+      prev.map(d => {
+        if (d.id !== deadlineId) return d;
+        return {
+          ...d,
+          title: (updated.title || d.title).trim(),
+          date: updated.date || updated.deadline_date || d.date,
+          category: updated.category || d.category,
+          tag: updated.tag !== undefined ? updated.tag : d.tag,
+          priority: updated.priority || d.priority,
+          isCompleted: updated.isCompleted !== undefined ? Boolean(updated.isCompleted) : d.isCompleted
+        };
+      }).sort((a, b) => new Date(a.date) - new Date(b.date))
+    );
+
+    if (userId) {
+      await supabase.from('deadlines').update({
+        title: (updated.title || '').trim(),
+        deadline_date: updated.date || updated.deadline_date,
+        category: updated.category,
+        tag: updated.tag || '',
+        priority: updated.priority,
+        is_completed: Boolean(updated.isCompleted)
+      }).eq('id', deadlineId);
+    }
+  };
+
   const deleteDeadline = async (id) => {
     setDeadlines(prev => prev.filter(d => d.id !== id));
     if (userId) {
@@ -1048,49 +1133,66 @@ export const DashboardProvider = ({ children }) => {
     }
   };
 
-  const updateActivity = async (updatedAct) => {
-    const actDate = updatedAct.date || getISTDateString();
+  const updateActivity = async (arg1, arg2) => {
+    const updatedAct = typeof arg1 === 'object' && arg1 !== null && !arg2 ? arg1 : { ...(arg2 || {}), id: (arg1?.id || arg1) };
+    const actId = updatedAct.id;
+    if (!actId) {
+      console.warn('[PULSE] updateActivity missing activity id:', arg1, arg2);
+      return;
+    }
+
+    const actDate = updatedAct.date || updatedAct.activity_date || getISTDateString();
+    const durationMins = Number(updatedAct.durationMins ?? updatedAct.duration_mins) || 0;
+    const totalVolumeKg = Number(updatedAct.totalVolumeKg ?? updatedAct.total_volume_kg) || 0;
+    const distance = Number(updatedAct.distance ?? updatedAct.distance_km) || 0;
+    const laps = Number(updatedAct.laps) || 0;
+    const poolLengthMeters = Number(updatedAct.poolLengthMeters ?? updatedAct.pool_length_meters) || 50;
+    const pagesRead = Number(updatedAct.pagesRead ?? updatedAct.pages_read) || 0;
+
+    const formattedObj = {
+      ...updatedAct,
+      id: actId,
+      date: actDate,
+      durationMins,
+      totalVolumeKg,
+      distance,
+      laps,
+      poolLengthMeters,
+      pagesRead
+    };
 
     setActivities(prev =>
-      prev.map(a => {
-        if (a.id !== updatedAct.id) return a;
-        return {
-          ...a,
-          ...updatedAct,
-          date: actDate,
-          durationMins: Number(updatedAct.durationMins) || 0,
-          totalVolumeKg: Number(updatedAct.totalVolumeKg) || 0,
-          distance: Number(updatedAct.distance) || 0,
-          laps: Number(updatedAct.laps) || 0,
-          pagesRead: Number(updatedAct.pagesRead) || 0
-        };
-      })
+      prev.map(a => (a.id === actId ? { ...a, ...formattedObj } : a))
     );
 
     if (userId) {
-      await supabase.from('activities').update({
+      const { error } = await supabase.from('activities').update({
         type: updatedAct.type,
         title: updatedAct.title,
         activity_date: actDate,
-        duration_mins: Number(updatedAct.durationMins) || 0,
+        duration_mins: durationMins,
         notes: updatedAct.notes || '',
-        session_focus: updatedAct.sessionFocus || null,
-        total_volume_kg: Number(updatedAct.totalVolumeKg) || 0,
+        session_focus: updatedAct.sessionFocus || updatedAct.session_focus || null,
+        total_volume_kg: totalVolumeKg,
         exercises: updatedAct.exercises || [],
-        distance_km: Number(updatedAct.distance) || 0,
+        distance_km: distance,
         pace: updatedAct.pace || null,
-        heart_rate_zone: updatedAct.heartRateZone || null,
+        heart_rate_zone: updatedAct.heartRateZone || updatedAct.heart_rate_zone || null,
         stroke: updatedAct.stroke || null,
-        laps: Number(updatedAct.laps) || 0,
-        pool_length_meters: Number(updatedAct.poolLengthMeters) || 50,
-        sport_type: updatedAct.sportType || null,
+        laps: laps,
+        pool_length_meters: poolLengthMeters,
+        sport_type: updatedAct.sportType || updatedAct.sport_type || null,
         intensity: updatedAct.intensity || null,
-        reading_sub_type: updatedAct.readingSubType || null,
-        book_title: updatedAct.bookTitle || null,
-        pages_read: Number(updatedAct.pagesRead) || 0,
-        skill_name: updatedAct.skillName || null,
-        module_name: updatedAct.moduleName || null
-      }).eq('id', updatedAct.id);
+        reading_sub_type: updatedAct.readingSubType || updatedAct.reading_sub_type || null,
+        book_title: updatedAct.bookTitle || updatedAct.book_title || null,
+        pages_read: pagesRead,
+        skill_name: updatedAct.skillName || updatedAct.skill_name || null,
+        module_name: updatedAct.moduleName || updatedAct.module_name || null
+      }).eq('id', actId);
+
+      if (error) {
+        console.error('[PULSE Supabase updateActivity Error]:', error);
+      }
     }
   };
 
@@ -1178,6 +1280,7 @@ export const DashboardProvider = ({ children }) => {
         // Deadlines
         deadlines,
         addDeadline,
+        updateDeadline,
         deleteDeadline,
 
         // Habits

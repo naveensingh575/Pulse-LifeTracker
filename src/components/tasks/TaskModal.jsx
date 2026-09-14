@@ -56,7 +56,7 @@ export const TaskModal = ({ isOpen, onClose, initialCategory = 'Work', initialTa
 
     if (initialTask) {
       if (onSave) {
-        onSave(payload);
+        onSave({ id: initialTask.id, ...payload });
       } else {
         updateTask(initialTask.id, payload);
       }

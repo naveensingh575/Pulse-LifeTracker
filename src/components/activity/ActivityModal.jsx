@@ -288,6 +288,7 @@ export const ActivityModal = ({ isOpen, onClose, onSave, initialData = null }) =
     e.preventDefault();
 
     const baseActivity = {
+      ...(initialData?.id ? { id: initialData.id } : {}),
       type: actType,
       title: title.trim() || getDefaultTitle(),
       date,
