@@ -97,7 +97,7 @@ export const HabitTracker = ({ activeCategoryProp }) => {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Daily Habit Tracker</h3>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Weekly Habit Tracker</h3>
               <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-700 dark:text-cyan-300 border border-indigo-500/20">
                 Week
               </span>

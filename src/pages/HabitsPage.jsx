@@ -328,7 +328,7 @@ export const HabitsPage = () => {
               </div>
               <div>
                 <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                  Monthly Consistency Heatmap
+                  Monthly Habit Tracker
                 </h3>
               </div>
             </div>
