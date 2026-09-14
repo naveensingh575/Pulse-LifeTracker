@@ -97,7 +97,7 @@ export const FinanceSnapshot = () => {
             className="flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition shadow-sm cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>+ Quick Expense</span>
+            <span>Quick Expense</span>
           </button>
 
           <Link
