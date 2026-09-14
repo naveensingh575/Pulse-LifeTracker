@@ -104,7 +104,7 @@ export const TasksPage = () => {
             className="flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-lg shadow-indigo-600/25 transition transform hover:scale-[1.02] active:scale-95"
           >
             <Plus className="w-4 h-4 stroke-[2.5]" />
-            <span>+ New Task</span>
+            <span>New Task</span>
           </button>
         </div>
       </div>
