@@ -106,7 +106,7 @@ export const RoutineWidget = () => {
           </div>
           <div>
             <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-              {activeTab === 'morning' ? '☀️ Morning Planning Flow' : '🌙 Evening Review & Day-End Recap'}
+              {activeTab === 'morning' ? 'Planning' : 'Review'}
             </h3>
           </div>
         </div>

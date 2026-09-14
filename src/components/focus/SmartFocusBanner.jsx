@@ -150,7 +150,7 @@ export const SmartFocusBanner = () => {
           </div>
           <div>
             <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-              <span>"Where To Focus" Smart Directives</span>
+              <span>Where to Focus</span>
               <span className="text-[10px] text-slate-400 font-normal lowercase">• today's top 3 priorities</span>
             </h2>
           </div>
