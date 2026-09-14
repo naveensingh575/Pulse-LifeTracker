@@ -3,11 +3,27 @@ import { supabase } from '../lib/supabaseClient';
 
 const AuthContext = createContext();
 
+const checkIsRecoveryUrl = () => {
+  try {
+    const href = typeof window !== 'undefined' ? window.location.href : '';
+    const hash = typeof window !== 'undefined' ? window.location.hash : '';
+    const search = typeof window !== 'undefined' ? window.location.search : '';
+    return (
+      href.includes('type=recovery') ||
+      hash.includes('type=recovery') ||
+      search.includes('type=recovery') ||
+      sessionStorage.getItem('pulse_recovery_mode') === 'true'
+    );
+  } catch {
+    return false;
+  }
+};
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
+  const [isPasswordRecovery, setIsPasswordRecovery] = useState(checkIsRecoveryUrl);
 
   // Helper to format Supabase user into friendly profile
   const formatUser = (supaUser) => {
@@ -29,10 +45,19 @@ export const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
+    // Check if recovery in URL and persist to sessionStorage immediately
+    if (checkIsRecoveryUrl()) {
+      sessionStorage.setItem('pulse_recovery_mode', 'true');
+      setIsPasswordRecovery(true);
+    }
+
     // 1. Initial Session Check
     supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
       setSession(currentSession);
       setUser(currentSession ? formatUser(currentSession.user) : null);
+      if (checkIsRecoveryUrl()) {
+        setIsPasswordRecovery(true);
+      }
       setLoading(false);
     }).catch(() => {
       setLoading(false);
@@ -42,7 +67,8 @@ export const AuthProvider = ({ children }) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
       setSession(newSession);
       setUser(newSession ? formatUser(newSession.user) : null);
-      if (event === 'PASSWORD_RECOVERY') {
+      if (event === 'PASSWORD_RECOVERY' || checkIsRecoveryUrl()) {
+        sessionStorage.setItem('pulse_recovery_mode', 'true');
         setIsPasswordRecovery(true);
       }
       setLoading(false);
@@ -98,20 +124,9 @@ export const AuthProvider = ({ children }) => {
   // Request Password Reset Email with secure redirect link
   const resetPasswordForEmail = async (email) => {
     const cleanEmail = email.trim().toLowerCase();
+    const redirectUrl = `${window.location.origin}${window.location.pathname}#/reset-password`;
     const { data, error } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
-      redirectTo: `${window.location.origin}${window.location.pathname}#/login?mode=update-password`
-    });
-    if (error) throw error;
-    return data;
-  };
-
-  // Verify OTP token sent to email for password recovery
-  const verifyRecoveryOtp = async (email, token) => {
-    const cleanEmail = email.trim().toLowerCase();
-    const { data, error } = await supabase.auth.verifyOtp({
-      email: cleanEmail,
-      token: token.trim(),
-      type: 'recovery'
+      redirectTo: redirectUrl
     });
     if (error) throw error;
     return data;
@@ -123,15 +138,18 @@ export const AuthProvider = ({ children }) => {
       password: newPassword
     });
     if (error) throw error;
+    sessionStorage.removeItem('pulse_recovery_mode');
+    setIsPasswordRecovery(false);
     return data;
   };
 
   // Sign Out
   const logout = async () => {
+    sessionStorage.removeItem('pulse_recovery_mode');
+    setIsPasswordRecovery(false);
     await supabase.auth.signOut();
     setUser(null);
     setSession(null);
-    setIsPasswordRecovery(false);
   };
 
   return (
@@ -146,7 +164,6 @@ export const AuthProvider = ({ children }) => {
         signUpWithEmail,
         resendConfirmationEmail,
         resetPasswordForEmail,
-        verifyRecoveryOtp,
         updateUserPassword,
         logout
       }}

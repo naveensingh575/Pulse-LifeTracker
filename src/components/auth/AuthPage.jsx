@@ -20,27 +20,39 @@ import {
   Shield
 } from 'lucide-react';
 
-export const AuthPage = () => {
+export const AuthPage = ({ initialMode }) => {
   const {
     signInWithEmail,
     signUpWithEmail,
     resendConfirmationEmail,
     resetPasswordForEmail,
-    verifyRecoveryOtp,
     updateUserPassword,
     isPasswordRecovery,
-    setIsPasswordRecovery
+    logout
   } = useAuth();
   
   const navigate = useNavigate();
 
   // Modes: 'signin' | 'signup' | 'forgot' | 'update-password'
-  const [mode, setMode] = useState('signin');
+  const [mode, setMode] = useState(() => {
+    if (initialMode) return initialMode;
+    const hash = typeof window !== 'undefined' ? window.location.hash : '';
+    const href = typeof window !== 'undefined' ? window.location.href : '';
+    if (
+      hash.includes('type=recovery') ||
+      href.includes('type=recovery') ||
+      hash.includes('mode=update-password') ||
+      (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('pulse_recovery_mode') === 'true')
+    ) {
+      return 'update-password';
+    }
+    return 'signin';
+  });
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [name, setName] = useState('');
-  const [otpToken, setOtpToken] = useState('');
   
   const [authError, setAuthError] = useState('');
   const [authSuccess, setAuthSuccess] = useState('');
@@ -51,13 +63,21 @@ export const AuthPage = () => {
 
   // Check URL hash / auth recovery event on mount
   useEffect(() => {
-    const hash = window.location.hash || '';
-    if (hash.includes('type=recovery') || hash.includes('mode=update-password') || isPasswordRecovery) {
+    const hash = typeof window !== 'undefined' ? window.location.hash : '';
+    const href = typeof window !== 'undefined' ? window.location.href : '';
+    if (
+      initialMode === 'update-password' ||
+      hash.includes('type=recovery') ||
+      href.includes('type=recovery') ||
+      hash.includes('mode=update-password') ||
+      isPasswordRecovery ||
+      (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('pulse_recovery_mode') === 'true')
+    ) {
       setMode('update-password');
-      setAuthSuccess('Identity verified via secure email recovery link. Please set your new password.');
+      setAuthSuccess('Recovery link verified! Please enter your new password below.');
       setAuthError('');
     }
-  }, [isPasswordRecovery]);
+  }, [initialMode, isPasswordRecovery]);
 
   // RFC 5322 Compliant Email Validation
   const validateEmail = (emailStr) => {
@@ -107,11 +127,10 @@ export const AuthPage = () => {
       setIsSubmitting(true);
       try {
         await updateUserPassword(password);
-        setAuthSuccess('Password updated successfully! Redirecting to your dashboard...');
-        setIsPasswordRecovery(false);
-        setTimeout(() => navigate('/'), 800);
+        setAuthSuccess('Password updated successfully! Entering your dashboard...');
+        setTimeout(() => navigate('/'), 900);
       } catch (err) {
-        setAuthError(err.message || 'Failed to update password. Please request a fresh reset link.');
+        setAuthError(err.message || 'Failed to update password. Your recovery link may have expired.');
       } finally {
         setIsSubmitting(false);
       }
@@ -165,34 +184,6 @@ export const AuthPage = () => {
     }
   };
 
-  // Verify OTP code entered manually from email
-  const handleVerifyOtpSubmit = async (e) => {
-    e.preventDefault();
-    setAuthError('');
-    setAuthSuccess('');
-
-    if (!validateEmail(email)) {
-      setAuthError('Please enter your email address above.');
-      return;
-    }
-
-    if (!otpToken.trim()) {
-      setAuthError('Please enter the verification code received in your email.');
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      await verifyRecoveryOtp(email, otpToken);
-      setMode('update-password');
-      setAuthSuccess('Code verified successfully! Please enter your new password.');
-    } catch (err) {
-      setAuthError(err.message || 'Invalid or expired verification code. Please request a new one.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   const handleResendLink = async () => {
     if (!validateEmail(email)) {
       setAuthError('Please enter your email above to resend the confirmation link.');
@@ -209,6 +200,18 @@ export const AuthPage = () => {
     } finally {
       setIsResending(false);
     }
+  };
+
+  const handleCancelRecovery = async () => {
+    try {
+      await logout();
+    } catch {
+      // ignore
+    }
+    setMode('signin');
+    setAuthError('');
+    setAuthSuccess('');
+    setResetEmailSent(false);
   };
 
   return (
@@ -270,8 +273,8 @@ export const AuthPage = () => {
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                 {mode === 'signin' && 'Enter your verified email and password to access your dashboard.'}
                 {mode === 'signup' && 'Sign up with your email to start tracking your daily operating pulse.'}
-                {mode === 'forgot' && 'Enter your registered email to receive a secure password reset link & verification code.'}
-                {mode === 'update-password' && 'Choose a strong new password for your PULSE account.'}
+                {mode === 'forgot' && 'Enter your registered email to receive a secure password reset link.'}
+                {mode === 'update-password' && 'Enter a strong new password for your PULSE account.'}
               </p>
             </div>
 
@@ -451,72 +454,69 @@ export const AuthPage = () => {
           {/* 2. FORGOT PASSWORD REQUEST FORM */}
           {mode === 'forgot' && (
             <div className="space-y-4">
-              <form onSubmit={handleSubmit} className="space-y-3.5">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Registered Email Address</label>
-                  <div className="relative">
-                    <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                    <input
-                      type="email"
-                      required
-                      placeholder="name@domain.com"
-                      value={email}
-                      onChange={e => {
-                        setEmail(e.target.value);
-                        if (authError) setAuthError('');
-                      }}
-                      className="w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500"
-                    />
+              {!resetEmailSent ? (
+                <form onSubmit={handleSubmit} className="space-y-3.5">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Registered Email Address</label>
+                    <div className="relative">
+                      <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                      <input
+                        type="email"
+                        required
+                        placeholder="name@domain.com"
+                        value={email}
+                        onChange={e => {
+                          setEmail(e.target.value);
+                          if (authError) setAuthError('');
+                        }}
+                        className="w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500"
+                      />
+                    </div>
                   </div>
-                </div>
 
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-indigo-600/30 transition flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50 active:scale-95"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Sending reset email...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Send className="w-4 h-4" />
-                      <span>Send Password Reset Email</span>
-                    </>
-                  )}
-                </button>
-              </form>
-
-              {/* Enter OTP Code section if user has 6-digit code */}
-              {resetEmailSent && (
-                <form onSubmit={handleVerifyOtpSubmit} className="p-4 bg-slate-50 dark:bg-slate-950/80 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3 animate-in fade-in duration-200">
-                  <div className="flex items-center space-x-2 text-xs font-bold text-slate-800 dark:text-slate-200">
-                    <KeyRound className="w-4 h-4 text-indigo-500" />
-                    <span>Have a 6-digit verification code from email?</span>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-indigo-600/30 transition flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50 active:scale-95"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Sending reset email...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4" />
+                        <span>Send Password Reset Link</span>
+                      </>
+                    )}
+                  </button>
+                </form>
+              ) : (
+                <div className="p-4 bg-indigo-50/70 dark:bg-indigo-950/40 rounded-2xl border border-indigo-200/60 dark:border-indigo-500/20 space-y-3 text-xs animate-in fade-in duration-200">
+                  <div className="flex items-start space-x-3">
+                    <Mail className="w-5 h-5 text-indigo-600 dark:text-cyan-400 shrink-0 mt-0.5" />
+                    <div className="space-y-1">
+                      <h4 className="font-bold text-slate-900 dark:text-slate-100">Check your inbox</h4>
+                      <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-[11px]">
+                        We've sent a password reset link to <span className="font-semibold text-indigo-600 dark:text-cyan-400">{email}</span>. Click the link in the email to set your new password.
+                      </p>
+                    </div>
                   </div>
-                  <p className="text-[11px] text-slate-500">
-                    Enter the code received in your inbox to proceed directly:
-                  </p>
-                  
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="text"
-                      placeholder="123456"
-                      value={otpToken}
-                      onChange={e => setOtpToken(e.target.value)}
-                      className="flex-1 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-mono font-bold tracking-widest text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500"
-                    />
+
+                  <div className="pt-2 border-t border-indigo-200/40 dark:border-indigo-500/20 flex items-center justify-between">
+                    <span className="text-[11px] text-slate-500">Didn't get the email?</span>
                     <button
-                      type="submit"
-                      disabled={isSubmitting || !otpToken.trim()}
-                      className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-600/30 transition cursor-pointer disabled:opacity-50"
+                      type="button"
+                      onClick={handleSubmit}
+                      disabled={isSubmitting}
+                      className="text-xs font-bold text-indigo-600 dark:text-cyan-400 hover:underline flex items-center gap-1 cursor-pointer disabled:opacity-50"
                     >
-                      Verify Code
+                      {isSubmitting ? <Loader2 className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />}
+                      <span>Resend Link</span>
                     </button>
                   </div>
-                </form>
+                </div>
               )}
 
               <div className="pt-2 text-center">
@@ -597,15 +597,11 @@ export const AuthPage = () => {
               <div className="pt-2 text-center">
                 <button
                   type="button"
-                  onClick={() => {
-                    setMode('signin');
-                    setAuthError('');
-                    setAuthSuccess('');
-                  }}
+                  onClick={handleCancelRecovery}
                   className="text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-cyan-400 flex items-center justify-center gap-1.5 mx-auto cursor-pointer"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
-                  <span>Back to Sign In</span>
+                  <span>Cancel & Back to Sign In</span>
                 </button>
               </div>
             </form>

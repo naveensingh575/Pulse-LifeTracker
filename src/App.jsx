@@ -47,6 +47,7 @@ export default function App() {
         <DashboardProvider>
           <Routes>
             <Route path="/login" element={<AuthPage />} />
+            <Route path="/reset-password" element={<AuthPage initialMode="update-password" />} />
             <Route
               path="/*"
               element={

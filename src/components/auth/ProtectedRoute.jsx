@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { PulseLogo } from '../common/PulseLogo';
 
 export const ProtectedRoute = ({ children }) => {
-  const { user, loading } = useAuth();
+  const { user, loading, isPasswordRecovery } = useAuth();
 
   if (loading) {
     return (
@@ -14,6 +14,18 @@ export const ProtectedRoute = ({ children }) => {
         <p className="text-xs text-slate-400 font-mono">Synchronizing Pulse Life Tracker...</p>
       </div>
     );
+  }
+
+  // If user is currently in password recovery mode, force reset password screen
+  const inRecovery = isPasswordRecovery || 
+    (typeof window !== 'undefined' && (
+      sessionStorage.getItem('pulse_recovery_mode') === 'true' || 
+      window.location.href.includes('type=recovery') ||
+      window.location.hash.includes('type=recovery')
+    ));
+
+  if (inRecovery) {
+    return <Navigate to="/reset-password" replace />;
   }
 
   if (!user) {
