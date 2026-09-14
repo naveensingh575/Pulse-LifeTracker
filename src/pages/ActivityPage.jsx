@@ -252,13 +252,13 @@ export const ActivityPage = () => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center space-x-2">
             <CalendarIcon className="w-4 h-4 text-indigo-500" />
-            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Time-Horizon Volume Aggregations</h3>
+            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Activities Aggregations</h3>
           </div>
 
-          {/* Time Horizon Selector Tabs: Today | Week | Month */}
+          {/* Time Horizon Selector Tabs: Day | Week | Month */}
           <div className="flex items-center space-x-1 bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-200 dark:border-slate-800 self-start sm:self-auto">
             {[
-              { id: 'day', label: 'Today' },
+              { id: 'day', label: 'Day' },
               { id: 'week', label: 'Week' },
               { id: 'month', label: 'Month' }
             ].map(tab => (
