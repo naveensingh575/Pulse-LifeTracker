@@ -175,7 +175,7 @@ export const MoneyTracker = () => {
             <Wallet className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Financial Ledger & Income Allocation Hub</h3>
+            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Ledger & Income Hub</h3>
           </div>
         </div>
 
