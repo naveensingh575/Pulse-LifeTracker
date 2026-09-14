@@ -41,6 +41,7 @@ export const MoneyTracker = () => {
 
   // Time-Horizon state: 'day' | 'week' | 'month'
   const [timeframe, setTimeframe] = useState('month');
+  const [filterCategory, setFilterCategory] = useState('All');
   
   // IST Date & Period Selectors
   const currentISTYM = getISTYearMonth();
@@ -54,11 +55,11 @@ export const MoneyTracker = () => {
   
   // Current active month key
   const activeMonthKey = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`;
-  const activeAllocation = getMonthlyAllocation(activeMonthKey);
+  const activeAllocation = getMonthlyAllocation(activeMonthKey) || { expenseBudget: 0, investmentGoal: 0 };
   
   // Modal temp state
-  const [tempExpenseBudget, setTempExpenseBudget] = useState(activeAllocation.expenseBudget.toString());
-  const [tempInvestmentGoal, setTempInvestmentGoal] = useState(activeAllocation.investmentGoal.toString());
+  const [tempExpenseBudget, setTempExpenseBudget] = useState((activeAllocation.expenseBudget || 0).toString());
+  const [tempInvestmentGoal, setTempInvestmentGoal] = useState((activeAllocation.investmentGoal || 0).toString());
 
   // Week navigation offset (0 = current week, -1 = last week, +1 = next week)
   const [weekOffset, setWeekOffset] = useState(0);
@@ -71,16 +72,17 @@ export const MoneyTracker = () => {
 
   const activeWeekRef = getWeekRefDate();
   const currentWeekDays = getISTWeekDays(activeWeekRef);
-  const weekStartStr = currentWeekDays[0].dateStr;
-  const weekEndStr = currentWeekDays[6].dateStr;
+  const weekStartStr = currentWeekDays[0]?.dateStr || todayStr;
+  const weekEndStr = currentWeekDays[6]?.dateStr || todayStr;
   const weekBadge = getISTWeekBadge(activeWeekRef);
   const isCurrentWeek = weekOffset === 0;
 
   const years = [2025, 2026, 2027, 2028];
 
   const handleOpenBudgetModal = () => {
-    setTempExpenseBudget(activeAllocation.expenseBudget.toString());
-    setTempInvestmentGoal(activeAllocation.investmentGoal.toString());
+    const currentAlloc = getMonthlyAllocation(activeMonthKey) || { expenseBudget: 0, investmentGoal: 0 };
+    setTempExpenseBudget((currentAlloc.expenseBudget || 0).toString());
+    setTempInvestmentGoal((currentAlloc.investmentGoal || 0).toString());
     setIsBudgetModalOpen(true);
   };
 
@@ -116,14 +118,15 @@ export const MoneyTracker = () => {
 
   // Filter transactions by active Time-Horizon
   const getFilteredByTimeframe = () => {
+    const list = Array.isArray(transactions) ? transactions : [];
     if (timeframe === 'day') {
-      return transactions.filter(t => t.date === selectedDate);
+      return list.filter(t => t.date === selectedDate);
     }
     if (timeframe === 'week') {
-      return transactions.filter(t => t.date && t.date >= weekStartStr && t.date <= weekEndStr);
+      return list.filter(t => t.date && t.date >= weekStartStr && t.date <= weekEndStr);
     }
     // Month
-    return transactions.filter(t => t.date && t.date.startsWith(activeMonthKey));
+    return list.filter(t => t.date && t.date.startsWith(activeMonthKey));
   };
 
   const timeframeTransactions = getFilteredByTimeframe();
@@ -144,8 +147,8 @@ export const MoneyTracker = () => {
     .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
 
   // 4. Monthly Expense Budget & Remaining Limit
-  const expenseBudget = activeAllocation.expenseBudget;
-  const investmentGoal = activeAllocation.investmentGoal;
+  const expenseBudget = Number(activeAllocation?.expenseBudget) || 0;
+  const investmentGoal = Number(activeAllocation?.investmentGoal) || 0;
   const remainingExpenseBudget = expenseBudget - periodExpenses;
   
   // Budget consumption percentage & health color

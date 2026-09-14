@@ -4,22 +4,12 @@ import { useDashboard } from '../context/DashboardContext';
 import { Wallet, PieChart, TrendingUp, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
 
 export const FinancePage = () => {
-  const { transactions, totalSpent, totalIncome, totalInvested } = useDashboard();
+  const { transactions = [], totalSpent = 0, totalIncome = 0, totalInvested = 0, formatCurrency } = useDashboard();
 
-  // Dynamically calculate category spending from actual logged expense transactions
-  const getCategorySpent = (catName) => {
-    return transactions
-      .filter(t => t.type === 'expense' && t.category?.toLowerCase() === catName.toLowerCase())
-      .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
-  };
-
-  // Category limits breakdown
-  const categoryLimits = [
-    { category: 'Food & Dining', spent: getCategorySpent('Food'), limit: 0, color: 'bg-rose-500' },
-    { category: 'Bills & Utilities', spent: getCategorySpent('Bills'), limit: 0, color: 'bg-blue-500' },
-    { category: 'Shopping & Tech', spent: getCategorySpent('Shopping'), limit: 0, color: 'bg-purple-500' },
-    { category: 'Health & Wellness', spent: getCategorySpent('Health'), limit: 0, color: 'bg-emerald-500' },
-  ];
+  const safeIncome = Number(totalIncome) || 0;
+  const safeInvested = Number(totalInvested) || 0;
+  const safeSpent = Number(totalSpent) || 0;
+  const netCashflow = safeIncome - safeSpent;
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
@@ -41,21 +31,21 @@ export const FinancePage = () => {
           <div className="bg-slate-50 dark:bg-slate-900/80 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800">
             <span className="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-bold">Total Inflow</span>
             <span className="font-extrabold text-emerald-600 dark:text-emerald-400 text-sm">
-              +₹{totalIncome.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+              +{formatCurrency(safeIncome)}
             </span>
           </div>
 
           <div className="bg-slate-50 dark:bg-slate-900/80 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800">
             <span className="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-bold">Total Invested</span>
             <span className="font-extrabold text-indigo-600 dark:text-cyan-400 text-sm">
-              ₹{totalInvested.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+              {formatCurrency(safeInvested)}
             </span>
           </div>
 
           <div className="bg-slate-50 dark:bg-slate-900/80 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800">
             <span className="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-bold">Net Cashflow</span>
-            <span className="font-extrabold text-slate-900 dark:text-slate-100 text-sm">
-              ₹{(totalIncome - totalSpent).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+            <span className={`font-extrabold text-sm ${netCashflow >= 0 ? 'text-slate-900 dark:text-slate-100' : 'text-rose-600 dark:text-rose-400'}`}>
+              {formatCurrency(netCashflow)}
             </span>
           </div>
         </div>
