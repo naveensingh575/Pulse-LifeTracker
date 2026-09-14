@@ -494,9 +494,6 @@ export const AnalyticsView = () => {
             <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
               Executive Analytics & Normalized Pulse Insights
             </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Contextual velocity metrics, dynamic temporal scaling & smart focus advisory
-            </p>
           </div>
         </div>
 
@@ -752,13 +749,6 @@ export const AnalyticsView = () => {
                   : `Monthly Trajectory: ${MONTH_NAMES_FULL[selectedMonth - 1]} ${selectedYear} (5-Day Intervals)`}
               </span>
             </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              {timeframe === 'today'
-                ? 'Hourly spend progression across today vs. single-day burn allowance'
-                : timeframe === 'week'
-                ? 'Daily expense bars across Mon–Sun with average pace benchmark'
-                : 'Cumulative monthly spend trajectory vs. ideal linear run-rate vs. budget ceiling'}
-            </p>
           </div>
 
           <div className="flex items-center space-x-3 text-xs font-mono">
@@ -892,9 +882,6 @@ export const AnalyticsView = () => {
               <Activity className="w-4 h-4 text-cyan-500" />
               <span>Activity & Physical Output Pulse</span>
             </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Cardio volume, strength tonnage, laps & cognitive deep work
-            </p>
           </div>
 
           <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-lg bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20">
@@ -1004,13 +991,6 @@ export const AnalyticsView = () => {
                   : `Monthly Habit Consistency Trend (${MONTH_NAMES_FULL[selectedMonth - 1]})`}
               </span>
             </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              {timeframe === 'today'
-                ? 'Hourly milestone steps for habits completed during the day'
-                : timeframe === 'week'
-                ? 'Day-by-day habit completion percentage across the current week'
-                : '3-day grouped habit consistency trendline across the month'}
-            </p>
           </div>
           <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
             {habitScore}% Score
@@ -1046,9 +1026,6 @@ export const AnalyticsView = () => {
               <Target className="w-4 h-4 text-indigo-500" />
               <span>Strategic Goal Progress & Milestone Completion</span>
             </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Runway velocity tracking & nested milestone completion
-            </p>
           </div>
           <span className="text-xs font-mono font-bold text-slate-500">
             {goals.length} Active Targets
