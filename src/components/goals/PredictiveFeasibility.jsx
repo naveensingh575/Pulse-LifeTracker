@@ -261,10 +261,7 @@ export const PredictiveFeasibility = () => {
                               <span>Added!</span>
                             </>
                           ) : (
-                            <>
-                              <Plus className="w-3 h-3" />
-                              <span>+ Add to Tasks</span>
-                            </>
+                            <span>+ Add to Tasks</span>
                           )}
                         </button>
                       </div>
