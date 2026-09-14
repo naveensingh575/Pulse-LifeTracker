@@ -197,7 +197,7 @@ export const ActivityPage = () => {
           className="flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-extrabold shadow-lg shadow-indigo-600/30 transition self-start md:self-auto cursor-pointer active:scale-95"
         >
           <Plus className="w-4 h-4" />
-          <span>+ Log Activity</span>
+          <span>Log Activity</span>
         </button>
       </div>
 
