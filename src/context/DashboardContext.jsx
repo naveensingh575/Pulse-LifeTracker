@@ -80,24 +80,37 @@ const normalizeHabit = (h) => {
 
 // Normalize goal object
 const normalizeGoal = (g) => {
-  const subGoals = Array.isArray(g.sub_goals)
-    ? g.sub_goals.map(sg => ({
-        id: sg.id,
-        title: sg.title,
-        targetDate: sg.target_date || sg.targetDate,
-        completed: Boolean(sg.completed)
-      }))
-    : Array.isArray(g.subGoals)
-    ? g.subGoals
-    : [];
+  let subGoals = [];
+  if (Array.isArray(g.subGoals)) {
+    subGoals = g.subGoals.map(sg => ({
+      id: sg.id,
+      title: sg.title,
+      targetDate: sg.targetDate || sg.target_date || '',
+      completed: Boolean(sg.completed)
+    }));
+  } else if (Array.isArray(g.sub_goals)) {
+    subGoals = g.sub_goals.map(sg => ({
+      id: sg.id,
+      title: sg.title,
+      targetDate: sg.target_date || sg.targetDate || '',
+      completed: Boolean(sg.completed)
+    }));
+  }
+
+  const targetAmount = Number(
+    g.targetAmount !== undefined ? g.targetAmount : (g.target_amount ?? 100)
+  );
+  const currentAmount = Number(
+    g.currentAmount !== undefined ? g.currentAmount : (g.current_amount ?? 0)
+  );
 
   return {
     ...g,
     id: g.id,
     title: g.title,
     horizon: g.horizon || (g.deadline && getISTDateDiffDays(getISTDateString(), g.deadline) > 90 ? 'long' : 'short'),
-    targetAmount: Number(g.target_amount ?? g.targetAmount ?? 100),
-    currentAmount: Number(g.current_amount ?? g.currentAmount ?? 0),
+    targetAmount,
+    currentAmount,
     unit: g.unit || '₹',
     deadline: g.deadline,
     category: g.category || 'Financial',
@@ -567,25 +580,46 @@ export const DashboardProvider = ({ children }) => {
 
   // --- Goals Operations ---
   const addGoal = async (newGoal) => {
+    const normalized = normalizeGoal(newGoal);
     if (userId) {
       const { data, error } = await supabase.from('goals').insert({
         user_id: userId,
-        title: newGoal.title.trim(),
-        horizon: newGoal.horizon || 'short',
-        category: newGoal.category || 'Financial',
-        target_amount: Number(newGoal.targetAmount) || 100,
-        current_amount: Number(newGoal.currentAmount) || 0,
-        unit: newGoal.unit || '₹',
-        deadline: newGoal.deadline || null,
-        color: newGoal.color || 'indigo',
-        icon: newGoal.icon || 'Target'
+        title: normalized.title.trim(),
+        horizon: normalized.horizon || 'short',
+        category: normalized.category || 'Financial',
+        target_amount: Number(normalized.targetAmount) || 100,
+        current_amount: Number(normalized.currentAmount) || 0,
+        unit: normalized.unit || '₹',
+        deadline: normalized.deadline || null,
+        color: normalized.color || 'indigo',
+        icon: normalized.icon || 'Target'
       }).select().single();
 
       if (!error && data) {
-        setGoals(prev => [normalizeGoal(data), ...prev]);
+        let insertedSubGoals = [];
+        if (normalized.subGoals && normalized.subGoals.length > 0) {
+          const subRows = normalized.subGoals.map(sg => ({
+            user_id: userId,
+            goal_id: data.id,
+            title: sg.title.trim(),
+            target_date: sg.targetDate || null,
+            completed: Boolean(sg.completed),
+            completed_at: sg.completed ? new Date().toISOString() : null
+          }));
+          const { data: subData } = await supabase.from('sub_goals').insert(subRows).select();
+          if (subData) {
+            insertedSubGoals = subData.map(s => ({
+              id: s.id,
+              title: s.title,
+              targetDate: s.target_date,
+              completed: Boolean(s.completed)
+            }));
+          }
+        }
+        setGoals(prev => [{ ...normalizeGoal(data), subGoals: insertedSubGoals }, ...prev]);
       }
     } else {
-      setGoals(prev => [normalizeGoal({ ...newGoal, id: `g-${Date.now()}` }), ...prev]);
+      setGoals(prev => [normalizeGoal({ ...normalized, id: `g-${Date.now()}` }), ...prev]);
     }
   };
 
@@ -594,6 +628,7 @@ export const DashboardProvider = ({ children }) => {
     setGoals(prev => prev.map(g => (g.id === normalized.id ? normalized : g)));
 
     if (userId) {
+      // 1. Update goals parent record
       await supabase.from('goals').update({
         title: normalized.title,
         horizon: normalized.horizon,
@@ -605,12 +640,76 @@ export const DashboardProvider = ({ children }) => {
         color: normalized.color,
         icon: normalized.icon
       }).eq('id', normalized.id);
+
+      // 2. Comprehensive Sub-goals synchronization in Supabase
+      try {
+        const currentSubGoals = normalized.subGoals || [];
+
+        // Fetch existing sub-goals for this goal from Supabase
+        const { data: existingDbSubs } = await supabase
+          .from('sub_goals')
+          .select('id')
+          .eq('goal_id', normalized.id);
+
+        const existingDbIds = (existingDbSubs || []).map(s => s.id);
+        const keptDbIds = currentSubGoals
+          .map(s => s.id)
+          .filter(id => id && !String(id).startsWith('sg-') && existingDbIds.includes(id));
+
+        // Delete sub-goals that were removed
+        const toDeleteIds = existingDbIds.filter(id => !keptDbIds.includes(id));
+        if (toDeleteIds.length > 0) {
+          await supabase.from('sub_goals').delete().in('id', toDeleteIds);
+        }
+
+        // Insert new sub-goals or update existing ones
+        const finalSubGoals = [];
+        for (const sg of currentSubGoals) {
+          if (sg.id && !String(sg.id).startsWith('sg-') && existingDbIds.includes(sg.id)) {
+            await supabase.from('sub_goals').update({
+              title: sg.title.trim(),
+              target_date: sg.targetDate || null,
+              completed: Boolean(sg.completed),
+              completed_at: sg.completed ? new Date().toISOString() : null
+            }).eq('id', sg.id);
+            finalSubGoals.push(sg);
+          } else {
+            const { data: newSgData, error: insErr } = await supabase.from('sub_goals').insert({
+              user_id: userId,
+              goal_id: normalized.id,
+              title: sg.title.trim(),
+              target_date: sg.targetDate || null,
+              completed: Boolean(sg.completed),
+              completed_at: sg.completed ? new Date().toISOString() : null
+            }).select().single();
+
+            if (!insErr && newSgData) {
+              finalSubGoals.push({
+                id: newSgData.id,
+                title: newSgData.title,
+                targetDate: newSgData.target_date,
+                completed: Boolean(newSgData.completed)
+              });
+            } else {
+              finalSubGoals.push(sg);
+            }
+          }
+        }
+
+        // Refresh local goal sub-goals with confirmed DB IDs
+        setGoals(prev =>
+          prev.map(g => (g.id === normalized.id ? { ...normalized, subGoals: finalSubGoals } : g))
+        );
+      } catch (subErr) {
+        console.error('Error syncing sub-goals in updateGoal:', subErr);
+      }
     }
   };
 
   const deleteGoal = async (goalId) => {
     setGoals(prev => prev.filter(g => g.id !== goalId));
     if (userId) {
+      await supabase.from('sub_goals').delete().eq('goal_id', goalId);
       await supabase.from('goals').delete().eq('id', goalId);
     }
   };

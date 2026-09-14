@@ -15,6 +15,8 @@ import {
   Flame,
   Heart,
   CheckCircle2,
+  CheckSquare,
+  Square,
   Calendar
 } from 'lucide-react';
 import { getISTDateString } from '../../utils/dateUtils';
@@ -63,11 +65,31 @@ export const GoalModal = ({ isOpen, onClose, onSave, onDelete, initialData }) =>
   useEffect(() => {
     if (initialData) {
       setFormData({
-        ...initialData,
+        id: initialData.id,
+        title: initialData.title || '',
         horizon: initialData.horizon || 'short',
-        subGoals: initialData.subGoals || [],
+        targetAmount: Number(initialData.targetAmount !== undefined ? initialData.targetAmount : (initialData.target_amount ?? 100000)),
+        currentAmount: Number(initialData.currentAmount !== undefined ? initialData.currentAmount : (initialData.current_amount ?? 0)),
+        unit: initialData.unit || currency || '₹',
+        deadline: initialData.deadline || '',
+        category: initialData.category || 'Financial',
         color: initialData.color || 'emerald',
-        icon: initialData.icon || 'Target'
+        icon: initialData.icon || 'Target',
+        subGoals: Array.isArray(initialData.subGoals)
+          ? initialData.subGoals.map(sg => ({
+              id: sg.id,
+              title: sg.title,
+              targetDate: sg.targetDate || sg.target_date || '',
+              completed: Boolean(sg.completed)
+            }))
+          : Array.isArray(initialData.sub_goals)
+          ? initialData.sub_goals.map(sg => ({
+              id: sg.id,
+              title: sg.title,
+              targetDate: sg.target_date || sg.targetDate || '',
+              completed: Boolean(sg.completed)
+            }))
+          : []
       });
     } else {
       const defaultDeadline = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
@@ -76,7 +98,7 @@ export const GoalModal = ({ isOpen, onClose, onSave, onDelete, initialData }) =>
         horizon: 'short',
         targetAmount: 100000,
         currentAmount: 0,
-        unit: '₹',
+        unit: currency || '₹',
         deadline: defaultDeadline,
         category: 'Financial',
         color: 'emerald',
@@ -86,7 +108,7 @@ export const GoalModal = ({ isOpen, onClose, onSave, onDelete, initialData }) =>
     }
     setNewSubGoalTitle('');
     setNewSubGoalDate('');
-  }, [initialData, isOpen]);
+  }, [initialData, isOpen, currency]);
 
   if (!isOpen) return null;
 
@@ -106,6 +128,15 @@ export const GoalModal = ({ isOpen, onClose, onSave, onDelete, initialData }) =>
     setNewSubGoalDate('');
   };
 
+  const handleToggleSubGoalCompletion = (sgId) => {
+    setFormData(prev => ({
+      ...prev,
+      subGoals: (prev.subGoals || []).map(sg =>
+        sg.id === sgId ? { ...sg, completed: !sg.completed } : sg
+      )
+    }));
+  };
+
   const handleRemoveSubGoal = (sgId) => {
     setFormData(prev => ({
       ...prev,
@@ -116,12 +147,18 @@ export const GoalModal = ({ isOpen, onClose, onSave, onDelete, initialData }) =>
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!formData.title.trim()) return;
-    onSave({
+    const cleanGoal = {
       ...formData,
       title: formData.title.trim(),
       targetAmount: parseFloat(formData.targetAmount) || 1,
-      currentAmount: parseFloat(formData.currentAmount) || 0
-    });
+      currentAmount: parseFloat(formData.currentAmount) || 0,
+      subGoals: formData.subGoals || []
+    };
+    delete cleanGoal.target_amount;
+    delete cleanGoal.current_amount;
+    delete cleanGoal.sub_goals;
+
+    onSave(cleanGoal);
     onClose();
   };
 
@@ -334,21 +371,39 @@ export const GoalModal = ({ isOpen, onClose, onSave, onDelete, initialData }) =>
             </div>
 
             {/* List existing sub-goals */}
-            <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+            <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
               {(formData.subGoals || []).map((sg) => (
                 <div
                   key={sg.id}
-                  className="flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs"
+                  className="flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs gap-2"
                 >
-                  <div className="flex items-center space-x-2">
-                    <span className="w-2 h-2 rounded-full bg-indigo-500" />
-                    <span className="font-semibold text-slate-800 dark:text-slate-200">{sg.title}</span>
-                    <span className="text-[10px] text-slate-400 font-mono">({sg.targetDate})</span>
+                  <div className="flex items-center space-x-2 flex-1 min-w-0">
+                    <button
+                      type="button"
+                      onClick={() => handleToggleSubGoalCompletion(sg.id)}
+                      className="text-slate-400 hover:text-emerald-500 transition cursor-pointer shrink-0"
+                      title={sg.completed ? "Mark as incomplete" : "Mark as completed"}
+                    >
+                      {sg.completed ? (
+                        <CheckSquare className="w-4 h-4 text-emerald-500" />
+                      ) : (
+                        <Square className="w-4 h-4 text-slate-400 hover:text-emerald-500" />
+                      )}
+                    </button>
+                    <span className={`font-semibold truncate ${
+                      sg.completed ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-800 dark:text-slate-200'
+                    }`}>
+                      {sg.title}
+                    </span>
+                    {sg.targetDate && (
+                      <span className="text-[10px] text-slate-400 font-mono shrink-0">({sg.targetDate})</span>
+                    )}
                   </div>
                   <button
                     type="button"
                     onClick={() => handleRemoveSubGoal(sg.id)}
-                    className="text-slate-400 hover:text-rose-500 p-0.5 cursor-pointer"
+                    className="text-slate-400 hover:text-rose-500 p-1 cursor-pointer shrink-0 transition"
+                    title="Remove sub-goal"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
