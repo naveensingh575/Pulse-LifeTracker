@@ -39,7 +39,20 @@ export const HabitsPage = () => {
   const [selectedMonth, setSelectedMonth] = useState(currentISTYM.month); // 1-12
 
   const todayStr = getISTDateString();
-  const todayStats = getDayCompletionStats(todayStr);
+  const [selectedDayDate, setSelectedDayDate] = useState(todayStr);
+
+  const shiftDayDate = (days) => {
+    const parts = selectedDayDate.split('-');
+    const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+    d.setDate(d.getDate() + days);
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    setSelectedDayDate(`${yyyy}-${mm}-${dd}`);
+  };
+
+  const dayStats = getDayCompletionStats(selectedDayDate);
+  const isDayToday = selectedDayDate === todayStr;
 
   // Normalized case-insensitive category filtering
   const filteredHabits = selectedCategory === 'All'
@@ -93,54 +106,48 @@ export const HabitsPage = () => {
           </div>
           <div>
             <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-              Habits Tracker & Streak Hub
+              Habits Tracker
             </h2>
           </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <div className="bg-slate-50 dark:bg-slate-900/80 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 text-xs flex items-center space-x-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-            <span className="text-slate-500 dark:text-slate-400 font-bold">Total Completions:</span>
-            <span className="font-extrabold text-emerald-600 dark:text-emerald-400 font-mono text-sm">{totalCompletions} Ticks</span>
-          </div>
-
-          {/* 3-View Mode Switcher: Today | 7-Day Grid | Monthly Heatmap */}
+          {/* 3-View Mode Switcher: Day | Week | Month */}
           <div className="flex items-center bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-200 dark:border-slate-800">
             <button
               onClick={() => setGridMode('day')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
                 gridMode === 'day'
                   ? 'bg-amber-500 text-slate-950 shadow-sm'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
               <Sun className="w-3.5 h-3.5" />
-              <span>Today</span>
+              <span>Day</span>
             </button>
             
             <button
               onClick={() => setGridMode('7day')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
                 gridMode === '7day'
                   ? 'bg-amber-500 text-slate-950 shadow-sm'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
               <CalendarDays className="w-3.5 h-3.5" />
-              <span>7-Day Grid</span>
+              <span>Week</span>
             </button>
 
             <button
               onClick={() => setGridMode('monthly')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
                 gridMode === 'monthly'
                   ? 'bg-amber-500 text-slate-950 shadow-sm'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
               <CalendarIcon className="w-3.5 h-3.5" />
-              <span>Monthly Heatmap</span>
+              <span>Month</span>
             </button>
           </div>
         </div>
@@ -177,48 +184,89 @@ export const HabitsPage = () => {
         })}
       </div>
 
-      {/* ☀️ 1. TODAY'S DAILY HABIT CHECKLIST VIEW */}
+      {/* ☀️ 1. DAY HABIT CHECKLIST VIEW */}
       {gridMode === 'day' && (
         <div className="glass-panel-dark rounded-2xl p-6 border border-slate-200 dark:border-slate-800 space-y-5 bg-white dark:bg-slate-900 shadow-md animate-in fade-in duration-200">
           
-          {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-4">
+          {/* Header & Date Navigation Controls */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
             <div className="flex items-center space-x-3">
               <div className="p-2 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
                 <Sun className="w-5 h-5" />
               </div>
               <div>
                 <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                  Today • {formatISTDisplayDate(todayStr)}
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500 text-slate-950 font-extrabold uppercase">
-                    Today
-                  </span>
+                  {isDayToday ? 'Today' : 'Day'} • {formatISTDisplayDate(selectedDayDate)}
+                  {isDayToday && (
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500 text-slate-950 font-extrabold uppercase">
+                      Today
+                    </span>
+                  )}
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  {todayStats.completed} of {todayStats.total} habits completed ({todayStats.percentage}% daily consistency score)
+                  {dayStats.completed} of {dayStats.total} habits completed ({dayStats.percentage}% daily consistency score)
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center space-x-2">
-              <div className="text-right">
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Date Navigation & Calendar Picker */}
+              <div className="flex items-center space-x-1 bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-200 dark:border-slate-800 text-xs">
+                <button
+                  onClick={() => shiftDayDate(-1)}
+                  className="p-1.5 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 cursor-pointer transition"
+                  title="Previous Day"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                </button>
+
+                <div className="flex items-center space-x-1.5 px-2 py-0.5">
+                  <CalendarIcon className="w-3.5 h-3.5 text-amber-500" />
+                  <input
+                    type="date"
+                    value={selectedDayDate}
+                    onChange={(e) => setSelectedDayDate(e.target.value)}
+                    className="bg-transparent text-xs font-mono font-bold text-slate-900 dark:text-slate-100 focus:outline-none cursor-pointer"
+                  />
+                </div>
+
+                <button
+                  onClick={() => shiftDayDate(1)}
+                  className="p-1.5 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 cursor-pointer transition"
+                  title="Next Day"
+                >
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+
+                {!isDayToday && (
+                  <button
+                    onClick={() => setSelectedDayDate(todayStr)}
+                    className="px-2.5 py-1 ml-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 font-bold text-[11px] transition cursor-pointer"
+                  >
+                    Today
+                  </button>
+                )}
+              </div>
+
+              {/* Progress Bar & Counter */}
+              <div className="text-right pl-2 border-l border-slate-200 dark:border-slate-800">
                 <span className="text-xs font-mono font-extrabold text-slate-900 dark:text-slate-100">
-                  {todayStats.completed}/{todayStats.total} Done
+                  {dayStats.completed}/{dayStats.total} Done
                 </span>
                 <div className="w-24 h-1.5 bg-slate-100 dark:bg-slate-950 rounded-full overflow-hidden border border-slate-200 dark:border-slate-800 mt-1">
                   <div
                     className="h-full bg-amber-500 rounded-full transition-all duration-300"
-                    style={{ width: `${todayStats.percentage}%` }}
+                    style={{ width: `${dayStats.percentage}%` }}
                   />
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Today Habit Cards */}
+          {/* Day Habit Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
             {filteredHabits.map((habit) => {
-              const isDone = isHabitDoneOn(habit.id, todayStr);
+              const isDone = isHabitDoneOn(habit.id, selectedDayDate);
 
               return (
                 <div
@@ -245,7 +293,7 @@ export const HabitsPage = () => {
                   </div>
 
                   <button
-                    onClick={() => toggleHabitForDate(habit.id, todayStr)}
+                    onClick={() => toggleHabitForDate(habit.id, selectedDayDate)}
                     className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all transform active:scale-95 shadow-sm cursor-pointer ${
                       isDone
                         ? 'bg-amber-500 text-slate-950 hover:bg-amber-400 shadow-amber-500/20'
@@ -280,7 +328,7 @@ export const HabitsPage = () => {
               </div>
               <div>
                 <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                  Dynamic Monthly Consistency Heatmap
+                  Monthly Consistency Heatmap
                 </h3>
               </div>
             </div>
