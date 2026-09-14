@@ -60,12 +60,21 @@ export const MoneyTracker = () => {
   const [tempExpenseBudget, setTempExpenseBudget] = useState(activeAllocation.expenseBudget.toString());
   const [tempInvestmentGoal, setTempInvestmentGoal] = useState(activeAllocation.investmentGoal.toString());
 
-  const [filterCategory, setFilterCategory] = useState('All');
+  // Week navigation offset (0 = current week, -1 = last week, +1 = next week)
+  const [weekOffset, setWeekOffset] = useState(0);
 
-  const currentWeekDays = getISTWeekDays();
+  const getWeekRefDate = () => {
+    const d = new Date();
+    d.setDate(d.getDate() + (weekOffset * 7));
+    return d;
+  };
+
+  const activeWeekRef = getWeekRefDate();
+  const currentWeekDays = getISTWeekDays(activeWeekRef);
   const weekStartStr = currentWeekDays[0].dateStr;
   const weekEndStr = currentWeekDays[6].dateStr;
-  const weekBadge = getISTWeekBadge();
+  const weekBadge = getISTWeekBadge(activeWeekRef);
+  const isCurrentWeek = weekOffset === 0;
 
   const years = [2025, 2026, 2027, 2028];
 
@@ -281,13 +290,41 @@ export const MoneyTracker = () => {
           </div>
         )}
 
-        {/* Week View Badge */}
+        {/* Week View Controls */}
         {timeframe === 'week' && (
-          <div className="flex items-center space-x-2">
-            <span className="font-bold text-slate-500 dark:text-slate-400">Current Week:</span>
-            <span className="px-2.5 py-1 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 rounded-lg font-mono font-bold border border-emerald-500/20">
-              {weekBadge}
-            </span>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="font-bold text-slate-500 dark:text-slate-400">Active Week:</span>
+            
+            <div className="flex items-center space-x-1.5 bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-200 dark:border-slate-800 text-xs">
+              <button
+                onClick={() => setWeekOffset(prev => prev - 1)}
+                className="p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 cursor-pointer transition"
+                title="Previous Week"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" />
+              </button>
+
+              <span className="px-2 py-0.5 font-mono font-bold text-emerald-700 dark:text-emerald-300 text-xs">
+                {weekBadge}
+              </span>
+
+              {!isCurrentWeek && (
+                <button
+                  onClick={() => setWeekOffset(0)}
+                  className="px-1.5 py-0.5 text-[10px] font-extrabold text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer"
+                >
+                  Current
+                </button>
+              )}
+
+              <button
+                onClick={() => setWeekOffset(prev => prev + 1)}
+                className="p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 cursor-pointer transition"
+                title="Next Week"
+              >
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
         )}
 
