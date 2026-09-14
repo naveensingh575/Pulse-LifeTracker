@@ -4,6 +4,7 @@ import {
   getISTDateString,
   getISTDate,
   getISTWeekDays,
+  getISTWeekBadge,
   getISTYearMonth,
   MONTH_NAMES_FULL,
   getISTDateDiffDays,
@@ -73,19 +74,34 @@ export const AnalyticsView = () => {
     theme
   } = useDashboard();
 
-  // Unified 3-Header Timeframe Filter: 'today' | 'week' | 'month'
+  // Unified 3-Header Timeframe Filter: 'day' | 'week' | 'month'
   const [timeframe, setTimeframe] = useState('month');
+
+  // Day View Date Selector
+  const today = getISTDate();
+  const todayStr = getISTDateString();
+  const [selectedDate, setSelectedDate] = useState(todayStr);
+
+  // Week View Slide Offset (0 = current week, -1 = last week, +1 = next week)
+  const [weekOffset, setWeekOffset] = useState(0);
+
+  const getWeekRefDate = () => {
+    const d = new Date();
+    d.setDate(d.getDate() + (weekOffset * 7));
+    return d;
+  };
+
+  const activeWeekRef = getWeekRefDate();
+  const activeWeekDays = getISTWeekDays(activeWeekRef);
+  const activeWeekBadge = getISTWeekBadge(activeWeekRef);
+  const isCurrentWeek = weekOffset === 0;
+  const weekStartStr = activeWeekDays[0].dateStr;
+  const weekEndStr = activeWeekDays[6].dateStr;
 
   // Month & Year Selector for Month view
   const currentISTYM = getISTYearMonth();
   const [selectedYear, setSelectedYear] = useState(currentISTYM.year);
   const [selectedMonth, setSelectedMonth] = useState(currentISTYM.month); // 1-12
-
-  const today = getISTDate();
-  const todayStr = getISTDateString();
-  const currentWeekDays = getISTWeekDays();
-  const weekStartStr = currentWeekDays[0].dateStr;
-  const weekEndStr = currentWeekDays[6].dateStr;
 
   const years = [2025, 2026, 2027, 2028];
 
@@ -116,8 +132,8 @@ export const AnalyticsView = () => {
   // --- Strict Temporal Filtering Helper ---
   const isDateInTimeframe = (dateStr) => {
     if (!dateStr) return false;
-    if (timeframe === 'today') {
-      return dateStr === todayStr;
+    if (timeframe === 'day') {
+      return dateStr === selectedDate;
     }
     if (timeframe === 'week') {
       return dateStr >= weekStartStr && dateStr <= weekEndStr;
@@ -154,13 +170,16 @@ export const AnalyticsView = () => {
   let budgetBufferRemaining = 0;
   let budgetVariancePct = 0;
 
-  if (timeframe === 'today') {
+  if (timeframe === 'day') {
     actualDailyRate = periodExpenses;
     safeDailyRate = dailyTargetBurn;
     budgetBufferRemaining = safeDailyRate > 0 ? (safeDailyRate - periodExpenses) : -periodExpenses;
     budgetVariancePct = safeDailyRate > 0 ? Math.round(((periodExpenses - safeDailyRate) / safeDailyRate) * 100) : 0;
   } else if (timeframe === 'week') {
-    actualDailyRate = Math.round(periodExpenses / Math.max(1, currentWeekDays.findIndex(w => w.dateStr === todayStr) + 1));
+    const daysCounted = isCurrentWeek
+      ? Math.max(1, activeWeekDays.findIndex(w => w.dateStr === todayStr) + 1)
+      : 7;
+    actualDailyRate = Math.round(periodExpenses / daysCounted);
     safeDailyRate = Math.round(weeklyBudgetLimit / 7);
     budgetBufferRemaining = weeklyBudgetLimit - periodExpenses;
     budgetVariancePct = weeklyBudgetLimit > 0 ? Math.round(((periodExpenses - weeklyBudgetLimit) / weeklyBudgetLimit) * 100) : 0;
@@ -195,22 +214,22 @@ export const AnalyticsView = () => {
   let habitRating = 'High Discipline';
   let habitDeltaText = '';
 
-  if (timeframe === 'today') {
-    const doneToday = habits.filter(h => isHabitDoneOn(h.id, todayStr)).length;
-    habitScore = habits.length > 0 ? Math.round((doneToday / habits.length) * 100) : 0;
+  if (timeframe === 'day') {
+    const doneOnDate = habits.filter(h => isHabitDoneOn(h.id, selectedDate)).length;
+    habitScore = habits.length > 0 ? Math.round((doneOnDate / habits.length) * 100) : 0;
     habitRating = habitScore >= 80 ? 'High Discipline 🔥' : habitScore >= 50 ? 'Moderate Consistency' : 'Needs Focus';
-    habitDeltaText = `${doneToday} of ${habits.length} routines completed today`;
+    habitDeltaText = `${doneOnDate} of ${habits.length} routines completed (${selectedDate === todayStr ? 'Today' : formatISTDisplayDate(selectedDate)})`;
   } else if (timeframe === 'week') {
     const totalSlots = habits.length * 7;
     let doneSlots = 0;
     habits.forEach(h => {
-      currentWeekDays.forEach(d => {
+      activeWeekDays.forEach(d => {
         if (isHabitDoneOn(h.id, d.dateStr)) doneSlots += 1;
       });
     });
     habitScore = totalSlots > 0 ? Math.round((doneSlots / totalSlots) * 100) : 0;
     habitRating = habitScore >= 75 ? 'Strong Weekly Adherence 🟢' : habitScore >= 50 ? 'Moderate Pace 🟡' : 'Lagging Routines 🔴';
-    habitDeltaText = `${doneSlots}/${totalSlots} check-ins logged across 7 days`;
+    habitDeltaText = `${doneSlots}/${totalSlots} check-ins logged (${isCurrentWeek ? 'This Week' : activeWeekBadge})`;
   } else {
     // Month
     let totalSlots = 0;
@@ -237,7 +256,7 @@ export const AnalyticsView = () => {
   let lowestHabit = null;
   let lowestHabitCount = 999;
   habits.forEach(h => {
-    const c = currentWeekDays.filter(d => isHabitDoneOn(h.id, d.dateStr)).length;
+    const c = activeWeekDays.filter(d => isHabitDoneOn(h.id, d.dateStr)).length;
     if (c < lowestHabitCount) {
       lowestHabitCount = c;
       lowestHabit = h;
@@ -275,7 +294,7 @@ export const AnalyticsView = () => {
   const totalActiveOutputMins = totalRunningMins + totalGymMins + totalSwimMins + Math.round(Number(totalSportsHours) * 60) + totalLearningMins;
 
   // Target baseline comparisons (prorated by timeframe)
-  const targetKm = timeframe === 'today' ? 3.0 : timeframe === 'week' ? 15.0 : 40.0;
+  const targetKm = timeframe === 'day' ? 3.0 : timeframe === 'week' ? 15.0 : 40.0;
   const runningTargetPct = Math.min(100, Math.round((totalRunningKm / targetKm) * 100));
 
   // --- 4. Goal Completion Velocity ---
@@ -363,12 +382,12 @@ export const AnalyticsView = () => {
   let financeChartData = [];
   let financeXAxisKey = 'label';
 
-  if (timeframe === 'today') {
+  if (timeframe === 'day') {
     // Intra-day hourly intervals
     const hours = ['06:00', '09:00', '12:00', '15:00', '18:00', '21:00', '23:59'];
     let runningSpend = 0;
     financeChartData = hours.map((hr, idx) => {
-      // Progressive distribution for today's spend
+      // Progressive distribution for selected day's spend
       const fraction = (idx + 1) / hours.length;
       runningSpend = Math.round(periodExpenses * fraction);
       return {
@@ -378,8 +397,8 @@ export const AnalyticsView = () => {
       };
     });
   } else if (timeframe === 'week') {
-    // 7 discrete weekday names with dates (e.g. 'Mon 24')
-    financeChartData = currentWeekDays.map(w => {
+    // 7 discrete weekday names with dates for active week (e.g. 'Mon 24')
+    financeChartData = activeWeekDays.map(w => {
       const dayExpense = transactions
         .filter(t => t.type === 'expense' && t.date === w.dateStr)
         .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
@@ -417,11 +436,11 @@ export const AnalyticsView = () => {
 
   // B. HABIT GRAPH DATA PER TIMEFRAME
   let habitChartData = [];
-  if (timeframe === 'today') {
+  if (timeframe === 'day') {
     const hours = ['08:00', '12:00', '16:00', '20:00', '23:00'];
-    const doneToday = habits.filter(h => isHabitDoneOn(h.id, todayStr)).length;
+    const doneOnDate = habits.filter(h => isHabitDoneOn(h.id, selectedDate)).length;
     habitChartData = hours.map((hr, idx) => {
-      const currentDone = Math.min(doneToday, Math.ceil((doneToday / hours.length) * (idx + 1)));
+      const currentDone = Math.min(doneOnDate, Math.ceil((doneOnDate / hours.length) * (idx + 1)));
       return {
         label: hr,
         completionPct: habits.length > 0 ? Math.round((currentDone / habits.length) * 100) : 0,
@@ -429,7 +448,7 @@ export const AnalyticsView = () => {
       };
     });
   } else if (timeframe === 'week') {
-    habitChartData = currentWeekDays.map(w => {
+    habitChartData = activeWeekDays.map(w => {
       const doneCount = habits.filter(h => isHabitDoneOn(h.id, w.dateStr)).length;
       const pct = habits.length > 0 ? Math.round((doneCount / habits.length) * 100) : 0;
       return {
@@ -484,7 +503,7 @@ export const AnalyticsView = () => {
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       
-      {/* 🌟 1. UNIFIED 3-HEADER TIME TOGGLE & MONTH/YEAR CALENDAR SELECTOR */}
+      {/* 🌟 1. UNIFIED 3-HEADER TIME TOGGLE & DYNAMIC DATE / WEEK / MONTH CONTROLS */}
       <div className="glass-panel-dark rounded-2xl p-5 border border-slate-200 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center space-x-3">
           <div className="p-2.5 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 shadow-md">
@@ -492,23 +511,23 @@ export const AnalyticsView = () => {
           </div>
           <div>
             <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-              Executive Analytics & Normalized Pulse Insights
+              Executive Pulse Insights
             </h2>
           </div>
         </div>
 
-        {/* 3-Toggle Navigation Bar: [ Today | This Week | Month ] */}
+        {/* 3-Toggle Navigation Bar & Dynamic Controls: [ Day | Week | Month ] */}
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex items-center space-x-1 bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-200 dark:border-slate-800 text-xs">
             <button
-              onClick={() => setTimeframe('today')}
+              onClick={() => setTimeframe('day')}
               className={`px-3.5 py-1.5 rounded-lg font-bold transition cursor-pointer ${
-                timeframe === 'today'
+                timeframe === 'day'
                   ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
-              Today
+              Day
             </button>
 
             <button
@@ -519,7 +538,7 @@ export const AnalyticsView = () => {
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
-              This Week
+              Week
             </button>
 
             <button
@@ -533,6 +552,56 @@ export const AnalyticsView = () => {
               Month
             </button>
           </div>
+
+          {/* Date Picker (Day View Only) */}
+          {timeframe === 'day' && (
+            <div className="flex items-center space-x-2 bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-200 dark:border-slate-800 text-xs animate-in fade-in duration-150">
+              <span className="font-bold text-slate-500 dark:text-slate-400 pl-1.5">Date:</span>
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="px-2 py-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-xs font-mono text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500 cursor-pointer"
+              />
+              <span className="text-slate-400 pr-1.5 text-[11px] hidden sm:inline">
+                {selectedDate === todayStr ? '(Today)' : formatISTDisplayDate(selectedDate)}
+              </span>
+            </div>
+          )}
+
+          {/* Week Slide Navigator (Week View Only) */}
+          {timeframe === 'week' && (
+            <div className="flex items-center space-x-1.5 bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-200 dark:border-slate-800 text-xs animate-in fade-in duration-150">
+              <button
+                onClick={() => setWeekOffset(prev => prev - 1)}
+                className="p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 cursor-pointer transition"
+                title="Previous Week"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" />
+              </button>
+
+              <span className="px-2 py-0.5 font-mono font-bold text-indigo-700 dark:text-cyan-300 text-xs">
+                {activeWeekBadge}
+              </span>
+
+              {!isCurrentWeek && (
+                <button
+                  onClick={() => setWeekOffset(0)}
+                  className="px-1.5 py-0.5 text-[10px] font-extrabold text-indigo-600 dark:text-cyan-400 hover:underline cursor-pointer"
+                >
+                  Current
+                </button>
+              )}
+
+              <button
+                onClick={() => setWeekOffset(prev => prev + 1)}
+                className="p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 cursor-pointer transition"
+                title="Next Week"
+              >
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
 
           {/* Month & Year Selectors (Month View Only) */}
           {timeframe === 'month' && (
@@ -684,12 +753,12 @@ export const AnalyticsView = () => {
 
       </div>
 
-      {/* 🧠 3. SMART CONTEXTUAL DIAGNOSTICS ("WHERE TO FOCUS" ENGINE) */}
+      {/* 🧠 3. SMART CONTEXT INSIGHTS ENGINE */}
       <div className="space-y-3">
         <div className="flex items-center space-x-2">
           <Sparkles className="w-4 h-4 text-indigo-500" />
           <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-            Smart Contextual Diagnostics & Focus Advisory
+            Smart Context Insights
           </h3>
         </div>
 
@@ -742,10 +811,10 @@ export const AnalyticsView = () => {
             <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
               <Wallet className="w-4 h-4 text-emerald-500" />
               <span>
-                {timeframe === 'today'
-                  ? 'Intra-Day Spend Flow vs. Daily Allowance (Hourly Scale)'
+                {timeframe === 'day'
+                  ? `Intra-Day Spend Flow vs. Daily Allowance (${selectedDate === todayStr ? 'Today' : formatISTDisplayDate(selectedDate)})`
                   : timeframe === 'week'
-                  ? 'Daily Expense Pacing vs. 7-Day Safe Benchmark'
+                  ? `Daily Expense Pacing vs. 7-Day Safe Benchmark (${activeWeekBadge})`
                   : `Monthly Trajectory: ${MONTH_NAMES_FULL[selectedMonth - 1]} ${selectedYear} (5-Day Intervals)`}
               </span>
             </h3>
@@ -832,7 +901,7 @@ export const AnalyticsView = () => {
                 {timeframe === 'month' && monthlyBudgetCap > 0 && (
                   <Line type="monotone" dataKey="idealPace" stroke="#f59e0b" strokeWidth={1.5} strokeDasharray="2 2" dot={false} name="Ideal Linear Pace" />
                 )}
-                {timeframe === 'today' && dailyTargetBurn > 0 && (
+                {timeframe === 'day' && dailyTargetBurn > 0 && (
                   <Line type="monotone" dataKey="burnAllowance" stroke="#f59e0b" strokeWidth={1.5} strokeDasharray="2 2" dot={false} name="Burn Allowance" />
                 )}
                 <Area type="monotone" dataKey="actualSpend" stroke="#10b981" strokeWidth={2.5} fill="url(#spendGrad)" name="Actual Cumulative Spend" connectNulls={false} />
@@ -984,10 +1053,10 @@ export const AnalyticsView = () => {
             <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
               <Flame className="w-4 h-4 text-amber-500" />
               <span>
-                {timeframe === 'today'
-                  ? 'Intra-Day Habit Completion Milestones (Hourly Progression)'
+                {timeframe === 'day'
+                  ? `Intra-Day Habit Completion Milestones (${selectedDate === todayStr ? 'Today' : formatISTDisplayDate(selectedDate)})`
                   : timeframe === 'week'
-                  ? 'Weekly Habit Adherence Curve (Mon–Sun)'
+                  ? `Weekly Habit Adherence Curve (${activeWeekBadge})`
                   : `Monthly Habit Consistency Trend (${MONTH_NAMES_FULL[selectedMonth - 1]})`}
               </span>
             </h3>
