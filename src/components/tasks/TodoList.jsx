@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { useDashboard } from '../../context/DashboardContext';
+import { TaskModal } from './TaskModal';
 import {
   CheckSquare,
   Plus,
   Trash2,
   Check,
   Archive,
-  Calendar
+  Calendar,
+  Edit2
 } from 'lucide-react';
 
 const priorityConfig = {
@@ -31,10 +33,11 @@ const priorityConfig = {
 };
 
 export const TodoList = () => {
-  const { tasks, addTask, updateTaskPriority, toggleTaskComplete, deleteTask } = useDashboard();
+  const { tasks, addTask, updateTask, updateTaskPriority, toggleTaskComplete, deleteTask } = useDashboard();
   
   const [showAddForm, setShowAddForm] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
+  const [editingTask, setEditingTask] = useState(null);
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newTaskPriority, setNewTaskPriority] = useState('high');
   const [newTaskCategory, setNewTaskCategory] = useState('Work');
@@ -224,7 +227,7 @@ export const TodoList = () => {
                           </div>
                         </div>
 
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-1.5">
                           <select
                             value={task.priority}
                             onChange={e => updateTaskPriority(task.id, e.target.value)}
@@ -236,8 +239,16 @@ export const TodoList = () => {
                           </select>
 
                           <button
+                            onClick={() => setEditingTask(task)}
+                            className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-cyan-600 dark:hover:text-cyan-400 transition cursor-pointer"
+                            title="Edit Task"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+
+                          <button
                             onClick={() => deleteTask(task.id)}
-                            className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition"
+                            className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition cursor-pointer"
                             title="Delete Task"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -251,6 +262,19 @@ export const TodoList = () => {
             );
           })}
         </div>
+      )}
+
+      {/* Task Edit Modal */}
+      {editingTask && (
+        <TaskModal
+          isOpen={!!editingTask}
+          initialTask={editingTask}
+          onClose={() => setEditingTask(null)}
+          onSave={(taskPayload) => {
+            updateTask(editingTask.id, taskPayload);
+            setEditingTask(null);
+          }}
+        />
       )}
 
     </div>

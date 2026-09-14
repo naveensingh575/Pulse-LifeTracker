@@ -13,16 +13,18 @@ import {
   Plus,
   Send,
   User,
-  ListTodo
+  ListTodo,
+  Edit2
 } from 'lucide-react';
 
 export const TasksPage = () => {
-  const { tasks, toggleTaskComplete, deleteTask, addTask } = useDashboard();
+  const { tasks, toggleTaskComplete, deleteTask, addTask, updateTask } = useDashboard();
   const [activeContext, setActiveContext] = useState('All'); // 'All' | 'Personal' | 'Work' | 'Urgent'
   const [statusFilter, setStatusFilter] = useState('pending'); // 'all' | 'pending' | 'completed'
 
   // Task Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState(null);
   const [modalCategory, setModalCategory] = useState('Work');
 
   // Quick Inline Add state
@@ -51,7 +53,14 @@ export const TasksPage = () => {
   };
 
   const openAddModal = (cat = 'Work') => {
+    setEditingTask(null);
     setModalCategory(cat === 'All' ? 'Work' : cat);
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (task) => {
+    setEditingTask(task);
+    setModalCategory(task.category || 'Work');
     setIsModalOpen(true);
   };
 
@@ -248,8 +257,16 @@ export const TasksPage = () => {
                   </div>
                 </div>
 
-                {/* Calendar Export Buttons & Delete */}
-                <div className="flex items-center space-x-2">
+                {/* Calendar Export, Edit & Delete Buttons */}
+                <div className="flex items-center space-x-1.5">
+                  <button
+                    onClick={() => openEditModal(task)}
+                    className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition cursor-pointer"
+                    title="Edit Task"
+                  >
+                    <Edit2 className="w-3.5 h-3.5" />
+                  </button>
+
                   {!task.completed && (
                     <a
                       href={createGoogleCalendarUrl({
@@ -262,16 +279,16 @@ export const TasksPage = () => {
                       className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition"
                       title="Add to Google Calendar"
                     >
-                      <Calendar className="w-4 h-4" />
+                      <Calendar className="w-3.5 h-3.5" />
                     </a>
                   )}
 
                   <button
                     onClick={() => deleteTask(task.id)}
-                    className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition"
+                    className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition cursor-pointer"
                     title="Delete Task"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </div>
@@ -280,11 +297,22 @@ export const TasksPage = () => {
         </div>
       </div>
 
-      {/* Task Creation Modal */}
+      {/* Task Creation / Edit Modal */}
       <TaskModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        initialTask={editingTask}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingTask(null);
+        }}
         initialCategory={modalCategory}
+        onSave={(taskPayload) => {
+          if (editingTask) {
+            updateTask(editingTask.id, taskPayload);
+          } else {
+            addTask(taskPayload);
+          }
+        }}
       />
 
     </div>

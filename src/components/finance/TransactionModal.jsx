@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDashboard } from '../../context/DashboardContext';
 import { getISTDateString } from '../../utils/dateUtils';
-import { X, Plus, TrendingUp, ArrowDownLeft, ArrowUpRight, ShieldCheck } from 'lucide-react';
+import { X, Plus, Check, TrendingUp, ArrowDownLeft, ArrowUpRight, ShieldCheck } from 'lucide-react';
 
-export const TransactionModal = ({ isOpen, onClose, onSave }) => {
+export const TransactionModal = ({ isOpen, onClose, onSave, initialData }) => {
   const { currency } = useDashboard();
   const [formData, setFormData] = useState({
     description: '',
@@ -15,6 +15,33 @@ export const TransactionModal = ({ isOpen, onClose, onSave }) => {
     notes: ''
   });
 
+  useEffect(() => {
+    if (isOpen) {
+      if (initialData) {
+        setFormData({
+          id: initialData.id,
+          description: initialData.description || '',
+          assetName: initialData.assetName || '',
+          amount: initialData.amount ? initialData.amount.toString() : '',
+          type: initialData.type || 'expense',
+          category: initialData.category || (initialData.type === 'income' ? 'Salary' : initialData.type === 'investment' ? 'Mutual Funds' : 'Food'),
+          date: initialData.date || getISTDateString(),
+          notes: initialData.notes || ''
+        });
+      } else {
+        setFormData({
+          description: '',
+          assetName: '',
+          amount: '',
+          type: 'expense',
+          category: 'Food',
+          date: getISTDateString(),
+          notes: ''
+        });
+      }
+    }
+  }, [isOpen, initialData]);
+
   if (!isOpen) return null;
 
   const handleSubmit = (e) => {
@@ -22,36 +49,29 @@ export const TransactionModal = ({ isOpen, onClose, onSave }) => {
     const parsedAmt = parseFloat(formData.amount);
     if (isNaN(parsedAmt) || parsedAmt <= 0) return;
 
+    const payload = {
+      ...(initialData?.id ? { id: initialData.id } : {}),
+      ...formData,
+      amount: parsedAmt,
+      date: formData.date || getISTDateString(),
+      notes: formData.notes ? formData.notes.trim() : ''
+    };
+
     if (formData.type === 'investment') {
       const desc = formData.assetName.trim() || formData.category;
       onSave({
-        ...formData,
+        ...payload,
         description: desc,
-        assetName: formData.assetName.trim(),
-        amount: parsedAmt,
-        date: formData.date || getISTDateString(),
-        notes: formData.notes.trim()
+        assetName: formData.assetName.trim()
       });
     } else {
       if (!formData.description.trim()) return;
       onSave({
-        ...formData,
-        description: formData.description.trim(),
-        amount: parsedAmt,
-        date: formData.date || getISTDateString(),
-        notes: formData.notes.trim()
+        ...payload,
+        description: formData.description.trim()
       });
     }
 
-    setFormData({
-      description: '',
-      assetName: '',
-      amount: '',
-      type: 'expense',
-      category: 'Food',
-      date: getISTDateString(),
-      notes: ''
-    });
     onClose();
   };
 
@@ -75,9 +95,9 @@ export const TransactionModal = ({ isOpen, onClose, onSave }) => {
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50">
           <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
             <span className="text-emerald-600 dark:text-emerald-400 font-extrabold text-lg">{currency}</span>
-            Log Transaction
+            <span>{initialData ? 'Edit Transaction' : 'Log Transaction'}</span>
           </h3>
-          <button onClick={onClose} className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+          <button onClick={onClose} className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -177,7 +197,7 @@ export const TransactionModal = ({ isOpen, onClose, onSave }) => {
                 <input
                   type="text"
                   required
-                  placeholder={formData.type === 'income' ? 'e.g. Monthly Salary, Freelance Invoice' : 'e.g. Grocery Mart, Cloud Server Bill'}
+                  placeholder={formData.type === 'income' ? 'e.g. Monthly Salary, Freelance Invoice' : 'e.g. Grocery Mart, Cloud Server Bill, Rent EMI'}
                   value={formData.description}
                   onChange={e => setFormData({ ...formData, description: e.target.value })}
                   className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:border-emerald-500"
@@ -195,25 +215,36 @@ export const TransactionModal = ({ isOpen, onClose, onSave }) => {
                 >
                   {formData.type === 'income' ? (
                     <>
-                      <option value="Salary">Salary</option>
-                      <option value="Freelance">Freelance / Consulting</option>
-                      <option value="Business">Business Revenue</option>
-                      <option value="Dividends">Dividends / Interest</option>
-                      <option value="Other Income">Other Inflow</option>
+                      <option value="Salary">💰 Salary</option>
+                      <option value="Freelance">💻 Freelance / Consulting</option>
+                      <option value="Business">🏢 Business Revenue</option>
+                      <option value="Dividends">📈 Dividends / Interest</option>
+                      <option value="Other Income">💵 Other Inflow</option>
                     </>
                   ) : (
                     <>
-                      <option value="Food">Food & Dining</option>
-                      <option value="Bills">Bills & Utilities</option>
-                      <option value="Shopping">Shopping & Tech</option>
-                      <option value="Transport">Transport & Fuel</option>
-                      <option value="Entertainment">Entertainment</option>
-                      <option value="Health">Health & Wellness</option>
-                      <option value="Education">Education & Books</option>
-                      <option value="Personal">Personal Care</option>
+                      <option value="Food">🍔 Food & Dining</option>
+                      <option value="Bills">🧾 Bills & Utilities</option>
+                      <option value="Shopping">🛍️ Shopping & Tech</option>
+                      <option value="Transport">🚗 Transport & Fuel</option>
+                      <option value="Entertainment">🎬 Entertainment</option>
+                      <option value="Health">💊 Health & Wellness</option>
+                      <option value="Education">📚 Education & Books</option>
+                      <option value="Personal">✂️ Personal Care</option>
+                      <option value="Saving Account">🏦 Saving Account (Self Savings Transfer)</option>
+                      <option value="Sent">💸 Sent (Transfer to Family / Friends)</option>
+                      <option value="Pre Commitments">🔒 Pre Commitments (Fixed EMI / Rent)</option>
+                      <option value="Other">💼 Other Expense</option>
                     </>
                   )}
                 </select>
+                {formData.type === 'expense' && (
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">
+                    {formData.category === 'Saving Account' && 'ℹ️ Saving Account transfers do not reduce your living budget or net surplus.'}
+                    {formData.category === 'Pre Commitments' && 'ℹ️ Pre Commitments (fixed obligations) reduce surplus cash but are separate from everyday living budget.'}
+                    {formData.category === 'Sent' && 'ℹ️ Sent transfers reduce both your living budget and surplus cash.'}
+                  </p>
+                )}
               </div>
             </>
           )}
@@ -275,8 +306,8 @@ export const TransactionModal = ({ isOpen, onClose, onSave }) => {
               type="submit"
               className="flex items-center space-x-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-emerald-600/30 transition cursor-pointer"
             >
-              <Plus className="w-4 h-4" />
-              <span>Log Transaction</span>
+              {initialData ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+              <span>{initialData ? 'Save Changes' : 'Log Transaction'}</span>
             </button>
           </div>
         </form>

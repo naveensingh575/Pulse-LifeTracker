@@ -34,6 +34,7 @@ export const MoneyTracker = () => {
     setMonthlyAllocation,
     transactions,
     addTransaction,
+    updateTransaction,
     deleteTransaction,
     currency,
     formatCurrency
@@ -51,6 +52,7 @@ export const MoneyTracker = () => {
   const [selectedDate, setSelectedDate] = useState(todayStr);
 
   const [isTxModalOpen, setIsTxModalOpen] = useState(false);
+  const [editingTx, setEditingTx] = useState(null);
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
   
   // Current active month key
@@ -136,8 +138,13 @@ export const MoneyTracker = () => {
     .filter(t => t.type === 'income')
     .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
 
-  // 2. Total Everyday Expenses Spent
-  const periodExpenses = timeframeTransactions
+  // 2. Living Expenses (Excludes 'Saving Account' & 'Pre Commitments', Includes 'Sent' & standard categories)
+  const periodLivingExpenses = timeframeTransactions
+    .filter(t => t.type === 'expense' && t.category !== 'Saving Account' && t.category !== 'Pre Commitments')
+    .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+
+  // Total All Expenses (for distribution visualization)
+  const periodAllExpenses = timeframeTransactions
     .filter(t => t.type === 'expense')
     .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
 
@@ -146,14 +153,14 @@ export const MoneyTracker = () => {
     .filter(t => t.type === 'investment')
     .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
 
-  // 4. Monthly Expense Budget & Remaining Limit
+  // 4. Monthly Expense Budget & Remaining Limit (Tracks Living Budget)
   const expenseBudget = Number(activeAllocation?.expenseBudget) || 0;
   const investmentGoal = Number(activeAllocation?.investmentGoal) || 0;
-  const remainingExpenseBudget = expenseBudget - periodExpenses;
+  const remainingExpenseBudget = expenseBudget - periodLivingExpenses;
   
-  // Budget consumption percentage & health color
+  // Budget consumption percentage & health color based on Living Budget expenses
   const consumptionPct = expenseBudget > 0
-    ? Math.round((periodExpenses / expenseBudget) * 100)
+    ? Math.round((periodLivingExpenses / expenseBudget) * 100)
     : 0;
 
   const getBudgetColor = (pct) => {
@@ -164,9 +171,13 @@ export const MoneyTracker = () => {
 
   const budgetColor = getBudgetColor(consumptionPct);
 
-  // 5. Net Leftover / Unallocated Cash from Total Income
-  // Formula: Leftover = Total Income - (Actual Expenses Spent + Total Investments Made)
-  const leftoverCash = periodIncome - (periodExpenses + periodInvested);
+  // 5. Net Leftover / Surplus Cash from Total Income
+  // Deducts: All expenses EXCEPT 'Saving Account' (includes 'Sent', 'Pre Commitments', normal expenses) + Investments
+  const periodSurplusOutflow = timeframeTransactions
+    .filter(t => (t.type === 'expense' && t.category !== 'Saving Account') || t.type === 'investment')
+    .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+
+  const leftoverCash = periodIncome - periodSurplusOutflow;
 
   // Category filter for transaction list
   const displayTransactions = timeframeTransactions.filter(t => {
@@ -176,6 +187,24 @@ export const MoneyTracker = () => {
     if (filterCategory === 'Investment') return t.type === 'investment';
     return t.category === filterCategory;
   });
+
+  const handleOpenAddModal = () => {
+    setEditingTx(null);
+    setIsTxModalOpen(true);
+  };
+
+  const handleOpenEditModal = (tx) => {
+    setEditingTx(tx);
+    setIsTxModalOpen(true);
+  };
+
+  const handleSaveTransaction = (txData) => {
+    if (editingTx) {
+      updateTransaction(txData);
+    } else {
+      addTransaction(txData);
+    }
+  };
 
   return (
     <div className="glass-panel-dark rounded-2xl p-5 border border-slate-200 dark:border-slate-800 space-y-5">
@@ -214,7 +243,7 @@ export const MoneyTracker = () => {
           </div>
 
           <button
-            onClick={() => setIsTxModalOpen(true)}
+            onClick={handleOpenAddModal}
             className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md shadow-emerald-600/30 transition cursor-pointer"
           >
             <Plus className="w-4 h-4" />
@@ -353,7 +382,7 @@ export const MoneyTracker = () => {
         {/* 2. Expense Budget Health */}
         <div className="bg-slate-50 dark:bg-slate-900/60 rounded-xl p-3.5 border border-slate-200 dark:border-slate-800/80 space-y-1">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">Expense Budget Health</span>
+            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">Living Budget Health</span>
             <div className="flex items-center space-x-1">
               <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded font-mono ${budgetColor.badge}`}>
                 {consumptionPct}% Used
@@ -370,7 +399,7 @@ export const MoneyTracker = () => {
           
           <div className="flex items-baseline justify-between text-xs">
             <span className={`text-base font-extrabold font-mono ${budgetColor.text}`}>
-              {formatCurrency(periodExpenses)}
+              {formatCurrency(periodLivingExpenses)}
             </span>
             <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400">
               / {formatCurrency(expenseBudget)}
@@ -439,11 +468,11 @@ export const MoneyTracker = () => {
           {/* Segmented Flow Bar */}
           <div className="w-full h-2.5 bg-slate-200 dark:bg-slate-950 rounded-full overflow-hidden flex border border-slate-300 dark:border-slate-800">
             {/* Actual Expenses Spent Portion */}
-            {periodExpenses > 0 && (
+            {periodAllExpenses > 0 && (
               <div
                 className="bg-rose-500 transition-all duration-300"
-                style={{ width: `${Math.min(100, Math.round((periodExpenses / periodIncome) * 100))}%` }}
-                title={`Expenses Spent: ${formatCurrency(periodExpenses)} (${Math.round((periodExpenses / periodIncome) * 100)}%)`}
+                style={{ width: `${Math.min(100, Math.round((periodAllExpenses / periodIncome) * 100))}%` }}
+                title={`Expenses: ${formatCurrency(periodAllExpenses)} (${Math.round((periodAllExpenses / periodIncome) * 100)}%)`}
               />
             )}
             {/* Investments Portion */}
@@ -467,7 +496,7 @@ export const MoneyTracker = () => {
           <div className="flex flex-wrap items-center gap-4 text-[10px] font-mono text-slate-500 dark:text-slate-400 pt-0.5">
             <div className="flex items-center space-x-1.5">
               <span className="w-2 h-2 rounded-full bg-rose-500" />
-              <span>Expenses: {formatCurrency(periodExpenses)} ({Math.round((periodExpenses / periodIncome) * 100)}%)</span>
+              <span>Expenses: {formatCurrency(periodAllExpenses)} ({Math.round((periodAllExpenses / periodIncome) * 100)}%)</span>
             </div>
             <div className="flex items-center space-x-1.5">
               <span className="w-2 h-2 rounded-full bg-indigo-500" />
@@ -488,7 +517,7 @@ export const MoneyTracker = () => {
             Transaction History ({displayTransactions.length})
           </span>
           <div className="flex items-center space-x-1 text-xs overflow-x-auto">
-            {['All', 'Expense', 'Income', 'Investment', 'Food', 'Bills', 'Shopping'].map((cat) => (
+            {['All', 'Expense', 'Income', 'Investment', 'Food', 'Bills', 'Shopping', 'Saving Account', 'Sent', 'Pre Commitments'].map((cat) => (
               <button
                 key={cat}
                 onClick={() => setFilterCategory(cat)}
@@ -509,7 +538,7 @@ export const MoneyTracker = () => {
             <div className="text-center p-8 bg-slate-50 dark:bg-slate-900/40 rounded-xl border border-slate-200 dark:border-slate-800 space-y-1">
               <p className="text-xs text-slate-500 italic">No transactions found for this period.</p>
               <button
-                onClick={() => setIsTxModalOpen(true)}
+                onClick={handleOpenAddModal}
                 className="text-xs text-emerald-600 dark:text-emerald-400 font-bold hover:underline cursor-pointer"
               >
                 + Log a Transaction
@@ -553,7 +582,15 @@ export const MoneyTracker = () => {
                           🟣 {tx.category || 'Investment'}
                         </span>
                       ) : (
-                        <span className="px-1.5 py-0.2 rounded bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800">
+                        <span className={`px-1.5 py-0.2 rounded border font-medium ${
+                          tx.category === 'Saving Account'
+                            ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20'
+                            : tx.category === 'Pre Commitments'
+                            ? 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20'
+                            : tx.category === 'Sent'
+                            ? 'bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/20'
+                            : 'bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800'
+                        }`}>
                           {tx.category}
                         </span>
                       )}
@@ -567,7 +604,7 @@ export const MoneyTracker = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-2">
                   <span
                     className={`text-xs font-extrabold font-mono ${
                       tx.type === 'income'
@@ -579,6 +616,14 @@ export const MoneyTracker = () => {
                   >
                     {tx.type === 'income' ? '+' : tx.type === 'investment' ? '📈 ' : '-'}{currency}{Number(tx.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                   </span>
+
+                  <button
+                    onClick={() => handleOpenEditModal(tx)}
+                    className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition cursor-pointer"
+                    title="Edit Transaction"
+                  >
+                    <Edit2 className="w-3.5 h-3.5" />
+                  </button>
 
                   <button
                     onClick={() => deleteTransaction(tx.id)}
@@ -594,11 +639,15 @@ export const MoneyTracker = () => {
         </div>
       </div>
 
-      {/* Transaction Modal */}
+      {/* Transaction Modal (Add & Edit) */}
       <TransactionModal
         isOpen={isTxModalOpen}
-        onClose={() => setIsTxModalOpen(false)}
-        onSave={addTransaction}
+        onClose={() => {
+          setIsTxModalOpen(false);
+          setEditingTx(null);
+        }}
+        onSave={handleSaveTransaction}
+        initialData={editingTx}
       />
 
       {/* Set Monthly Budget Allocation Modal */}
@@ -614,7 +663,7 @@ export const MoneyTracker = () => {
                   {MONTH_NAMES_FULL[selectedMonth - 1]} {selectedYear}
                 </p>
               </div>
-              <button onClick={() => setIsBudgetModalOpen(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+              <button onClick={() => setIsBudgetModalOpen(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer">
                 <X className="w-4 h-4" />
               </button>
             </div>

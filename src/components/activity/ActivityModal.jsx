@@ -13,10 +13,11 @@ import {
   Flame,
   Check,
   Brain,
-  Book
+  Book,
+  Edit2
 } from 'lucide-react';
 
-export const ActivityModal = ({ isOpen, onClose, onSave }) => {
+export const ActivityModal = ({ isOpen, onClose, onSave, initialData = null }) => {
   const [actType, setActType] = useState('gym'); // 'gym' | 'running' | 'swimming' | 'sports' | 'reading'
   
   // Shared fields
@@ -25,10 +26,19 @@ export const ActivityModal = ({ isOpen, onClose, onSave }) => {
   const [durationMins, setDurationMins] = useState(45);
   const [notes, setNotes] = useState('');
 
-  // Gym Multi-Exercise State
+  // Gym Multi-Exercise State with multi-sets
   const [sessionFocus, setSessionFocus] = useState('Chest & Triceps');
   const [exercises, setExercises] = useState([
-    { id: 'ex-1', name: 'Barbell Bench Press', sets: 4, reps: '10', weightKg: 75, notes: '' }
+    {
+      id: 'ex-1',
+      name: 'Barbell Bench Press',
+      notes: '',
+      setList: [
+        { setNumber: 1, weightKg: 60, reps: 12 },
+        { setNumber: 2, weightKg: 70, reps: 10 },
+        { setNumber: 3, weightKg: 80, reps: 8 }
+      ]
+    }
   ]);
 
   // Running fields
@@ -52,6 +62,115 @@ export const ActivityModal = ({ isOpen, onClose, onSave }) => {
   const [skillName, setSkillName] = useState('System Design');
   const [moduleName, setModuleName] = useState('Chapter 3: Cache Invalidation');
 
+  // Populate form on open or when initialData changes
+  useEffect(() => {
+    if (!isOpen) return;
+
+    if (initialData) {
+      setActType(initialData.type || 'gym');
+      setTitle(initialData.title || '');
+      setDate(initialData.date || getISTDateString());
+      setDurationMins(initialData.durationMins || 45);
+      setNotes(initialData.notes || '');
+
+      if (initialData.type === 'gym') {
+        setSessionFocus(initialData.sessionFocus || 'Chest & Triceps');
+        if (initialData.exercises && Array.isArray(initialData.exercises) && initialData.exercises.length > 0) {
+          const formatted = initialData.exercises.map((ex, idx) => {
+            let setList = [];
+            if (ex.setList && Array.isArray(ex.setList) && ex.setList.length > 0) {
+              setList = ex.setList.map((s, sIdx) => ({
+                setNumber: s.setNumber || sIdx + 1,
+                weightKg: Number(s.weightKg) || 0,
+                reps: Number(s.reps) || 10
+              }));
+            } else {
+              const count = Number(ex.sets) || 3;
+              const repNum = parseInt(ex.reps, 10) || 10;
+              const wt = Number(ex.weightKg) || 0;
+              for (let i = 1; i <= count; i++) {
+                setList.push({ setNumber: i, weightKg: wt, reps: repNum });
+              }
+            }
+            return {
+              id: ex.id || `ex-${Date.now()}-${idx}`,
+              name: ex.name || '',
+              notes: ex.notes || '',
+              setList
+            };
+          });
+          setExercises(formatted);
+        } else if (initialData.exercise) {
+          const count = Number(initialData.sets) || 3;
+          const repNum = parseInt(initialData.reps, 10) || 10;
+          const wt = Number(initialData.weightKg) || 0;
+          const setList = [];
+          for (let i = 1; i <= count; i++) {
+            setList.push({ setNumber: i, weightKg: wt, reps: repNum });
+          }
+          setExercises([
+            {
+              id: 'ex-1',
+              name: initialData.exercise,
+              notes: '',
+              setList
+            }
+          ]);
+        }
+      } else if (initialData.type === 'running') {
+        setDistanceKm(initialData.distance || 5.0);
+        setHeartRateZone(initialData.heartRateZone || 'Zone 3 (Aerobic)');
+        setPace(initialData.pace || '5.00');
+      } else if (initialData.type === 'swimming') {
+        setStroke(initialData.stroke || 'Freestyle');
+        setLaps(initialData.laps || 20);
+        setPoolLengthMeters(initialData.poolLengthMeters || 50);
+      } else if (initialData.type === 'sports') {
+        setSportType(initialData.sportType || 'Badminton');
+        setIntensity(initialData.intensity || 'Competitive Match');
+      } else if (initialData.type === 'reading') {
+        setReadingSubType(initialData.readingSubType || 'book');
+        setBookTitle(initialData.bookTitle || initialData.topic || '');
+        setPagesRead(initialData.pagesRead || 0);
+        setSkillName(initialData.skillName || initialData.topic || '');
+        setModuleName(initialData.moduleName || '');
+      }
+    } else {
+      // Default reset for new activity
+      setActType('gym');
+      setTitle('');
+      setDate(getISTDateString());
+      setDurationMins(45);
+      setNotes('');
+      setSessionFocus('Chest & Triceps');
+      setExercises([
+        {
+          id: 'ex-1',
+          name: 'Barbell Bench Press',
+          notes: '',
+          setList: [
+            { setNumber: 1, weightKg: 60, reps: 12 },
+            { setNumber: 2, weightKg: 70, reps: 10 },
+            { setNumber: 3, weightKg: 80, reps: 8 }
+          ]
+        }
+      ]);
+      setDistanceKm(5.0);
+      setHeartRateZone('Zone 3 (Aerobic)');
+      setPace('5.00');
+      setStroke('Freestyle');
+      setLaps(20);
+      setPoolLengthMeters(50);
+      setSportType('Badminton');
+      setIntensity('Competitive Match');
+      setReadingSubType('book');
+      setBookTitle('Atomic Habits');
+      setPagesRead(25);
+      setSkillName('System Design');
+      setModuleName('Chapter 3: Cache Invalidation');
+    }
+  }, [isOpen, initialData]);
+
   // Auto calculate running pace (min/km)
   useEffect(() => {
     if (actType === 'running' && distanceKm > 0 && durationMins > 0) {
@@ -69,23 +188,87 @@ export const ActivityModal = ({ isOpen, onClose, onSave }) => {
       {
         id: `ex-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
         name: '',
-        sets: 3,
-        reps: '10',
-        weightKg: 0,
-        notes: ''
+        notes: '',
+        setList: [
+          { setNumber: 1, weightKg: 0, reps: 10 },
+          { setNumber: 2, weightKg: 0, reps: 10 },
+          { setNumber: 3, weightKg: 0, reps: 10 }
+        ]
       }
     ]);
   };
 
-  const handleUpdateExercise = (id, field, value) => {
+  const handleUpdateExerciseName = (id, name) => {
     setExercises(prev =>
-      prev.map(ex => (ex.id === id ? { ...ex, [field]: value } : ex))
+      prev.map(ex => (ex.id === id ? { ...ex, name } : ex))
+    );
+  };
+
+  const handleUpdateExerciseNotes = (id, notesVal) => {
+    setExercises(prev =>
+      prev.map(ex => (ex.id === id ? { ...ex, notes: notesVal } : ex))
     );
   };
 
   const handleRemoveExercise = (id) => {
     if (exercises.length <= 1) return; // Keep at least one exercise
     setExercises(prev => prev.filter(ex => ex.id !== id));
+  };
+
+  // Set-level helpers
+  const handleAddSet = (exerciseId) => {
+    setExercises(prev =>
+      prev.map(ex => {
+        if (ex.id !== exerciseId) return ex;
+        const currentSets = ex.setList || [];
+        const lastSet = currentSets[currentSets.length - 1] || { weightKg: 0, reps: 10 };
+        const newSet = {
+          setNumber: currentSets.length + 1,
+          weightKg: lastSet.weightKg,
+          reps: lastSet.reps
+        };
+        return {
+          ...ex,
+          setList: [...currentSets, newSet]
+        };
+      })
+    );
+  };
+
+  const handleRemoveSet = (exerciseId, setIdx) => {
+    setExercises(prev =>
+      prev.map(ex => {
+        if (ex.id !== exerciseId) return ex;
+        if ((ex.setList || []).length <= 1) return ex; // Keep at least 1 set
+        const updated = ex.setList.filter((_, idx) => idx !== setIdx).map((s, idx) => ({
+          ...s,
+          setNumber: idx + 1
+        }));
+        return {
+          ...ex,
+          setList: updated
+        };
+      })
+    );
+  };
+
+  const handleUpdateSet = (exerciseId, setIdx, field, value) => {
+    setExercises(prev =>
+      prev.map(ex => {
+        if (ex.id !== exerciseId) return ex;
+        const updated = (ex.setList || []).map((s, idx) => {
+          if (idx !== setIdx) return s;
+          return {
+            ...s,
+            [field]: field === 'weightKg' || field === 'reps' ? Number(value) || 0 : value
+          };
+        });
+        return {
+          ...ex,
+          setList: updated
+        };
+      })
+    );
   };
 
   const getDefaultTitle = () => {
@@ -115,18 +298,30 @@ export const ActivityModal = ({ isOpen, onClose, onSave }) => {
     let payload = { ...baseActivity };
 
     if (actType === 'gym') {
-      const sanitizedExercises = exercises.map(ex => ({
-        id: ex.id,
-        name: ex.name.trim() || 'Exercise',
-        sets: Number(ex.sets) || 1,
-        reps: ex.reps || '10',
-        weightKg: Number(ex.weightKg) || 0,
-        notes: ex.notes ? ex.notes.trim() : ''
-      }));
+      const sanitizedExercises = exercises.map(ex => {
+        const validSets = (ex.setList && ex.setList.length > 0 ? ex.setList : [{ setNumber: 1, weightKg: 0, reps: 10 }]).map((s, sIdx) => ({
+          setNumber: sIdx + 1,
+          weightKg: Number(s.weightKg) || 0,
+          reps: Number(s.reps) || 10
+        }));
+
+        const exVolume = validSets.reduce((acc, s) => acc + (s.weightKg * s.reps), 0);
+        const firstSet = validSets[0] || { weightKg: 0, reps: 10 };
+
+        return {
+          id: ex.id,
+          name: ex.name.trim() || 'Exercise',
+          setList: validSets,
+          sets: validSets.length,
+          reps: validSets.map(s => s.reps).join('-'),
+          weightKg: firstSet.weightKg,
+          exerciseVolumeKg: exVolume,
+          notes: ex.notes ? ex.notes.trim() : ''
+        };
+      });
 
       const totalVolumeKg = sanitizedExercises.reduce((acc, ex) => {
-        const parsedReps = parseInt(ex.reps, 10) || 10;
-        return acc + (ex.sets * parsedReps * ex.weightKg);
+        return acc + (ex.exerciseVolumeKg || 0);
       }, 0);
 
       // Primary lift for backward-compatible display
@@ -197,15 +392,17 @@ export const ActivityModal = ({ isOpen, onClose, onSave }) => {
         <div className="flex items-center justify-between p-5 border-b border-slate-200 dark:border-slate-800/80">
           <div className="flex items-center space-x-2.5">
             <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
-              <Activity className="w-5 h-5" />
+              {initialData ? <Edit2 className="w-5 h-5" /> : <Activity className="w-5 h-5" />}
             </div>
             <div>
-              <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">Log Activity Session</h3>
+              <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
+                {initialData ? 'Edit Activity Session' : 'Log Activity Session'}
+              </h3>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -318,71 +515,130 @@ export const ActivityModal = ({ isOpen, onClose, onSave }) => {
                   </button>
                 </div>
 
-                <div className="space-y-2.5">
-                  {exercises.map((ex, index) => (
-                    <div
-                      key={ex.id}
-                      className="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 space-y-2 relative group"
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-[10px] font-mono font-extrabold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
-                          #{index + 1}
-                        </span>
-                        <input
-                          type="text"
-                          required
-                          placeholder="Exercise name (e.g. Incline Dumbbell Press)"
-                          value={ex.name}
-                          onChange={e => handleUpdateExercise(ex.id, 'name', e.target.value)}
-                          className="flex-1 px-2.5 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-xs font-bold text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500"
-                        />
-                        {exercises.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveExercise(ex.id)}
-                            className="p-1 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition"
-                            title="Remove Exercise"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-                      </div>
+                <div className="space-y-3">
+                  {exercises.map((ex, index) => {
+                    const exSets = ex.setList || [];
+                    const exerciseVol = exSets.reduce((sum, s) => sum + ((Number(s.weightKg) || 0) * (Number(s.reps) || 0)), 0);
 
-                      <div className="grid grid-cols-3 gap-2">
-                        <div className="space-y-0.5">
-                          <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400">Sets</label>
-                          <input
-                            type="number"
-                            min="1"
-                            value={ex.sets}
-                            onChange={e => handleUpdateExercise(ex.id, 'sets', e.target.value)}
-                            className="w-full px-2 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-xs font-mono font-bold text-slate-900 dark:text-slate-100"
-                          />
-                        </div>
-                        <div className="space-y-0.5">
-                          <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400">Reps / Set</label>
+                    return (
+                      <div
+                        key={ex.id}
+                        className="p-3.5 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 space-y-3 relative group shadow-sm"
+                      >
+                        {/* Exercise Name & Header */}
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-[10px] font-mono font-extrabold px-2 py-1 rounded bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-cyan-400 border border-indigo-200 dark:border-indigo-800 shrink-0">
+                            #{index + 1}
+                          </span>
                           <input
                             type="text"
-                            placeholder="10 or 12-10-8"
-                            value={ex.reps}
-                            onChange={e => handleUpdateExercise(ex.id, 'reps', e.target.value)}
-                            className="w-full px-2 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-xs font-mono font-bold text-slate-900 dark:text-slate-100"
+                            required
+                            placeholder="Exercise name (e.g. Incline Dumbbell Press)"
+                            value={ex.name}
+                            onChange={e => handleUpdateExerciseName(ex.id, e.target.value)}
+                            className="flex-1 px-3 py-1.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-xs font-bold text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500"
                           />
+                          {exerciseVol > 0 && (
+                            <span className="text-[10px] font-mono font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 px-2 py-1 rounded border border-indigo-200/60 dark:border-indigo-800/60 shrink-0">
+                              Vol: {exerciseVol}kg
+                            </span>
+                          )}
+                          {exercises.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveExercise(ex.id)}
+                              className="p-1 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition"
+                              title="Remove Exercise"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
                         </div>
-                        <div className="space-y-0.5">
-                          <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400">Weight (kg)</label>
-                          <input
-                            type="number"
-                            min="0"
-                            step="0.5"
-                            value={ex.weightKg}
-                            onChange={e => handleUpdateExercise(ex.id, 'weightKg', e.target.value)}
-                            className="w-full px-2 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-xs font-mono font-bold text-indigo-600 dark:text-indigo-400"
-                          />
+
+                        {/* Sets Table */}
+                        <div className="space-y-1.5 bg-slate-50/70 dark:bg-slate-950/50 p-2.5 rounded-lg border border-slate-200/80 dark:border-slate-800/80">
+                          <div className="grid grid-cols-12 gap-1.5 text-[10px] font-bold text-slate-500 dark:text-slate-400 px-1 pb-1">
+                            <span className="col-span-2">Set</span>
+                            <span className="col-span-4">Weight (kg)</span>
+                            <span className="col-span-4">Reps</span>
+                            <span className="col-span-2 text-right">Action</span>
+                          </div>
+
+                          <div className="space-y-1.5">
+                            {exSets.map((s, sIdx) => {
+                              const setVol = (Number(s.weightKg) || 0) * (Number(s.reps) || 0);
+
+                              return (
+                                <div key={sIdx} className="grid grid-cols-12 gap-1.5 items-center">
+                                  <div className="col-span-2">
+                                    <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 block text-center">
+                                      S{sIdx + 1}
+                                    </span>
+                                  </div>
+                                  <div className="col-span-4">
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      step="0.5"
+                                      value={s.weightKg}
+                                      onChange={e => handleUpdateSet(ex.id, sIdx, 'weightKg', e.target.value)}
+                                      className="w-full px-2 py-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded text-xs font-mono font-bold text-indigo-600 dark:text-cyan-400 focus:outline-none focus:border-indigo-500"
+                                      placeholder="kg"
+                                    />
+                                  </div>
+                                  <div className="col-span-4">
+                                    <input
+                                      type="number"
+                                      min="1"
+                                      value={s.reps}
+                                      onChange={e => handleUpdateSet(ex.id, sIdx, 'reps', e.target.value)}
+                                      className="w-full px-2 py-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded text-xs font-mono font-bold text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500"
+                                      placeholder="reps"
+                                    />
+                                  </div>
+                                  <div className="col-span-2 flex items-center justify-end">
+                                    {exSets.length > 1 && (
+                                      <button
+                                        type="button"
+                                        onClick={() => handleRemoveSet(ex.id, sIdx)}
+                                        className="p-1 text-slate-400 hover:text-rose-500 transition cursor-pointer"
+                                        title="Remove Set"
+                                      >
+                                        <Trash2 className="w-3 h-3" />
+                                      </button>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+
+                          <div className="pt-2 flex items-center justify-between border-t border-slate-200 dark:border-slate-800/80 mt-2">
+                            <button
+                              type="button"
+                              onClick={() => handleAddSet(ex.id)}
+                              className="text-[11px] font-bold text-indigo-600 dark:text-cyan-400 hover:text-indigo-700 flex items-center gap-1 cursor-pointer"
+                            >
+                              <Plus className="w-3 h-3" />
+                              <span>Add Set</span>
+                            </button>
+                            <span className="text-[10px] text-slate-400 font-mono">
+                              {exSets.length} {exSets.length === 1 ? 'set' : 'sets'}
+                            </span>
+                          </div>
                         </div>
+
+                        {/* Exercise Notes */}
+                        <input
+                          type="text"
+                          placeholder="Exercise notes (e.g., Drop set on last set, RPE 8)"
+                          value={ex.notes || ''}
+                          onChange={e => handleUpdateExerciseNotes(ex.id, e.target.value)}
+                          className="w-full px-2.5 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-[11px] text-slate-600 dark:text-slate-300 placeholder-slate-400"
+                        />
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
 
@@ -674,7 +930,7 @@ export const ActivityModal = ({ isOpen, onClose, onSave }) => {
               type="submit"
               className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-extrabold shadow-md shadow-indigo-600/30 transition cursor-pointer"
             >
-              Save Activity Session
+              {initialData ? 'Save Changes' : 'Save Activity Session'}
             </button>
           </div>
 

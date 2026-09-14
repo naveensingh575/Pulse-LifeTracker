@@ -10,11 +10,12 @@ import {
   Calendar,
   FileText,
   Plus,
-  AlertCircle
+  AlertCircle,
+  Edit2
 } from 'lucide-react';
 
-export const TaskModal = ({ isOpen, onClose, initialCategory = 'Work' }) => {
-  const { addTask } = useDashboard();
+export const TaskModal = ({ isOpen, onClose, initialCategory = 'Work', initialTask = null, onSave = null }) => {
+  const { addTask, updateTask } = useDashboard();
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState(initialCategory);
   const [priority, setPriority] = useState('medium');
@@ -23,10 +24,21 @@ export const TaskModal = ({ isOpen, onClose, initialCategory = 'Work' }) => {
 
   useEffect(() => {
     if (isOpen) {
-      setCategory(initialCategory || 'Work');
-      setDueDate(new Date().toISOString().split('T')[0]);
+      if (initialTask) {
+        setTitle(initialTask.title || '');
+        setCategory(initialTask.category || 'Work');
+        setPriority(initialTask.priority || 'medium');
+        setDueDate(initialTask.dueDate || new Date().toISOString().split('T')[0]);
+        setNotes(initialTask.notes || '');
+      } else {
+        setTitle('');
+        setCategory(initialCategory || 'Work');
+        setPriority('medium');
+        setDueDate(new Date().toISOString().split('T')[0]);
+        setNotes('');
+      }
     }
-  }, [isOpen, initialCategory]);
+  }, [isOpen, initialCategory, initialTask]);
 
   if (!isOpen) return null;
 
@@ -34,13 +46,27 @@ export const TaskModal = ({ isOpen, onClose, initialCategory = 'Work' }) => {
     e.preventDefault();
     if (!title.trim()) return;
 
-    addTask({
+    const payload = {
       title: title.trim(),
       category,
       priority,
       dueDate: dueDate || new Date().toISOString().split('T')[0],
       notes: notes.trim(),
-    });
+    };
+
+    if (initialTask) {
+      if (onSave) {
+        onSave(payload);
+      } else {
+        updateTask(initialTask.id, payload);
+      }
+    } else {
+      if (onSave) {
+        onSave(payload);
+      } else {
+        addTask(payload);
+      }
+    }
 
     // Reset & close
     setTitle('');
@@ -69,16 +95,18 @@ export const TaskModal = ({ isOpen, onClose, initialCategory = 'Work' }) => {
         <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
           <div className="flex items-center space-x-2.5">
             <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
-              <CheckSquare className="w-5 h-5" />
+              {initialTask ? <Edit2 className="w-5 h-5" /> : <CheckSquare className="w-5 h-5" />}
             </div>
             <div>
-              <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">Create New Action Task</h3>
+              <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
+                {initialTask ? 'Edit Action Task' : 'Create New Action Task'}
+              </h3>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="p-1 rounded-lg text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 transition"
+            className="p-1 rounded-lg text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 transition cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -117,7 +145,7 @@ export const TaskModal = ({ isOpen, onClose, initialCategory = 'Work' }) => {
                     key={cat.key}
                     type="button"
                     onClick={() => setCategory(cat.key)}
-                    className={`flex items-center space-x-2 p-2.5 rounded-xl border text-xs font-semibold transition ${
+                    className={`flex items-center space-x-2 p-2.5 rounded-xl border text-xs font-semibold transition cursor-pointer ${
                       isSelected
                         ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 shadow-sm'
                         : 'border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50 text-slate-600 dark:text-slate-400 hover:border-slate-300'
@@ -144,7 +172,7 @@ export const TaskModal = ({ isOpen, onClose, initialCategory = 'Work' }) => {
                     key={p.key}
                     type="button"
                     onClick={() => setPriority(p.key)}
-                    className={`p-2 rounded-xl border text-[11px] font-bold transition text-center ${
+                    className={`p-2 rounded-xl border text-[11px] font-bold transition text-center cursor-pointer ${
                       isSelected
                         ? `${p.color} border-current shadow-sm`
                         : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400'
@@ -191,16 +219,16 @@ export const TaskModal = ({ isOpen, onClose, initialCategory = 'Work' }) => {
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+              className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex items-center space-x-1.5 px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-lg shadow-indigo-600/25 transition"
+              className="flex items-center space-x-1.5 px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-lg shadow-indigo-600/25 transition cursor-pointer"
             >
-              <Plus className="w-4 h-4" />
-              <span>Add Task</span>
+              {initialTask ? <Edit2 className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+              <span>{initialTask ? 'Save Task' : 'Add Task'}</span>
             </button>
           </div>
 

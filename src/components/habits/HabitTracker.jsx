@@ -22,7 +22,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Lock,
-  Calendar
+  Calendar,
+  Edit2
 } from 'lucide-react';
 
 const habitIconMap = {
@@ -39,6 +40,7 @@ export const HabitTracker = ({ activeCategoryProp }) => {
     isHabitDoneOn,
     toggleHabitForDate,
     addHabit,
+    updateHabit,
     deleteHabit
   } = useDashboard();
 
@@ -61,6 +63,7 @@ export const HabitTracker = ({ activeCategoryProp }) => {
   const isCurrentWeek = weekOffset === 0;
 
   const [showAddModal, setShowAddModal] = useState(false);
+  const [editingHabit, setEditingHabit] = useState(null);
   const [newHabitName, setNewHabitName] = useState('');
   const [newHabitCategory, setNewHabitCategory] = useState('Health');
   const [newHabitStartDate, setNewHabitStartDate] = useState(getISTDateString());
@@ -70,17 +73,43 @@ export const HabitTracker = ({ activeCategoryProp }) => {
     ? habits
     : habits.filter(h => h.category && h.category.toLowerCase() === activeCategory.toLowerCase());
 
-  const handleAddHabit = (e) => {
+  const handleOpenAdd = () => {
+    setEditingHabit(null);
+    setNewHabitName('');
+    setNewHabitCategory('Health');
+    setNewHabitStartDate(getISTDateString());
+    setShowAddModal(true);
+  };
+
+  const handleOpenEdit = (habit) => {
+    setEditingHabit(habit);
+    setNewHabitName(habit.name || '');
+    setNewHabitCategory(habit.category || 'Health');
+    setNewHabitStartDate(habit.createdAt || getISTDateString());
+    setShowAddModal(true);
+  };
+
+  const handleSaveHabit = (e) => {
     e.preventDefault();
     if (!newHabitName.trim()) return;
-    addHabit({
-      name: newHabitName.trim(),
-      category: newHabitCategory,
-      icon: 'Smile',
-      createdAt: newHabitStartDate || getISTDateString()
-    });
+
+    if (editingHabit) {
+      updateHabit(editingHabit.id, {
+        name: newHabitName.trim(),
+        category: newHabitCategory,
+        createdAt: newHabitStartDate || getISTDateString()
+      });
+    } else {
+      addHabit({
+        name: newHabitName.trim(),
+        category: newHabitCategory,
+        icon: 'Smile',
+        createdAt: newHabitStartDate || getISTDateString()
+      });
+    }
     setNewHabitName('');
     setNewHabitStartDate(getISTDateString());
+    setEditingHabit(null);
     setShowAddModal(false);
   };
 
@@ -143,10 +172,7 @@ export const HabitTracker = ({ activeCategoryProp }) => {
           </div>
 
           <button
-            onClick={() => {
-              setNewHabitStartDate(getISTDateString());
-              setShowAddModal(true);
-            }}
+            onClick={handleOpenAdd}
             className="flex items-center space-x-1 px-2.5 py-1.5 rounded-xl bg-amber-600/10 hover:bg-amber-600/20 text-amber-700 dark:text-amber-300 text-xs font-semibold border border-amber-500/30 transition"
           >
             <Plus className="w-3.5 h-3.5" />
@@ -270,13 +296,22 @@ export const HabitTracker = ({ activeCategoryProp }) => {
                     </div>
                   </div>
 
-                  <button
-                    onClick={() => deleteHabit(habit.id)}
-                    className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition sm:hidden"
-                    title="Delete Habit"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+                  <div className="flex items-center space-x-1 sm:hidden">
+                    <button
+                      onClick={() => handleOpenEdit(habit)}
+                      className="p-1 text-slate-400 hover:text-amber-600 dark:hover:text-amber-400 transition"
+                      title="Edit Habit"
+                    >
+                      <Edit2 className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => deleteHabit(habit.id)}
+                      className="p-1 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition"
+                      title="Delete Habit"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
 
                 {/* 7-Day Grid Buttons: Last Week (Mon-Sun) & This Week (Mon-Today) are fully checkable */}
@@ -349,7 +384,7 @@ export const HabitTracker = ({ activeCategoryProp }) => {
                   })}
                 </div>
 
-                {/* Fraction Progress & Delete */}
+                {/* Fraction Progress & Actions */}
                 <div className="sm:col-span-2 w-full flex items-center justify-between sm:justify-end space-x-2">
                   <div className="text-right">
                     <span className="text-xs font-extrabold font-mono text-slate-900 dark:text-slate-200">
@@ -363,13 +398,22 @@ export const HabitTracker = ({ activeCategoryProp }) => {
                     </div>
                   </div>
 
-                  <button
-                    onClick={() => deleteHabit(habit.id)}
-                    className="hidden sm:block opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition"
-                    title="Delete Habit"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+                  <div className="hidden sm:flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition">
+                    <button
+                      onClick={() => handleOpenEdit(habit)}
+                      className="p-1 text-slate-400 hover:text-amber-600 dark:hover:text-amber-400 transition"
+                      title="Edit Habit"
+                    >
+                      <Edit2 className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => deleteHabit(habit.id)}
+                      className="p-1 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition"
+                      title="Delete Habit"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
 
               </div>
@@ -378,18 +422,27 @@ export const HabitTracker = ({ activeCategoryProp }) => {
         )}
       </div>
 
-      {/* Add Habit Modal with Track From Date Selector */}
+      {/* Add / Edit Habit Modal with Track From Date Selector */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-150">
           <div className="w-full max-w-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-4 shadow-2xl text-slate-900 dark:text-slate-100">
             <div className="flex items-center justify-between">
-              <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">Add New Habit</h4>
-              <button onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+              <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                {editingHabit ? <Edit2 className="w-4 h-4 text-amber-500" /> : <Plus className="w-4 h-4 text-amber-500" />}
+                <span>{editingHabit ? 'Edit Habit' : 'Add New Habit'}</span>
+              </h4>
+              <button
+                onClick={() => {
+                  setShowAddModal(false);
+                  setEditingHabit(null);
+                }}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+              >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleAddHabit} className="space-y-3">
+            <form onSubmit={handleSaveHabit} className="space-y-3">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Habit Title</label>
                 <input
@@ -437,16 +490,19 @@ export const HabitTracker = ({ activeCategoryProp }) => {
               <div className="flex justify-end space-x-2 pt-2">
                 <button
                   type="button"
-                  onClick={() => setShowAddModal(false)}
-                  className="px-3 py-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-slate-700"
+                  onClick={() => {
+                    setShowAddModal(false);
+                    setEditingHabit(null);
+                  }}
+                  className="px-3 py-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-slate-700 cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-semibold shadow-md transition"
+                  className="px-4 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-semibold shadow-md transition cursor-pointer"
                 >
-                  Save Habit
+                  {editingHabit ? 'Save Changes' : 'Save Habit'}
                 </button>
               </div>
             </form>

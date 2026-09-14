@@ -511,6 +511,32 @@ export const DashboardProvider = ({ children }) => {
     }
   };
 
+  const updateHabit = async (updatedHabit) => {
+    setHabits(prev =>
+      prev.map(h => {
+        if (h.id !== updatedHabit.id) return h;
+        return {
+          ...h,
+          name: updatedHabit.name.trim(),
+          category: updatedHabit.category || h.category,
+          icon: updatedHabit.icon || h.icon,
+          frequency: updatedHabit.frequency || h.frequency,
+          createdAt: updatedHabit.createdAt || h.createdAt
+        };
+      })
+    );
+
+    if (userId) {
+      await supabase.from('habits').update({
+        name: updatedHabit.name.trim(),
+        category: updatedHabit.category,
+        icon: updatedHabit.icon,
+        frequency: updatedHabit.frequency,
+        created_at: updatedHabit.createdAt
+      }).eq('id', updatedHabit.id);
+    }
+  };
+
   // --- Transactions Operations ---
   const addTransaction = async (newTx) => {
     const txDate = newTx.date || getISTDateString();
@@ -548,6 +574,39 @@ export const DashboardProvider = ({ children }) => {
         date: txDate
       };
       setTransactions(prev => [localTx, ...prev]);
+    }
+  };
+
+  const updateTransaction = async (updatedTx) => {
+    const cleanAmt = Math.max(0, Number(updatedTx.amount) || 0);
+    const txDate = updatedTx.date || getISTDateString();
+
+    setTransactions(prev =>
+      prev.map(t => {
+        if (t.id !== updatedTx.id) return t;
+        return {
+          ...t,
+          type: updatedTx.type || t.type,
+          amount: cleanAmt,
+          category: updatedTx.category || t.category,
+          description: updatedTx.description || t.description,
+          assetName: updatedTx.assetName !== undefined ? updatedTx.assetName : t.assetName,
+          date: txDate,
+          notes: updatedTx.notes !== undefined ? updatedTx.notes : t.notes
+        };
+      })
+    );
+
+    if (userId) {
+      await supabase.from('transactions').update({
+        type: updatedTx.type,
+        amount: cleanAmt,
+        category: updatedTx.category,
+        description: updatedTx.description,
+        asset_name: updatedTx.assetName || null,
+        transaction_date: txDate,
+        notes: updatedTx.notes || ''
+      }).eq('id', updatedTx.id);
     }
   };
 
@@ -818,6 +877,36 @@ export const DashboardProvider = ({ children }) => {
     }
   };
 
+  const updateTask = async (updatedTask) => {
+    const taskDueDate = updatedTask.dueDate || getISTDateString();
+
+    setTasks(prev =>
+      prev.map(t => {
+        if (t.id !== updatedTask.id) return t;
+        return {
+          ...t,
+          title: updatedTask.title.trim(),
+          priority: updatedTask.priority || t.priority,
+          category: updatedTask.category || t.category,
+          dueDate: taskDueDate,
+          linkedGoalTitle: updatedTask.linkedGoalTitle !== undefined ? updatedTask.linkedGoalTitle : t.linkedGoalTitle,
+          notes: updatedTask.notes !== undefined ? updatedTask.notes : t.notes
+        };
+      })
+    );
+
+    if (userId) {
+      await supabase.from('tasks').update({
+        title: updatedTask.title.trim(),
+        priority: updatedTask.priority,
+        category: updatedTask.category,
+        due_date: taskDueDate,
+        linked_goal_title: updatedTask.linkedGoalTitle || null,
+        notes: updatedTask.notes || ''
+      }).eq('id', updatedTask.id);
+    }
+  };
+
   const updateTaskPriority = async (taskId, newPriority) => {
     setTasks(prev => prev.map(t => (t.id === taskId ? { ...t, priority: newPriority } : t)));
     if (userId) {
@@ -959,6 +1048,52 @@ export const DashboardProvider = ({ children }) => {
     }
   };
 
+  const updateActivity = async (updatedAct) => {
+    const actDate = updatedAct.date || getISTDateString();
+
+    setActivities(prev =>
+      prev.map(a => {
+        if (a.id !== updatedAct.id) return a;
+        return {
+          ...a,
+          ...updatedAct,
+          date: actDate,
+          durationMins: Number(updatedAct.durationMins) || 0,
+          totalVolumeKg: Number(updatedAct.totalVolumeKg) || 0,
+          distance: Number(updatedAct.distance) || 0,
+          laps: Number(updatedAct.laps) || 0,
+          pagesRead: Number(updatedAct.pagesRead) || 0
+        };
+      })
+    );
+
+    if (userId) {
+      await supabase.from('activities').update({
+        type: updatedAct.type,
+        title: updatedAct.title,
+        activity_date: actDate,
+        duration_mins: Number(updatedAct.durationMins) || 0,
+        notes: updatedAct.notes || '',
+        session_focus: updatedAct.sessionFocus || null,
+        total_volume_kg: Number(updatedAct.totalVolumeKg) || 0,
+        exercises: updatedAct.exercises || [],
+        distance_km: Number(updatedAct.distance) || 0,
+        pace: updatedAct.pace || null,
+        heart_rate_zone: updatedAct.heartRateZone || null,
+        stroke: updatedAct.stroke || null,
+        laps: Number(updatedAct.laps) || 0,
+        pool_length_meters: Number(updatedAct.poolLengthMeters) || 50,
+        sport_type: updatedAct.sportType || null,
+        intensity: updatedAct.intensity || null,
+        reading_sub_type: updatedAct.readingSubType || null,
+        book_title: updatedAct.bookTitle || null,
+        pages_read: Number(updatedAct.pagesRead) || 0,
+        skill_name: updatedAct.skillName || null,
+        module_name: updatedAct.moduleName || null
+      }).eq('id', updatedAct.id);
+    }
+  };
+
   const deleteActivity = async (actId) => {
     setActivities(prev => prev.filter(a => a.id !== actId));
     if (userId) {
@@ -1052,12 +1187,14 @@ export const DashboardProvider = ({ children }) => {
         toggleHabitForDate,
         toggleHabitDay,
         addHabit,
+        updateHabit,
         deleteHabit,
         getDayCompletionStats,
 
         // Activities
         activities,
         addActivity,
+        updateActivity,
         deleteActivity,
 
         // Currency & Localization
@@ -1078,6 +1215,7 @@ export const DashboardProvider = ({ children }) => {
         // Money & Cashflow
         transactions,
         addTransaction,
+        updateTransaction,
         deleteTransaction,
         totalSpent,
         totalIncome,
@@ -1090,6 +1228,7 @@ export const DashboardProvider = ({ children }) => {
         // Tasks
         tasks,
         addTask,
+        updateTask,
         updateTaskPriority,
         toggleTaskComplete,
         toggleTask: toggleTaskComplete,

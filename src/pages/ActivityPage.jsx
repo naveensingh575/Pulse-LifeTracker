@@ -33,7 +33,8 @@ import {
   Sparkles,
   Layers,
   Brain,
-  Book
+  Book,
+  Edit2
 } from 'lucide-react';
 
 const CATEGORY_COLORS = {
@@ -45,8 +46,9 @@ const CATEGORY_COLORS = {
 };
 
 export const ActivityPage = () => {
-  const { activities, addActivity, deleteActivity, theme } = useDashboard();
+  const { activities, addActivity, updateActivity, deleteActivity, theme } = useDashboard();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingActivity, setEditingActivity] = useState(null);
 
   // Timeframe states: strictly 'day' | 'week' | 'month'
   const [timeframe, setTimeframe] = useState('month'); // 'day' | 'week' | 'month'
@@ -85,7 +87,13 @@ export const ActivityPage = () => {
     .filter(a => a.type === 'gym')
     .reduce((max, a) => {
       if (a.exercises && Array.isArray(a.exercises)) {
-        const sessionMax = a.exercises.reduce((exMax, ex) => Math.max(exMax, Number(ex.weightKg) || 0), 0);
+        const sessionMax = a.exercises.reduce((exMax, ex) => {
+          if (ex.setList && Array.isArray(ex.setList)) {
+            const setMax = ex.setList.reduce((sMax, s) => Math.max(sMax, Number(s.weightKg) || 0), 0);
+            return Math.max(exMax, setMax);
+          }
+          return Math.max(exMax, Number(ex.weightKg) || 0);
+        }, 0);
         return Math.max(max, sessionMax);
       }
       return Math.max(max, Number(a.weightKg) || 0);
@@ -123,6 +131,11 @@ export const ActivityPage = () => {
       if (a.totalVolumeKg !== undefined) return acc + a.totalVolumeKg;
       if (a.exercises && Array.isArray(a.exercises)) {
         const sVol = a.exercises.reduce((exSum, ex) => {
+          if (ex.exerciseVolumeKg !== undefined) return exSum + ex.exerciseVolumeKg;
+          if (ex.setList && Array.isArray(ex.setList)) {
+            const setSum = ex.setList.reduce((sTot, s) => sTot + ((Number(s.weightKg) || 0) * (Number(s.reps) || 0)), 0);
+            return exSum + setSum;
+          }
           const reps = parseInt(ex.reps, 10) || 10;
           return exSum + ((Number(ex.sets) || 1) * reps * (Number(ex.weightKg) || 0));
         }, 0);
@@ -619,13 +632,25 @@ export const ActivityPage = () => {
                         </div>
                       </div>
 
-                      <button
-                        onClick={() => deleteActivity(act.id)}
-                        className="p-1.5 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition cursor-pointer"
-                        title="Delete Log"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center space-x-1">
+                        <button
+                          onClick={() => {
+                            setEditingActivity(act);
+                            setIsModalOpen(true);
+                          }}
+                          className="p-1.5 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition cursor-pointer"
+                          title="Edit Log"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => deleteActivity(act.id)}
+                          className="p-1.5 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition cursor-pointer"
+                          title="Delete Log"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
 
                     {/* Multi-Exercise Breakdown Tags for Gym Workouts */}
@@ -635,20 +660,53 @@ export const ActivityPage = () => {
                           <Layers className="w-3 h-3 text-indigo-500" />
                           <span>Exercises Completed ({act.exercises.length}):</span>
                         </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                           {act.exercises.map((ex, exIdx) => {
+                            const hasSetList = ex.setList && Array.isArray(ex.setList) && ex.setList.length > 0;
                             const parsedReps = parseInt(ex.reps, 10) || 10;
-                            const exVol = (Number(ex.sets) || 1) * parsedReps * (Number(ex.weightKg) || 0);
+                            const exVol = ex.exerciseVolumeKg !== undefined
+                              ? ex.exerciseVolumeKg
+                              : hasSetList
+                                ? ex.setList.reduce((acc, s) => acc + ((Number(s.weightKg) || 0) * (Number(s.reps) || 0)), 0)
+                                : (Number(ex.sets) || 1) * parsedReps * (Number(ex.weightKg) || 0);
+
                             return (
                               <div
                                 key={ex.id || exIdx}
-                                className="px-2.5 py-1.5 bg-white dark:bg-slate-950 rounded-lg border border-slate-200 dark:border-slate-800/80 text-xs flex items-center justify-between"
+                                className="p-2.5 bg-white dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800/80 text-xs space-y-1.5"
                               >
-                                <span className="font-semibold text-slate-800 dark:text-slate-200">{ex.name}</span>
-                                <span className="font-mono text-[11px] text-indigo-600 dark:text-cyan-400 font-bold">
-                                  {ex.sets}x{ex.reps} @ {ex.weightKg}kg
-                                  {exVol > 0 && <span className="text-[10px] text-slate-400 font-normal ml-1">({exVol}kg)</span>}
-                                </span>
+                                <div className="flex items-center justify-between">
+                                  <span className="font-bold text-slate-800 dark:text-slate-200">{ex.name}</span>
+                                  {exVol > 0 && (
+                                    <span className="font-mono text-[10px] text-indigo-600 dark:text-cyan-400 font-bold bg-indigo-50 dark:bg-indigo-950/50 px-1.5 py-0.5 rounded border border-indigo-200/50 dark:border-indigo-800/50">
+                                      {exVol}kg vol
+                                    </span>
+                                  )}
+                                </div>
+
+                                {hasSetList ? (
+                                  <div className="flex flex-wrap gap-1 pt-0.5">
+                                    {ex.setList.map((s, sIdx) => (
+                                      <span
+                                        key={sIdx}
+                                        className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300"
+                                      >
+                                        <span className="text-slate-400 dark:text-slate-500 font-sans mr-0.5">S{s.setNumber || sIdx + 1}:</span>
+                                        <strong>{s.weightKg}kg</strong> × {s.reps}
+                                      </span>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <div className="font-mono text-[11px] text-indigo-600 dark:text-cyan-400 font-bold">
+                                    {ex.sets}x{ex.reps} @ {ex.weightKg}kg
+                                  </div>
+                                )}
+
+                                {ex.notes && (
+                                  <p className="text-[10px] text-slate-500 italic">
+                                    "{ex.notes}"
+                                  </p>
+                                )}
                               </div>
                             );
                           })}
@@ -670,11 +728,21 @@ export const ActivityPage = () => {
 
       </div>
 
-      {/* Activity Creation Modal */}
+      {/* Activity Creation / Edit Modal */}
       <ActivityModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSave={addActivity}
+        initialData={editingActivity}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingActivity(null);
+        }}
+        onSave={(payload) => {
+          if (editingActivity) {
+            updateActivity(editingActivity.id, payload);
+          } else {
+            addActivity(payload);
+          }
+        }}
       />
 
     </div>

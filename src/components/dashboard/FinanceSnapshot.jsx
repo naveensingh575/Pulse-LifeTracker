@@ -33,14 +33,14 @@ export const FinanceSnapshot = () => {
   const activeAllocation = getMonthlyAllocation(currentMonthKey);
   const monthlyBudgetCap = activeAllocation.expenseBudget;
 
-  // Calculate actual spend for current month
+  // Calculate actual living spend for current month (excluding Saving Account and Pre Commitments)
   const monthExpenses = transactions
-    .filter(t => t.type === 'expense' && t.date && t.date.startsWith(currentMonthKey))
+    .filter(t => t.type === 'expense' && t.category !== 'Saving Account' && t.category !== 'Pre Commitments' && t.date && t.date.startsWith(currentMonthKey))
     .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
 
-  // Today's actual expense
+  // Today's actual living expense
   const todayExpenses = transactions
-    .filter(t => t.type === 'expense' && t.date === todayStr)
+    .filter(t => t.type === 'expense' && t.category !== 'Saving Account' && t.category !== 'Pre Commitments' && t.date === todayStr)
     .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
 
   const daysInMonth = 31;
