@@ -45,9 +45,6 @@ export const PrioritizedTasks = () => {
           </div>
           <div>
             <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Prioritized Action Board</h3>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400">
-              High-priority directives & immediate execution
-            </p>
           </div>
         </div>
 

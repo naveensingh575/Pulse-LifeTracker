@@ -45,7 +45,6 @@ export const RemindersList = () => {
           </div>
           <div>
             <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Reminders & Deadlines</h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Chronological timeline & urgent flags</p>
           </div>
         </div>
 

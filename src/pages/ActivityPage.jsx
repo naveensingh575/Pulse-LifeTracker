@@ -186,9 +186,6 @@ export const ActivityPage = () => {
             <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
               Activity Pulse
             </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Track volume, multi-exercise workout builder, cardio endurance, books & skill study
-            </p>
           </div>
         </div>
 
@@ -212,7 +209,6 @@ export const ActivityPage = () => {
             <p className="text-xl font-extrabold text-slate-900 dark:text-slate-100 font-mono">
               {longestRun > 0 ? `${longestRun.toFixed(1)} km` : '0.0 km'}
             </p>
-            <p className="text-[10px] text-slate-500">Max continuous distance recorded</p>
           </div>
           <div className="p-2.5 rounded-xl bg-cyan-500/10 text-cyan-500 border border-cyan-500/20">
             <Trophy className="w-5 h-5" />
@@ -227,7 +223,6 @@ export const ActivityPage = () => {
             <p className="text-xl font-extrabold text-slate-900 dark:text-slate-100 font-mono">
               {heaviestLift > 0 ? `${heaviestLift} kg` : '0 kg'}
             </p>
-            <p className="text-[10px] text-slate-500">Peak strength load across exercises</p>
           </div>
           <div className="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-500 border border-indigo-500/20">
             <Flame className="w-5 h-5" />
@@ -242,7 +237,6 @@ export const ActivityPage = () => {
             <p className="text-xl font-extrabold text-slate-900 dark:text-slate-100 font-mono">
               {maxReading > 0 ? `${maxReading} pages` : '0 pages'}
             </p>
-            <p className="text-[10px] text-slate-500">Max pages read in single session</p>
           </div>
           <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20">
             <BookOpen className="w-5 h-5" />

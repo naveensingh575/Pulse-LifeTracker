@@ -176,7 +176,6 @@ export const MoneyTracker = () => {
           </div>
           <div>
             <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Financial Ledger & Income Allocation Hub</h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Income → Budget + Investments + Leftover Surplus model</p>
           </div>
         </div>
 
@@ -309,7 +308,6 @@ export const MoneyTracker = () => {
           <p className="text-lg font-extrabold text-emerald-600 dark:text-emerald-400 font-mono">
             +{formatCurrency(periodIncome)}
           </p>
-          <p className="text-[10px] text-slate-500 font-medium">Salary & revenue inflow</p>
         </div>
 
         {/* 2. Expense Budget Health */}
@@ -365,11 +363,11 @@ export const MoneyTracker = () => {
           <p className="text-lg font-extrabold text-indigo-600 dark:text-cyan-400 font-mono">
             {formatCurrency(periodInvested)}
           </p>
-          <p className="text-[10px] text-slate-500 font-medium">
-            {investmentGoal > 0
-              ? `Goal: ${formatCurrency(investmentGoal)} (${Math.round((periodInvested / investmentGoal) * 100)}%)`
-              : 'Stocks, SIPs & Mutual Funds'}
-          </p>
+          {investmentGoal > 0 && (
+            <p className="text-[10px] text-slate-500 font-medium font-mono">
+              Goal: {formatCurrency(investmentGoal)} ({Math.round((periodInvested / investmentGoal) * 100)}%)
+            </p>
+          )}
         </div>
 
         {/* 4. Net Leftover / Unallocated Cash */}
@@ -380,9 +378,6 @@ export const MoneyTracker = () => {
           </div>
           <p className={`text-lg font-extrabold font-mono ${leftoverCash >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
             {formatCurrency(leftoverCash)}
-          </p>
-          <p className="text-[10px] text-slate-500 font-medium">
-            Income − (Expense + Invested)
           </p>
         </div>
 

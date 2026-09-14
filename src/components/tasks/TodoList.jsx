@@ -67,7 +67,6 @@ export const TodoList = () => {
           </div>
           <div>
             <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Prioritized Action Board</h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400">3-Tier Priority Matrix & Archived Completion Feed</p>
           </div>
         </div>
 

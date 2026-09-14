@@ -168,9 +168,6 @@ export const PredictiveFeasibility = () => {
                 Actionable Tasks Linked
               </span>
             </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Runway velocity analysis, required daily pace & 1-click execution steps
-            </p>
           </div>
         </div>
       </div>

@@ -34,9 +34,6 @@ export const FinancePage = () => {
             <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
               Financial Pulse Hub
             </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Timeframe filters, monthly budget ceilings, cashflow ledger & asset investments
-            </p>
           </div>
         </div>
 

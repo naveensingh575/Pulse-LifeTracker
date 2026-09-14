@@ -201,7 +201,6 @@ export const ActivityModal = ({ isOpen, onClose, onSave }) => {
             </div>
             <div>
               <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">Log Activity Session</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Multi-exercise gym logs, cardio endurance, book reading & skill study</p>
             </div>
           </div>
           <button

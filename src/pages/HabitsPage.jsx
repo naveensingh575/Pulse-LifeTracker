@@ -95,9 +95,6 @@ export const HabitsPage = () => {
             <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
               Habits Tracker & Streak Hub
             </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Daily Checklist, 7-Day Weekly Strip & Dynamic Monthly Heatmap
-            </p>
           </div>
         </div>
 
@@ -285,9 +282,6 @@ export const HabitsPage = () => {
                 <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                   Dynamic Monthly Consistency Heatmap
                 </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  GitHub-style visual intensity matrix for {MONTH_NAMES_FULL[selectedMonth - 1]} {selectedYear}
-                </p>
               </div>
             </div>
 

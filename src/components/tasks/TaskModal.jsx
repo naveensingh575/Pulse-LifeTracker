@@ -73,7 +73,6 @@ export const TaskModal = ({ isOpen, onClose, initialCategory = 'Work' }) => {
             </div>
             <div>
               <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">Create New Action Task</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Add a task to your context action boards</p>
             </div>
           </div>
 

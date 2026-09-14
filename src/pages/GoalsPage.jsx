@@ -17,7 +17,6 @@ export const GoalsPage = () => {
             <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
               Strategic Target Goals & Feasibility
             </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Milestones, deadlines, progress tracking & run-rate feasibility predictions (₹)</p>
           </div>
         </div>
       </div>

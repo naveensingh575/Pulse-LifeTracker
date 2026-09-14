@@ -45,7 +45,6 @@ export const HabitSnapshot = () => {
           </div>
           <div>
             <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Habit Rhythm Snapshot</h3>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400">Today's completion pace & quick check-ins</p>
           </div>
         </div>
 

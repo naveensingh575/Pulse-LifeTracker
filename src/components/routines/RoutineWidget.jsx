@@ -108,9 +108,6 @@ export const RoutineWidget = () => {
             <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
               {activeTab === 'morning' ? '☀️ Morning Planning Flow' : '🌙 Evening Review & Day-End Recap'}
             </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              {activeTab === 'morning' ? 'Set top 3 daily priorities & sync calendar' : `Check off habits, log extra expenses & view completion score (${formatISTDisplayDate(todayStr)})`}
-            </p>
           </div>
         </div>
 

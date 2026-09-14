@@ -144,7 +144,6 @@ export const GoalsHeader = () => {
           </div>
           <div>
             <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">Strategic Target Goals</h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Multi-tier horizons, milestones & predictive execution</p>
           </div>
         </div>
 

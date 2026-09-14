@@ -87,7 +87,6 @@ export const FinanceSnapshot = () => {
           </div>
           <div>
             <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Cash Flow & Burn-Rate Gauge</h3>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400">Monthly budget health & daily pace</p>
           </div>
         </div>
 

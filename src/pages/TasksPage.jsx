@@ -80,7 +80,6 @@ export const TasksPage = () => {
             <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
               Context Action Boards & To-Dos
             </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Context categories (Personal/Shopping, Work/Office, Urgent) & Calendar Sync</p>
           </div>
         </div>
 

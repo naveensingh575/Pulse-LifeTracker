@@ -24,7 +24,6 @@ export const JournalWidget = () => {
           </div>
           <div>
             <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Journal Pulse</h3>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400">Daily Reflection & Log</p>
           </div>
         </div>
 
