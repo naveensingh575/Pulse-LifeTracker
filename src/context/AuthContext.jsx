@@ -7,6 +7,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
 
   // Helper to format Supabase user into friendly profile
   const formatUser = (supaUser) => {
@@ -38,9 +39,12 @@ export const AuthProvider = ({ children }) => {
     });
 
     // 2. Real-time Auth State Listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
       setSession(newSession);
       setUser(newSession ? formatUser(newSession.user) : null);
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsPasswordRecovery(true);
+      }
       setLoading(false);
     });
 
@@ -91,11 +95,43 @@ export const AuthProvider = ({ children }) => {
     return data;
   };
 
+  // Request Password Reset Email with secure redirect link
+  const resetPasswordForEmail = async (email) => {
+    const cleanEmail = email.trim().toLowerCase();
+    const { data, error } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
+      redirectTo: `${window.location.origin}${window.location.pathname}#/login?mode=update-password`
+    });
+    if (error) throw error;
+    return data;
+  };
+
+  // Verify OTP token sent to email for password recovery
+  const verifyRecoveryOtp = async (email, token) => {
+    const cleanEmail = email.trim().toLowerCase();
+    const { data, error } = await supabase.auth.verifyOtp({
+      email: cleanEmail,
+      token: token.trim(),
+      type: 'recovery'
+    });
+    if (error) throw error;
+    return data;
+  };
+
+  // Update authenticated user password
+  const updateUserPassword = async (newPassword) => {
+    const { data, error } = await supabase.auth.updateUser({
+      password: newPassword
+    });
+    if (error) throw error;
+    return data;
+  };
+
   // Sign Out
   const logout = async () => {
     await supabase.auth.signOut();
     setUser(null);
     setSession(null);
+    setIsPasswordRecovery(false);
   };
 
   return (
@@ -104,9 +140,14 @@ export const AuthProvider = ({ children }) => {
         user,
         session,
         loading,
+        isPasswordRecovery,
+        setIsPasswordRecovery,
         signInWithEmail,
         signUpWithEmail,
         resendConfirmationEmail,
+        resetPasswordForEmail,
+        verifyRecoveryOtp,
+        updateUserPassword,
         logout
       }}
     >
