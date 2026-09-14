@@ -18,11 +18,11 @@ export const Sidebar = () => {
   const navItems = [
     { to: '/', label: 'My Pulse', icon: LayoutDashboard },
     { to: '/habits', label: 'Habits', icon: Flame, badge: `${habits ? habits.length : 0}` },
-    { to: '/activity', label: 'Activity Pulse', icon: Dumbbell, badge: `${activities ? activities.length : 0}` },
+    { to: '/activity', label: 'Activity', icon: Dumbbell, badge: `${activities ? activities.length : 0}` },
     { to: '/finance', label: 'Financial Pulse', icon: Wallet, badge: `${currency}${remainingBalance > 1000 ? (remainingBalance / 1000).toFixed(0) + 'k' : remainingBalance.toFixed(0)}` },
     { to: '/goals', label: 'Goals', icon: Target, badge: `${goals ? goals.length : 0}` },
     { to: '/tasks', label: 'Tasks', icon: CheckSquare, badge: `${tasks ? tasks.filter(t => !t.completed).length : 0}` },
-    { to: '/journal', label: 'Journal Pulse', icon: BookOpen, badge: `${journalEntries ? journalEntries.length : 0}` },
+    { to: '/journal', label: 'Journal', icon: BookOpen, badge: `${journalEntries ? journalEntries.length : 0}` },
     { to: '/analytics', label: 'Analytics', icon: LineChart, tag: 'AI' }
   ];
 
