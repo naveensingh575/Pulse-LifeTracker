@@ -71,16 +71,17 @@ const DISCIPLINE_COLORS = {
 };
 
 export const AnalyticsView = () => {
+  const dashboard = useDashboard() || {};
   const {
-    transactions,
-    habits,
-    isHabitDoneOn,
-    getMonthlyAllocation,
-    activities,
-    goals,
-    tasks,
-    theme
-  } = useDashboard();
+    transactions = [],
+    habits = [],
+    isHabitDoneOn = () => false,
+    getMonthlyAllocation = () => ({ expenseBudget: 0, investmentGoal: 0 }),
+    activities = [],
+    goals = [],
+    tasks = [],
+    theme = 'dark'
+  } = dashboard;
 
   // Unified 3-Header Timeframe Filter: 'day' | 'week' | 'month'
   const [timeframe, setTimeframe] = useState('month');
@@ -100,11 +101,11 @@ export const AnalyticsView = () => {
   };
 
   const activeWeekRef = getWeekRefDate();
-  const activeWeekDays = getISTWeekDays(activeWeekRef);
-  const activeWeekBadge = getISTWeekBadge(activeWeekRef);
+  const activeWeekDays = getISTWeekDays(activeWeekRef) || [];
+  const activeWeekBadge = getISTWeekBadge ? getISTWeekBadge(activeWeekRef) : 'W1';
   const isCurrentWeek = weekOffset === 0;
-  const weekStartStr = activeWeekDays[0].dateStr;
-  const weekEndStr = activeWeekDays[6].dateStr;
+  const weekStartStr = activeWeekDays[0]?.dateStr || todayStr;
+  const weekEndStr = activeWeekDays[6]?.dateStr || todayStr;
 
   // Month & Year Selector for Month view
   const currentISTYM = getISTYearMonth();
@@ -115,8 +116,8 @@ export const AnalyticsView = () => {
 
   // Selected Month Key (e.g. '2026-08')
   const selectedMonthKey = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`;
-  const activeAllocation = getMonthlyAllocation(selectedMonthKey);
-  const monthlyBudgetCap = activeAllocation.expenseBudget;
+  const activeAllocation = (getMonthlyAllocation && getMonthlyAllocation(selectedMonthKey)) || { expenseBudget: 0, investmentGoal: 0 };
+  const monthlyBudgetCap = Number(activeAllocation?.expenseBudget) || 0;
 
   // Month Navigation Handlers
   const handlePrevMonth = () => {

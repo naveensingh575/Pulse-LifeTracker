@@ -18,22 +18,24 @@ import { useNavigate } from 'react-router-dom';
 import { getISTDateString, getISTYearMonth } from '../../utils/dateUtils';
 
 export const SmartFocusBanner = () => {
+  const dashboard = useDashboard() || {};
   const {
-    transactions,
-    getMonthlyAllocation,
-    habits,
-    isHabitDoneOn,
-    tasks,
-    goals,
-    formatCurrency
-  } = useDashboard();
+    transactions = [],
+    getMonthlyAllocation = () => ({ expenseBudget: 0, investmentGoal: 0 }),
+    habits = [],
+    isHabitDoneOn = () => false,
+    tasks = [],
+    goals = [],
+    currency = '₹',
+    formatCurrency = (val) => `${currency}${Number(val || 0).toLocaleString()}`
+  } = dashboard;
 
   const navigate = useNavigate();
   const todayStr = getISTDateString();
   const currentISTYM = getISTYearMonth();
   const currentMonthKey = `${currentISTYM.year}-${String(currentISTYM.month).padStart(2, '0')}`;
-  const activeAllocation = getMonthlyAllocation(currentMonthKey);
-  const monthlyBudgetCap = activeAllocation.expenseBudget;
+  const activeAllocation = (getMonthlyAllocation && getMonthlyAllocation(currentMonthKey)) || { expenseBudget: 0, investmentGoal: 0 };
+  const monthlyBudgetCap = Number(activeAllocation?.expenseBudget) || 0;
 
   const insights = [];
 

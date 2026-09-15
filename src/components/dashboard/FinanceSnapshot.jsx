@@ -14,13 +14,14 @@ import {
 } from 'lucide-react';
 
 export const FinanceSnapshot = () => {
+  const dashboard = useDashboard() || {};
   const {
-    transactions,
-    addTransaction,
-    getMonthlyAllocation,
-    currency,
-    formatCurrency
-  } = useDashboard();
+    transactions = [],
+    addTransaction = () => {},
+    getMonthlyAllocation = () => ({ expenseBudget: 0, investmentGoal: 0 }),
+    currency = '₹',
+    formatCurrency = (val) => `${currency}${Number(val || 0).toLocaleString()}`
+  } = dashboard;
 
   const [isQuickExpenseOpen, setIsQuickExpenseOpen] = useState(false);
   const [quickDesc, setQuickDesc] = useState('');
@@ -31,8 +32,8 @@ export const FinanceSnapshot = () => {
   const currentISTYM = getISTYearMonth();
   const currentMonthKey = `${currentISTYM.year}-${String(currentISTYM.month).padStart(2, '0')}`;
   
-  const activeAllocation = getMonthlyAllocation(currentMonthKey);
-  const monthlyBudgetCap = activeAllocation.expenseBudget;
+  const activeAllocation = (getMonthlyAllocation && getMonthlyAllocation(currentMonthKey)) || { expenseBudget: 0, investmentGoal: 0 };
+  const monthlyBudgetCap = Number(activeAllocation?.expenseBudget) || 0;
 
   // Calculate actual living spend for current month (excluding Saving Account and Pre Commitments; including Sent)
   const monthExpenses = transactions

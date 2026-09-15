@@ -37,16 +37,17 @@ import {
 } from 'lucide-react';
 
 export const MoneyTracker = () => {
+  const dashboard = useDashboard() || {};
   const {
-    getMonthlyAllocation,
-    setMonthlyAllocation,
-    transactions,
-    addTransaction,
-    updateTransaction,
-    deleteTransaction,
-    currency,
-    formatCurrency
-  } = useDashboard();
+    getMonthlyAllocation = () => ({ expenseBudget: 0, investmentGoal: 0 }),
+    setMonthlyAllocation = () => {},
+    transactions = [],
+    addTransaction = () => {},
+    updateTransaction = () => {},
+    deleteTransaction = () => {},
+    currency = '₹',
+    formatCurrency = (val) => `${currency}${Number(val || 0).toLocaleString()}`
+  } = dashboard;
 
   // Time-Horizon state: 'day' | 'week' | 'month'
   const [timeframe, setTimeframe] = useState('month');
@@ -65,11 +66,11 @@ export const MoneyTracker = () => {
   
   // Current active month key
   const activeMonthKey = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`;
-  const activeAllocation = getMonthlyAllocation(activeMonthKey) || { expenseBudget: 0, investmentGoal: 0 };
+  const activeAllocation = (getMonthlyAllocation && getMonthlyAllocation(activeMonthKey)) || { expenseBudget: 0, investmentGoal: 0 };
   
   // Modal temp state
-  const [tempExpenseBudget, setTempExpenseBudget] = useState((activeAllocation.expenseBudget || 0).toString());
-  const [tempInvestmentGoal, setTempInvestmentGoal] = useState((activeAllocation.investmentGoal || 0).toString());
+  const [tempExpenseBudget, setTempExpenseBudget] = useState((activeAllocation?.expenseBudget || 0).toString());
+  const [tempInvestmentGoal, setTempInvestmentGoal] = useState((activeAllocation?.investmentGoal || 0).toString());
 
   // Week navigation offset (0 = current week, -1 = last week, +1 = next week)
   const [weekOffset, setWeekOffset] = useState(0);

@@ -5,7 +5,8 @@ import { EXPENSE_CATEGORIES, INCOME_CATEGORIES, INVESTMENT_CATEGORIES, isSavingA
 import { X, Plus, Check, TrendingUp, ArrowDownLeft, ArrowUpRight, ShieldCheck } from 'lucide-react';
 
 export const TransactionModal = ({ isOpen, onClose, onSave, initialData }) => {
-  const { currency } = useDashboard();
+  const dashboard = useDashboard() || {};
+  const currency = dashboard.currency || '₹';
   const [formData, setFormData] = useState({
     description: '',
     assetName: '',

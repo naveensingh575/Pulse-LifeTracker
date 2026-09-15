@@ -5,7 +5,10 @@ import { calculateFinanceSummary } from '../utils/financeUtils';
 import { Wallet, PieChart, TrendingUp, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
 
 export const FinancePage = () => {
-  const { transactions = [], formatCurrency } = useDashboard();
+  const dashboard = useDashboard() || {};
+  const transactions = dashboard.transactions || [];
+  const currency = dashboard.currency || '₹';
+  const formatCurrency = dashboard.formatCurrency || ((val) => `${currency}${Number(val || 0).toLocaleString()}`);
 
   const {
     totalIncome: safeIncome,
