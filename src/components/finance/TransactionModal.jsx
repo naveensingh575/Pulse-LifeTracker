@@ -48,8 +48,9 @@ export const TransactionModal = ({ isOpen, onClose, onSave, initialData }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const parsedAmt = parseFloat(formData.amount);
-    if (isNaN(parsedAmt) || parsedAmt <= 0) return;
+    const rawAmt = parseFloat(formData.amount);
+    if (isNaN(rawAmt) || rawAmt <= 0) return;
+    const parsedAmt = Math.min(1000000000, Math.max(0.01, rawAmt));
 
     const payload = {
       ...(initialData?.id ? { id: initialData.id } : {}),

@@ -287,12 +287,14 @@ export const ActivityModal = ({ isOpen, onClose, onSave, initialData = null }) =
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    const safeDuration = Math.min(1440, Math.max(1, Number(durationMins) || 0));
+
     const baseActivity = {
       ...(initialData?.id ? { id: initialData.id } : {}),
       type: actType,
       title: title.trim() || getDefaultTitle(),
       date,
-      durationMins: Number(durationMins) || 0,
+      durationMins: safeDuration,
       notes: notes.trim()
     };
 
@@ -302,8 +304,8 @@ export const ActivityModal = ({ isOpen, onClose, onSave, initialData = null }) =
       const sanitizedExercises = exercises.map(ex => {
         const validSets = (ex.setList && ex.setList.length > 0 ? ex.setList : [{ setNumber: 1, weightKg: 0, reps: 10 }]).map((s, sIdx) => ({
           setNumber: sIdx + 1,
-          weightKg: Number(s.weightKg) || 0,
-          reps: Number(s.reps) || 10
+          weightKg: Math.min(1000, Math.max(0, Number(s.weightKg) || 0)),
+          reps: Math.min(500, Math.max(1, Number(s.reps) || 1))
         }));
 
         const exVolume = validSets.reduce((acc, s) => acc + (s.weightKg * s.reps), 0);
@@ -341,17 +343,19 @@ export const ActivityModal = ({ isOpen, onClose, onSave, initialData = null }) =
     } else if (actType === 'running') {
       payload = {
         ...payload,
-        distance: Number(distanceKm) || 0,
+        distance: Math.min(500, Math.max(0, Number(distanceKm) || 0)),
         pace,
         heartRateZone
       };
     } else if (actType === 'swimming') {
-      const totalSwimDistanceKm = ((Number(laps) || 0) * (Number(poolLengthMeters) || 50)) / 1000;
+      const safeLaps = Math.min(5000, Math.max(0, Number(laps) || 0));
+      const safePoolLen = Math.min(200, Math.max(10, Number(poolLengthMeters) || 50));
+      const totalSwimDistanceKm = (safeLaps * safePoolLen) / 1000;
       payload = {
         ...payload,
         stroke,
-        laps: Number(laps) || 0,
-        poolLengthMeters: Number(poolLengthMeters) || 50,
+        laps: safeLaps,
+        poolLengthMeters: safePoolLen,
         distance: Number(totalSwimDistanceKm.toFixed(2))
       };
     } else if (actType === 'sports') {
@@ -367,7 +371,7 @@ export const ActivityModal = ({ isOpen, onClose, onSave, initialData = null }) =
           readingSubType: 'book',
           bookTitle: bookTitle.trim() || 'Book Reading',
           topic: bookTitle.trim() || 'Book Reading',
-          pagesRead: Number(pagesRead) || 0
+          pagesRead: Math.min(5000, Math.max(0, Number(pagesRead) || 0))
         };
       } else {
         payload = {

@@ -149,11 +149,14 @@ export const GoalModal = ({ isOpen, onClose, onSave, onDelete, initialData }) =>
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!formData.title.trim()) return;
+    const safeTargetAmt = Math.min(1000000000, Math.max(1, parseFloat(formData.targetAmount) || 1));
+    const safeCurrentAmt = Math.min(1000000000, Math.max(0, parseFloat(formData.currentAmount) || 0));
+
     const cleanGoal = {
       ...formData,
       title: formData.title.trim(),
-      targetAmount: parseFloat(formData.targetAmount) || 1,
-      currentAmount: parseFloat(formData.currentAmount) || 0,
+      targetAmount: safeTargetAmt,
+      currentAmount: safeCurrentAmt,
       subGoals: formData.subGoals || []
     };
     delete cleanGoal.target_amount;

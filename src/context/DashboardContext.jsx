@@ -186,7 +186,7 @@ export const DashboardProvider = ({ children }) => {
     setIsLoadingData(true);
 
     try {
-      // 1. Fetch in parallel for high throughput
+      // 1. Fetch in parallel for high throughput with explicit user_id tenant isolation
       const [
         habitsRes,
         habitCompsRes,
@@ -198,15 +198,15 @@ export const DashboardProvider = ({ children }) => {
         actsRes,
         journalRes
       ] = await Promise.all([
-        supabase.from('habits').select('*').order('created_at', { ascending: true }),
-        supabase.from('habit_completions').select('*'),
-        supabase.from('monthly_allocations').select('*'),
-        supabase.from('transactions').select('*').order('transaction_date', { ascending: false }),
-        supabase.from('goals').select('*, sub_goals(*)').order('created_at', { ascending: false }),
-        supabase.from('tasks').select('*').order('created_at', { ascending: false }),
-        supabase.from('deadlines').select('*').order('deadline_date', { ascending: true }),
-        supabase.from('activities').select('*').order('activity_date', { ascending: false }),
-        supabase.from('journal_entries').select('*').order('entry_date', { ascending: false })
+        supabase.from('habits').select('*').eq('user_id', userId).order('created_at', { ascending: true }),
+        supabase.from('habit_completions').select('*').eq('user_id', userId),
+        supabase.from('monthly_allocations').select('*').eq('user_id', userId),
+        supabase.from('transactions').select('*').eq('user_id', userId).order('transaction_date', { ascending: false }),
+        supabase.from('goals').select('*, sub_goals(*)').eq('user_id', userId).order('created_at', { ascending: false }),
+        supabase.from('tasks').select('*').eq('user_id', userId).order('created_at', { ascending: false }),
+        supabase.from('deadlines').select('*').eq('user_id', userId).order('deadline_date', { ascending: true }),
+        supabase.from('activities').select('*').eq('user_id', userId).order('activity_date', { ascending: false }),
+        supabase.from('journal_entries').select('*').eq('user_id', userId).order('entry_date', { ascending: false })
       ]);
 
       // 2. Process Habits & Completions
