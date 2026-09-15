@@ -9,7 +9,7 @@ import {
   AlertTriangle,
   Clock,
   Check,
-  Target,
+  Compass,
   Zap
 } from 'lucide-react';
 import { getISTDate, getISTDateString, getISTDateDiffDays } from '../../utils/dateUtils';
@@ -183,7 +183,7 @@ export const PredictiveFeasibility = () => {
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
-                      <Target className="w-3.5 h-3.5 text-indigo-500" />
+                      <Compass className="w-3.5 h-3.5 text-indigo-500" />
                       <span>{item.title}</span>
                     </h4>
                     <span className="text-[10px] text-slate-400 font-mono">

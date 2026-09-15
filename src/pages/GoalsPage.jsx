@@ -3,7 +3,7 @@ import { GoalsHeader } from '../components/goals/GoalsHeader';
 import { PredictiveFeasibility } from '../components/goals/PredictiveFeasibility';
 import { GoalModal } from '../components/goals/GoalModal';
 import { useDashboard } from '../context/DashboardContext';
-import { Target, Plus } from 'lucide-react';
+import { Compass, Plus } from 'lucide-react';
 
 export const GoalsPage = () => {
   const { addGoal } = useDashboard();
@@ -16,11 +16,11 @@ export const GoalsPage = () => {
       <div className="glass-panel-dark rounded-2xl p-6 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <div className="p-3 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 shadow-lg shadow-indigo-500/10">
-            <Target className="w-6 h-6" />
+            <Compass className="w-6 h-6" />
           </div>
           <div>
             <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-              Goals & Viability
+              Goals & Objectives
             </h2>
           </div>
         </div>

@@ -3,6 +3,7 @@ import { useDashboard } from '../../context/DashboardContext';
 import { GoalModal, GOAL_ICONS } from './GoalModal';
 import {
   Target,
+  Compass,
   Plus,
   PiggyBank,
   Activity,
@@ -32,6 +33,7 @@ const iconMap = {
   Plane,
   Home,
   Target,
+  Compass,
   Flame,
   Heart
 };
@@ -140,10 +142,10 @@ export const GoalsHeader = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center space-x-2">
           <div className="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
-            <Target className="w-4 h-4" />
+            <Compass className="w-4 h-4" />
           </div>
           <div>
-            <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">Targets</h2>
+            <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">Objectives</h2>
           </div>
         </div>
 

@@ -3,6 +3,7 @@ import { useDashboard } from '../../context/DashboardContext';
 import {
   X,
   Target,
+  Compass,
   Plus,
   Trash2,
   PiggyBank,
@@ -22,6 +23,7 @@ import {
 import { getISTDateString } from '../../utils/dateUtils';
 
 export const GOAL_ICONS = [
+  { id: 'Compass', label: 'Objective', emoji: '🧭', icon: Compass },
   { id: 'PiggyBank', label: 'Finance', emoji: '💰', icon: PiggyBank },
   { id: 'Activity', label: 'Fitness', emoji: '🏃', icon: Activity },
   { id: 'Award', label: 'Skill', emoji: '📚', icon: Award },
@@ -169,8 +171,8 @@ export const GoalModal = ({ isOpen, onClose, onSave, onDelete, initialData }) =>
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 shrink-0">
           <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-            <Target className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-            {initialData ? 'Edit Strategic Target Goal' : 'Create Strategic Target Goal'}
+            <Compass className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+            {initialData ? 'Edit Strategic Objective' : 'Create Strategic Objective'}
           </h3>
           <button
             onClick={onClose}
