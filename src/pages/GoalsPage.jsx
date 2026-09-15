@@ -20,7 +20,7 @@ export const GoalsPage = () => {
           </div>
           <div>
             <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-              Goals & Objectives
+              Goals & Viability
             </h2>
           </div>
         </div>
