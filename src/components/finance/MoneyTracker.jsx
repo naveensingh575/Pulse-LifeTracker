@@ -10,6 +10,14 @@ import {
   MONTH_NAMES_FULL
 } from '../../utils/dateUtils';
 import {
+  calculateFinanceSummary,
+  isSavingAccountCategory,
+  isPreCommitmentsCategory,
+  isSentCategory,
+  isLivingBudgetExpense,
+  isSurplusDeductible
+} from '../../utils/financeUtils';
+import {
   Wallet,
   Plus,
   ArrowUpRight,
@@ -131,37 +139,25 @@ export const MoneyTracker = () => {
     return list.filter(t => t.date && t.date.startsWith(activeMonthKey));
   };
 
-  const timeframeTransactions = getFilteredByTimeframe();
-
-  // 1. Total Inflow (Salary / Income) for this period
-  const periodIncome = timeframeTransactions
-    .filter(t => t.type === 'income')
-    .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
-
-  // 2. Living Expenses (Excludes 'Saving Account' & 'Pre Commitments', Includes 'Sent' & standard categories)
-  const periodLivingExpenses = timeframeTransactions
-    .filter(t => t.type === 'expense' && t.category !== 'Saving Account' && t.category !== 'Pre Commitments')
-    .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
-
-  // Total All Expenses (for distribution visualization)
-  const periodAllExpenses = timeframeTransactions
-    .filter(t => t.type === 'expense')
-    .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
-
-  // 3. Total Investments Made (Wealth Asset Allocation)
-  const periodInvested = timeframeTransactions
-    .filter(t => t.type === 'investment')
-    .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
-
-  // 4. Monthly Expense Budget & Remaining Limit (Tracks Living Budget)
   const expenseBudget = Number(activeAllocation?.expenseBudget) || 0;
   const investmentGoal = Number(activeAllocation?.investmentGoal) || 0;
-  const remainingExpenseBudget = expenseBudget - periodLivingExpenses;
-  
-  // Budget consumption percentage & health color based on Living Budget expenses
-  const consumptionPct = expenseBudget > 0
-    ? Math.round((periodLivingExpenses / expenseBudget) * 100)
-    : 0;
+
+  // Compute standardized metrics:
+  // - Living Budget: 'Saving Account' & 'Pre Commitments' DO NOT deduct; 'Sent' & normal expenses DEDUCT.
+  // - Surplus Cash: 'Saving Account' DOES NOT deduct; 'Sent', 'Pre Commitments', normal expenses & investments DEDUCT.
+  const {
+    totalIncome: periodIncome,
+    livingExpenses: periodLivingExpenses,
+    preCommitments: periodPreCommitments,
+    savingTransfers: periodSavingTransfers,
+    sentExpenses: periodSentExpenses,
+    totalInvested: periodInvested,
+    grossExpenses: periodAllExpenses,
+    surplusOutflow: periodSurplusOutflow,
+    leftoverCash,
+    remainingLivingBudget: remainingExpenseBudget,
+    budgetConsumptionPct: consumptionPct
+  } = calculateFinanceSummary(timeframeTransactions, expenseBudget, investmentGoal);
 
   const getBudgetColor = (pct) => {
     if (pct > 90) return { bar: 'bg-rose-500', text: 'text-rose-600 dark:text-rose-400', badge: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20' };
@@ -171,20 +167,15 @@ export const MoneyTracker = () => {
 
   const budgetColor = getBudgetColor(consumptionPct);
 
-  // 5. Net Leftover / Surplus Cash from Total Income
-  // Deducts: All expenses EXCEPT 'Saving Account' (includes 'Sent', 'Pre Commitments', normal expenses) + Investments
-  const periodSurplusOutflow = timeframeTransactions
-    .filter(t => (t.type === 'expense' && t.category !== 'Saving Account') || t.type === 'investment')
-    .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
-
-  const leftoverCash = periodIncome - periodSurplusOutflow;
-
   // Category filter for transaction list
   const displayTransactions = timeframeTransactions.filter(t => {
     if (filterCategory === 'All') return true;
     if (filterCategory === 'Expense') return t.type === 'expense';
     if (filterCategory === 'Income') return t.type === 'income';
     if (filterCategory === 'Investment') return t.type === 'investment';
+    if (filterCategory === 'Saving Account') return isSavingAccountCategory(t.category);
+    if (filterCategory === 'Pre Commitments') return isPreCommitmentsCategory(t.category);
+    if (filterCategory === 'Sent') return isSentCategory(t.category);
     return t.category === filterCategory;
   });
 
@@ -467,15 +458,23 @@ export const MoneyTracker = () => {
 
           {/* Segmented Flow Bar */}
           <div className="w-full h-2.5 bg-slate-200 dark:bg-slate-950 rounded-full overflow-hidden flex border border-slate-300 dark:border-slate-800">
-            {/* Actual Expenses Spent Portion */}
-            {periodAllExpenses > 0 && (
+            {/* 1. Living & Sent Expenses */}
+            {periodLivingExpenses > 0 && (
               <div
                 className="bg-rose-500 transition-all duration-300"
-                style={{ width: `${Math.min(100, Math.round((periodAllExpenses / periodIncome) * 100))}%` }}
-                title={`Expenses: ${formatCurrency(periodAllExpenses)} (${Math.round((periodAllExpenses / periodIncome) * 100)}%)`}
+                style={{ width: `${Math.min(100, Math.round((periodLivingExpenses / periodIncome) * 100))}%` }}
+                title={`Living & Sent Expenses: ${formatCurrency(periodLivingExpenses)} (${Math.round((periodLivingExpenses / periodIncome) * 100)}%)`}
               />
             )}
-            {/* Investments Portion */}
+            {/* 2. Pre Commitments (Fixed Obligations) */}
+            {periodPreCommitments > 0 && (
+              <div
+                className="bg-amber-500 transition-all duration-300"
+                style={{ width: `${Math.min(100, Math.round((periodPreCommitments / periodIncome) * 100))}%` }}
+                title={`Pre Commitments: ${formatCurrency(periodPreCommitments)} (${Math.round((periodPreCommitments / periodIncome) * 100)}%)`}
+              />
+            )}
+            {/* 3. Investments Portion */}
             {periodInvested > 0 && (
               <div
                 className="bg-indigo-500 transition-all duration-300"
@@ -483,12 +482,20 @@ export const MoneyTracker = () => {
                 title={`Investments: ${formatCurrency(periodInvested)} (${Math.round((periodInvested / periodIncome) * 100)}%)`}
               />
             )}
-            {/* Leftover Surplus Portion */}
-            {leftoverCash > 0 && (
+            {/* 4. Saving Account Self Transfers (Preserved in Surplus) */}
+            {periodSavingTransfers > 0 && (
+              <div
+                className="bg-teal-500 transition-all duration-300"
+                style={{ width: `${Math.min(100, Math.round((periodSavingTransfers / periodIncome) * 100))}%` }}
+                title={`Saving Account: ${formatCurrency(periodSavingTransfers)} (${Math.round((periodSavingTransfers / periodIncome) * 100)}%)`}
+              />
+            )}
+            {/* 5. Remaining Liquid Surplus Cash */}
+            {Math.max(0, leftoverCash - periodSavingTransfers) > 0 && (
               <div
                 className="bg-emerald-500 transition-all duration-300"
-                style={{ width: `${Math.min(100, Math.round((leftoverCash / periodIncome) * 100))}%` }}
-                title={`Leftover Surplus: ${formatCurrency(leftoverCash)} (${Math.round((leftoverCash / periodIncome) * 100)}%)`}
+                style={{ width: `${Math.min(100, Math.round((Math.max(0, leftoverCash - periodSavingTransfers) / periodIncome) * 100))}%` }}
+                title={`Liquid Surplus: ${formatCurrency(Math.max(0, leftoverCash - periodSavingTransfers))} (${Math.round((Math.max(0, leftoverCash - periodSavingTransfers) / periodIncome) * 100)}%)`}
               />
             )}
           </div>
@@ -496,15 +503,29 @@ export const MoneyTracker = () => {
           <div className="flex flex-wrap items-center gap-4 text-[10px] font-mono text-slate-500 dark:text-slate-400 pt-0.5">
             <div className="flex items-center space-x-1.5">
               <span className="w-2 h-2 rounded-full bg-rose-500" />
-              <span>Expenses: {formatCurrency(periodAllExpenses)} ({Math.round((periodAllExpenses / periodIncome) * 100)}%)</span>
+              <span>Living & Sent: {formatCurrency(periodLivingExpenses)} ({Math.round((periodLivingExpenses / periodIncome) * 100)}%)</span>
             </div>
-            <div className="flex items-center space-x-1.5">
-              <span className="w-2 h-2 rounded-full bg-indigo-500" />
-              <span>Investments: {formatCurrency(periodInvested)} ({Math.round((periodInvested / periodIncome) * 100)}%)</span>
-            </div>
+            {periodPreCommitments > 0 && (
+              <div className="flex items-center space-x-1.5">
+                <span className="w-2 h-2 rounded-full bg-amber-500" />
+                <span>Pre Commitments: {formatCurrency(periodPreCommitments)} ({Math.round((periodPreCommitments / periodIncome) * 100)}%)</span>
+              </div>
+            )}
+            {periodInvested > 0 && (
+              <div className="flex items-center space-x-1.5">
+                <span className="w-2 h-2 rounded-full bg-indigo-500" />
+                <span>Investments: {formatCurrency(periodInvested)} ({Math.round((periodInvested / periodIncome) * 100)}%)</span>
+              </div>
+            )}
+            {periodSavingTransfers > 0 && (
+              <div className="flex items-center space-x-1.5">
+                <span className="w-2 h-2 rounded-full bg-teal-500" />
+                <span>Saving Account: {formatCurrency(periodSavingTransfers)} ({Math.round((periodSavingTransfers / periodIncome) * 100)}%)</span>
+              </div>
+            )}
             <div className="flex items-center space-x-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500" />
-              <span>Surplus Cash: {formatCurrency(Math.max(0, leftoverCash))} ({Math.max(0, Math.round((leftoverCash / periodIncome) * 100))}%)</span>
+              <span>Net Surplus: {formatCurrency(Math.max(0, leftoverCash))} ({Math.max(0, Math.round((leftoverCash / periodIncome) * 100))}%)</span>
             </div>
           </div>
         </div>
@@ -583,15 +604,15 @@ export const MoneyTracker = () => {
                         </span>
                       ) : (
                         <span className={`px-1.5 py-0.2 rounded border font-medium ${
-                          tx.category === 'Saving Account'
-                            ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20'
-                            : tx.category === 'Pre Commitments'
-                            ? 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20'
-                            : tx.category === 'Sent'
-                            ? 'bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/20'
+                          isSavingAccountCategory(tx.category)
+                            ? 'bg-teal-500/10 text-teal-700 dark:text-teal-300 border-teal-500/20 font-semibold'
+                            : isPreCommitmentsCategory(tx.category)
+                            ? 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20 font-semibold'
+                            : isSentCategory(tx.category)
+                            ? 'bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/20 font-semibold'
                             : 'bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800'
                         }`}>
-                          {tx.category}
+                          {isSavingAccountCategory(tx.category) ? '🏦 Saving Account' : isPreCommitmentsCategory(tx.category) ? '🔒 Pre Commitments' : isSentCategory(tx.category) ? '💸 Sent' : tx.category}
                         </span>
                       )}
 

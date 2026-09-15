@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useDashboard } from '../../context/DashboardContext';
 import { getISTDateString, getISTDate, getISTYearMonth } from '../../utils/dateUtils';
+import { isLivingBudgetExpense, EXPENSE_CATEGORIES } from '../../utils/financeUtils';
 import {
   Wallet,
   ArrowRight,
@@ -33,14 +34,14 @@ export const FinanceSnapshot = () => {
   const activeAllocation = getMonthlyAllocation(currentMonthKey);
   const monthlyBudgetCap = activeAllocation.expenseBudget;
 
-  // Calculate actual living spend for current month (excluding Saving Account and Pre Commitments)
+  // Calculate actual living spend for current month (excluding Saving Account and Pre Commitments; including Sent)
   const monthExpenses = transactions
-    .filter(t => t.type === 'expense' && t.category !== 'Saving Account' && t.category !== 'Pre Commitments' && t.date && t.date.startsWith(currentMonthKey))
+    .filter(t => t.date && t.date.startsWith(currentMonthKey) && isLivingBudgetExpense(t))
     .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
 
-  // Today's actual living expense
+  // Today's actual living expense (excluding Saving Account and Pre Commitments; including Sent)
   const todayExpenses = transactions
-    .filter(t => t.type === 'expense' && t.category !== 'Saving Account' && t.category !== 'Pre Commitments' && t.date === todayStr)
+    .filter(t => t.date === todayStr && isLivingBudgetExpense(t))
     .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
 
   const daysInMonth = 31;
@@ -219,11 +220,9 @@ export const FinanceSnapshot = () => {
                     onChange={e => setQuickCategory(e.target.value)}
                     className="w-full px-2 py-1.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-emerald-500"
                   >
-                    <option value="Food">Food & Dining</option>
-                    <option value="Transport">Transport</option>
-                    <option value="Bills">Bills</option>
-                    <option value="Shopping">Shopping</option>
-                    <option value="Personal">Personal</option>
+                    {EXPENSE_CATEGORIES.map(cat => (
+                      <option key={cat.value} value={cat.value}>{cat.label}</option>
+                    ))}
                   </select>
                 </div>
               </div>

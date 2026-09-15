@@ -9,6 +9,7 @@ import {
   isDateEditable,
   detectDeviceDefaultCurrency
 } from '../utils/dateUtils';
+import { isLivingBudgetExpense } from '../utils/financeUtils';
 
 export const SUPPORTED_CURRENCIES = [
   { symbol: '$', code: 'USD', name: 'US Dollar ($)' },
@@ -658,6 +659,10 @@ export const DashboardProvider = ({ children }) => {
     .filter(t => t.type === 'expense')
     .reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0);
 
+  const totalLivingSpent = transactions
+    .filter(isLivingBudgetExpense)
+    .reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0);
+
   const totalIncome = transactions
     .filter(t => t.type === 'income')
     .reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0);
@@ -666,11 +671,11 @@ export const DashboardProvider = ({ children }) => {
     .filter(t => t.type === 'investment')
     .reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0);
 
-  const remainingBalance = monthlyBudget - totalSpent;
+  const remainingBalance = monthlyBudget - totalLivingSpent;
   const daysInMonth = 31;
   const currentDayOfMonth = getISTDate().getDate();
   const daysRemaining = daysInMonth - currentDayOfMonth;
-  const dailyBurnRate = currentDayOfMonth > 0 ? (totalSpent / currentDayOfMonth) : 0;
+  const dailyBurnRate = currentDayOfMonth > 0 ? (totalLivingSpent / currentDayOfMonth) : 0;
   const targetDailyBurn = daysInMonth > 0 ? (monthlyBudget / daysInMonth) : 0;
 
   // --- Goals Operations ---
@@ -1321,6 +1326,7 @@ export const DashboardProvider = ({ children }) => {
         updateTransaction,
         deleteTransaction,
         totalSpent,
+        totalLivingSpent,
         totalIncome,
         totalInvested,
         remainingBalance,

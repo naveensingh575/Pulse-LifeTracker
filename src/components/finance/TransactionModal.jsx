@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useDashboard } from '../../context/DashboardContext';
 import { getISTDateString } from '../../utils/dateUtils';
+import { EXPENSE_CATEGORIES, INCOME_CATEGORIES, INVESTMENT_CATEGORIES, isSavingAccountCategory, isPreCommitmentsCategory, isSentCategory } from '../../utils/financeUtils';
 import { X, Plus, Check, TrendingUp, ArrowDownLeft, ArrowUpRight, ShieldCheck } from 'lucide-react';
 
 export const TransactionModal = ({ isOpen, onClose, onSave, initialData }) => {
@@ -214,35 +215,21 @@ export const TransactionModal = ({ isOpen, onClose, onSave, initialData }) => {
                   className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:border-emerald-500 cursor-pointer"
                 >
                   {formData.type === 'income' ? (
-                    <>
-                      <option value="Salary">💰 Salary</option>
-                      <option value="Freelance">💻 Freelance / Consulting</option>
-                      <option value="Business">🏢 Business Revenue</option>
-                      <option value="Dividends">📈 Dividends / Interest</option>
-                      <option value="Other Income">💵 Other Inflow</option>
-                    </>
+                    INCOME_CATEGORIES.map(cat => (
+                      <option key={cat.value} value={cat.value}>{cat.label}</option>
+                    ))
                   ) : (
-                    <>
-                      <option value="Food">🍔 Food & Dining</option>
-                      <option value="Bills">🧾 Bills & Utilities</option>
-                      <option value="Shopping">🛍️ Shopping & Tech</option>
-                      <option value="Transport">🚗 Transport & Fuel</option>
-                      <option value="Entertainment">🎬 Entertainment</option>
-                      <option value="Health">💊 Health & Wellness</option>
-                      <option value="Education">📚 Education & Books</option>
-                      <option value="Personal">✂️ Personal Care</option>
-                      <option value="Saving Account">🏦 Saving Account (Self Savings Transfer)</option>
-                      <option value="Sent">💸 Sent (Transfer to Family / Friends)</option>
-                      <option value="Pre Commitments">🔒 Pre Commitments (Fixed EMI / Rent)</option>
-                      <option value="Other">💼 Other Expense</option>
-                    </>
+                    EXPENSE_CATEGORIES.map(cat => (
+                      <option key={cat.value} value={cat.value}>{cat.label}</option>
+                    ))
                   )}
                 </select>
                 {formData.type === 'expense' && (
                   <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">
-                    {formData.category === 'Saving Account' && 'ℹ️ Saving Account transfers do not reduce your living budget or net surplus.'}
-                    {formData.category === 'Pre Commitments' && 'ℹ️ Pre Commitments (fixed obligations) reduce surplus cash but are separate from everyday living budget.'}
-                    {formData.category === 'Sent' && 'ℹ️ Sent transfers reduce both your living budget and surplus cash.'}
+                    {isSavingAccountCategory(formData.category) && 'ℹ️ Saving Account transfers do not deduct from your Living Budget or Net Surplus.'}
+                    {isPreCommitmentsCategory(formData.category) && 'ℹ️ Pre Commitments (fixed obligations) deduct from Net Surplus Cash, but DO NOT deduct from your Target Expense Living Budget.'}
+                    {isSentCategory(formData.category) && 'ℹ️ Sent transfers deduct from BOTH your Target Expense Living Budget and Net Surplus Cash.'}
+                    {!isSavingAccountCategory(formData.category) && !isPreCommitmentsCategory(formData.category) && !isSentCategory(formData.category) && 'ℹ️ Standard living expense: deducts from both your Living Budget and Surplus Cash.'}
                   </p>
                 )}
               </div>

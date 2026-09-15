@@ -1,15 +1,17 @@
 import React from 'react';
 import { MoneyTracker } from '../components/finance/MoneyTracker';
 import { useDashboard } from '../context/DashboardContext';
+import { calculateFinanceSummary } from '../utils/financeUtils';
 import { Wallet, PieChart, TrendingUp, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
 
 export const FinancePage = () => {
-  const { transactions = [], totalSpent = 0, totalIncome = 0, totalInvested = 0, formatCurrency } = useDashboard();
+  const { transactions = [], formatCurrency } = useDashboard();
 
-  const safeIncome = Number(totalIncome) || 0;
-  const safeInvested = Number(totalInvested) || 0;
-  const safeSpent = Number(totalSpent) || 0;
-  const netCashflow = safeIncome - safeSpent;
+  const {
+    totalIncome: safeIncome,
+    totalInvested: safeInvested,
+    leftoverCash: netSurplusCash
+  } = calculateFinanceSummary(transactions);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
@@ -43,9 +45,9 @@ export const FinancePage = () => {
           </div>
 
           <div className="bg-slate-50 dark:bg-slate-900/80 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800">
-            <span className="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-bold">Net Cashflow</span>
-            <span className={`font-extrabold text-sm ${netCashflow >= 0 ? 'text-slate-900 dark:text-slate-100' : 'text-rose-600 dark:text-rose-400'}`}>
-              {formatCurrency(netCashflow)}
+            <span className="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-bold">Net Surplus Cash</span>
+            <span className={`font-extrabold text-sm ${netSurplusCash >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+              {formatCurrency(netSurplusCash)}
             </span>
           </div>
         </div>

@@ -11,6 +11,14 @@ import {
   formatISTDisplayDate
 } from '../../utils/dateUtils';
 import {
+  calculateFinanceSummary,
+  isLivingBudgetExpense,
+  isSurplusDeductible,
+  isSavingAccountCategory,
+  isPreCommitmentsCategory,
+  isSentCategory
+} from '../../utils/financeUtils';
+import {
   ResponsiveContainer,
   LineChart,
   Line,
@@ -146,24 +154,24 @@ export const AnalyticsView = () => {
   const scopedActivities = activities.filter(a => isDateInTimeframe(a.date));
 
   // --- 1. Financial Calculations & Velocity ---
-  const periodIncome = scopedTransactions
-    .filter(t => t.type === 'income')
-    .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
-
-  const periodExpenses = scopedTransactions
-    .filter(t => t.type === 'expense')
-    .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
-
-  const periodInvested = scopedTransactions
-    .filter(t => t.type === 'investment')
-    .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+  const {
+    totalIncome: periodIncome,
+    livingExpenses: periodLivingExpenses,
+    preCommitments: periodPreCommitments,
+    savingTransfers: periodSavingTransfers,
+    sentExpenses: periodSentExpenses,
+    totalInvested: periodInvested,
+    grossExpenses: periodGrossExpenses,
+    surplusOutflow: periodSurplusOutflow,
+    leftoverCash: leftoverSurplus
+  } = calculateFinanceSummary(scopedTransactions, monthlyBudgetCap);
 
   const daysInMonth = 31;
   const currentDayNum = today.getDate();
   const dailyTargetBurn = monthlyBudgetCap > 0 ? (monthlyBudgetCap / daysInMonth) : 0;
   const weeklyBudgetLimit = monthlyBudgetCap > 0 ? ((monthlyBudgetCap / daysInMonth) * 7) : 0;
 
-  // Actual burn rate vs. safe pace
+  // Actual living burn rate vs. safe pace (tracks living expenses + sent; excludes Saving Account & Pre Commitments)
   let actualDailyRate = 0;
   let safeDailyRate = dailyTargetBurn;
   let budgetHealthStatus = 'On Track';
@@ -171,28 +179,28 @@ export const AnalyticsView = () => {
   let budgetVariancePct = 0;
 
   if (timeframe === 'day') {
-    actualDailyRate = periodExpenses;
+    actualDailyRate = periodLivingExpenses;
     safeDailyRate = dailyTargetBurn;
-    budgetBufferRemaining = safeDailyRate > 0 ? (safeDailyRate - periodExpenses) : -periodExpenses;
-    budgetVariancePct = safeDailyRate > 0 ? Math.round(((periodExpenses - safeDailyRate) / safeDailyRate) * 100) : 0;
+    budgetBufferRemaining = safeDailyRate > 0 ? (safeDailyRate - periodLivingExpenses) : -periodLivingExpenses;
+    budgetVariancePct = safeDailyRate > 0 ? Math.round(((periodLivingExpenses - safeDailyRate) / safeDailyRate) * 100) : 0;
   } else if (timeframe === 'week') {
     const daysCounted = isCurrentWeek
       ? Math.max(1, activeWeekDays.findIndex(w => w.dateStr === todayStr) + 1)
       : 7;
-    actualDailyRate = Math.round(periodExpenses / daysCounted);
+    actualDailyRate = Math.round(periodLivingExpenses / daysCounted);
     safeDailyRate = Math.round(weeklyBudgetLimit / 7);
-    budgetBufferRemaining = weeklyBudgetLimit - periodExpenses;
-    budgetVariancePct = weeklyBudgetLimit > 0 ? Math.round(((periodExpenses - weeklyBudgetLimit) / weeklyBudgetLimit) * 100) : 0;
+    budgetBufferRemaining = weeklyBudgetLimit - periodLivingExpenses;
+    budgetVariancePct = weeklyBudgetLimit > 0 ? Math.round(((periodLivingExpenses - weeklyBudgetLimit) / weeklyBudgetLimit) * 100) : 0;
   } else {
     // Month
-    actualDailyRate = currentDayNum > 0 ? Math.round(periodExpenses / currentDayNum) : 0;
+    actualDailyRate = currentDayNum > 0 ? Math.round(periodLivingExpenses / currentDayNum) : 0;
     safeDailyRate = Math.round(dailyTargetBurn);
-    budgetBufferRemaining = monthlyBudgetCap - periodExpenses;
-    budgetVariancePct = monthlyBudgetCap > 0 ? Math.round(((periodExpenses - monthlyBudgetCap) / monthlyBudgetCap) * 100) : 0;
+    budgetBufferRemaining = monthlyBudgetCap - periodLivingExpenses;
+    budgetVariancePct = monthlyBudgetCap > 0 ? Math.round(((periodLivingExpenses - monthlyBudgetCap) / monthlyBudgetCap) * 100) : 0;
   }
 
   const isUnderBudget = budgetBufferRemaining >= 0;
-  const leftoverSurplus = periodIncome - (periodExpenses + periodInvested);
+  const periodExpenses = periodGrossExpenses;
 
   // Top spending category driver
   const categorySpendMap = {};
@@ -387,9 +395,9 @@ export const AnalyticsView = () => {
     const hours = ['06:00', '09:00', '12:00', '15:00', '18:00', '21:00', '23:59'];
     let runningSpend = 0;
     financeChartData = hours.map((hr, idx) => {
-      // Progressive distribution for selected day's spend
+      // Progressive distribution for selected day's living spend
       const fraction = (idx + 1) / hours.length;
-      runningSpend = Math.round(periodExpenses * fraction);
+      runningSpend = Math.round(periodLivingExpenses * fraction);
       return {
         label: hr,
         actualSpend: runningSpend,
@@ -400,7 +408,7 @@ export const AnalyticsView = () => {
     // 7 discrete weekday names with dates for active week (e.g. 'Mon 24')
     financeChartData = activeWeekDays.map(w => {
       const dayExpense = transactions
-        .filter(t => t.type === 'expense' && t.date === w.dateStr)
+        .filter(t => t.date === w.dateStr && isLivingBudgetExpense(t))
         .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
       return {
         label: `${w.dayNameShort} ${w.dayNumber}`,
@@ -415,7 +423,7 @@ export const AnalyticsView = () => {
       const dayNum = idx + 1;
       const dStr = `${selectedMonthKey}-${String(dayNum).padStart(2, '0')}`;
       const dayExpense = transactions
-        .filter(t => t.type === 'expense' && t.date === dStr)
+        .filter(t => t.date === dStr && isLivingBudgetExpense(t))
         .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
 
       const isCurrentMonth = selectedMonthKey === `${currentISTYM.year}-${String(currentISTYM.month).padStart(2, '0')}`;

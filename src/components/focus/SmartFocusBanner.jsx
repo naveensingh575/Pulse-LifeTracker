@@ -1,6 +1,19 @@
 import React from 'react';
 import { useDashboard } from '../../context/DashboardContext';
-import { Sparkles, ArrowRight, CheckCircle2, Flame, Wallet, Target, Zap } from 'lucide-react';
+import { isLivingBudgetExpense } from '../../utils/financeUtils';
+import {
+  Sparkles,
+  TrendingUp,
+  AlertTriangle,
+  Flame,
+  CheckCircle2,
+  Calendar,
+  Wallet,
+  Dumbbell,
+  ArrowRight,
+  Zap,
+  Target
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getISTDateString, getISTYearMonth } from '../../utils/dateUtils';
 
@@ -98,9 +111,9 @@ export const SmartFocusBanner = () => {
     });
   }
 
-  // 3. Finance & Runway Directive
+  // 3. Finance & Runway Directive (tracks Living Budget; excludes Saving Account & Pre Commitments; includes Sent)
   const monthExpenses = transactions
-    .filter(t => t.type === 'expense' && t.date && t.date.startsWith(currentMonthKey))
+    .filter(t => t.date && t.date.startsWith(currentMonthKey) && isLivingBudgetExpense(t))
     .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
   const remainingBudget = monthlyBudgetCap - monthExpenses;
   const spentPct = monthlyBudgetCap > 0 ? Math.round((monthExpenses / monthlyBudgetCap) * 100) : 0;
