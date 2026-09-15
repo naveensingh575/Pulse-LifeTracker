@@ -140,6 +140,8 @@ export const MoneyTracker = () => {
     return list.filter(t => t.date && t.date.startsWith(activeMonthKey));
   };
 
+  const timeframeTransactions = getFilteredByTimeframe();
+
   const expenseBudget = Number(activeAllocation?.expenseBudget) || 0;
   const investmentGoal = Number(activeAllocation?.investmentGoal) || 0;
 
