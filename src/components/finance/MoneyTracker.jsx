@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDashboard } from '../../context/DashboardContext';
 import { TransactionModal } from './TransactionModal';
 import {
@@ -38,7 +38,7 @@ import {
   CalendarDays
 } from 'lucide-react';
 
-export const MoneyTracker = () => {
+export const MoneyTracker = ({ openAddModalTrigger }) => {
   const dashboard = useDashboard() || {};
   const {
     getMonthlyAllocation = () => ({ expenseBudget: 0, investmentGoal: 0 }),
@@ -189,6 +189,12 @@ export const MoneyTracker = () => {
     setIsTxModalOpen(true);
   };
 
+  useEffect(() => {
+    if (openAddModalTrigger) {
+      handleOpenAddModal();
+    }
+  }, [openAddModalTrigger]);
+
   const handleOpenEditModal = (tx) => {
     setEditingTx(tx);
     setIsTxModalOpen(true);
@@ -241,14 +247,6 @@ export const MoneyTracker = () => {
               );
             })}
           </div>
-
-          <button
-            onClick={handleOpenAddModal}
-            className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md shadow-emerald-600/30 transition cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Log Transaction</span>
-          </button>
         </div>
       </div>
 
