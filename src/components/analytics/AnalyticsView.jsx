@@ -64,7 +64,7 @@ import {
   CalendarDays,
   CheckSquare
 } from 'lucide-react';
-import { SmartCorrelationWidget } from './SmartCorrelationWidget';
+import { SmartPulseIntelligence } from './SmartPulseIntelligence';
 
 const DISCIPLINE_COLORS = {
   Running: '#38bdf8',   // Sky Blue
@@ -685,9 +685,6 @@ export const AnalyticsView = () => {
         </div>
       </div>
 
-      {/* 🧠 SMART PULSE: CROSS-PILLAR CORRELATION INTELLIGENCE */}
-      <SmartCorrelationWidget />
-
       {/* 📊 2. HIGH-DENSITY, CONTEXTUAL METRIC CARDS (What the numbers mean) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
         
@@ -817,56 +814,52 @@ export const AnalyticsView = () => {
 
       </div>
 
-      {/* 🧠 3. SMART CONTEXT INSIGHTS ENGINE */}
-      <div className="space-y-3">
-        <div className="flex items-center space-x-2">
-          <Sparkles className="w-4 h-4 text-indigo-500" />
-          <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-            Smart Context Insights
-          </h3>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-          {smartDiagnostics.map((item, idx) => {
-            const IconComp = item.icon;
-            return (
-              <div
-                key={idx}
-                className="glass-card-dark rounded-2xl p-4 border border-slate-200 dark:border-slate-800 space-y-2 flex flex-col justify-between"
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
-                      <IconComp className="w-3.5 h-3.5 text-indigo-500" />
-                      <span>{item.title}</span>
-                    </span>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
-                      item.color === 'rose'
-                        ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20'
-                        : item.color === 'amber'
-                        ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
-                        : item.color === 'cyan'
-                        ? 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20'
-                        : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-                    }`}>
-                      {item.badge}
-                    </span>
-                  </div>
-
-                  <p className="text-xs font-bold text-slate-800 dark:text-slate-200 leading-snug">
-                    {item.headline}
-                  </p>
-                </div>
-
-                <div className="pt-2 border-t border-slate-200 dark:border-slate-800/80 text-[11px] text-slate-600 dark:text-slate-400 flex items-start gap-1.5">
-                  <span className="text-indigo-500 font-bold">💡</span>
-                  <span className="leading-tight">{item.advice}</span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+      {/* 🧠 3. SMART PULSE INTELLIGENCE: MULTI-PILLAR PATTERNS & OPERATING ARCHETYPE */}
+      <SmartPulseIntelligence
+        timeframe={timeframe}
+        selectedDate={selectedDate}
+        activeWeekBadge={activeWeekBadge}
+        selectedMonthName={MONTH_NAMES_FULL[selectedMonth - 1]}
+        selectedYear={selectedYear}
+        // Financials
+        periodIncome={periodIncome}
+        periodLivingExpenses={periodLivingExpenses}
+        periodGrossExpenses={periodGrossExpenses}
+        periodInvested={periodInvested}
+        leftoverSurplus={leftoverSurplus}
+        actualDailyRate={actualDailyRate}
+        safeDailyRate={safeDailyRate}
+        budgetBufferRemaining={budgetBufferRemaining}
+        budgetVariancePct={budgetVariancePct}
+        topCategory={topCategory}
+        topCategoryAmount={topCategoryAmount}
+        topCategoryPct={topCategoryPct}
+        // Habits
+        habitScore={habitScore}
+        habitRating={habitRating}
+        lowestHabit={lowestHabit}
+        lowestHabitCount={lowestHabitCount}
+        habits={habits}
+        isHabitDoneOn={isHabitDoneOn}
+        // Activity
+        totalRunningKm={totalRunningKm}
+        totalGymSessions={totalGymSessions}
+        totalVolumeLiftedKg={totalVolumeLiftedKg}
+        totalPagesRead={totalPagesRead}
+        totalActiveOutputMins={totalActiveOutputMins}
+        scopedActivities={scopedActivities}
+        // Tasks & Goals
+        scopedTasks={scopedTasks}
+        tasksCompletionRate={tasksCompletionRate}
+        highPriorityTasks={highPriorityTasks}
+        highPriorityCompleted={highPriorityCompleted}
+        goalsOnTrackCount={goalsOnTrackCount}
+        goalsNeedsFocusCount={goalsNeedsFocusCount}
+        goalsAtRiskCount={goalsAtRiskCount}
+        // Journal
+        journalEntries={journalEntries}
+        currency={dashboard?.currency || '₹'}
+      />
 
       {/* 📈 4. DYNAMIC X-AXIS FINANCIAL TRAJECTORY GRAPH */}
       <div className="glass-panel-dark rounded-2xl p-5 border border-slate-200 dark:border-slate-800 space-y-4">
