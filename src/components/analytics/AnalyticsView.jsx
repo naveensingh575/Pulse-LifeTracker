@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useDashboard } from '../../context/DashboardContext';
 import {
   getISTDateString,
@@ -61,7 +62,9 @@ import {
   ShieldCheck,
   Gauge,
   Sun,
-  CalendarDays
+  CalendarDays,
+  CheckSquare,
+  ArrowRight
 } from 'lucide-react';
 
 const DISCIPLINE_COLORS = {
@@ -82,11 +85,15 @@ export const AnalyticsView = () => {
     activities = [],
     goals = [],
     tasks = [],
+    toggleTaskComplete = () => {},
     theme = 'dark'
   } = dashboard;
 
   // Unified 3-Header Timeframe Filter: 'day' | 'week' | 'month'
   const [timeframe, setTimeframe] = useState('month');
+
+  // Task Tab Filter: 'all' | 'pending' | 'completed'
+  const [taskTabFilter, setTaskTabFilter] = useState('all');
 
   // Day View Date Selector
   const today = getISTDate();
@@ -325,7 +332,36 @@ export const AnalyticsView = () => {
     }
   });
 
-  // --- 5. Smart Contextual Diagnostics (4 Concrete Insights) ---
+  // --- 5. Task & To-Do List Analytics ---
+  const isTaskInTimeframe = (task) => {
+    if (!task) return false;
+    if (task.dueDate && isDateInTimeframe(task.dueDate)) return true;
+    if (task.completedAt && isDateInTimeframe(task.completedAt.slice(0, 10))) return true;
+    if (task.createdAt && isDateInTimeframe(task.createdAt.slice(0, 10))) return true;
+    if (task.created_at && isDateInTimeframe(task.created_at.slice(0, 10))) return true;
+    if (!task.dueDate && !task.completedAt && !task.createdAt && !task.created_at) return true;
+    return false;
+  };
+
+  const scopedTasks = tasks.filter(isTaskInTimeframe);
+  const completedScopedTasks = scopedTasks.filter(t => t.completed);
+  const pendingScopedTasks = scopedTasks.filter(t => !t.completed);
+  const taskCompletionPct = scopedTasks.length > 0 ? Math.round((completedScopedTasks.length / scopedTasks.length) * 100) : 0;
+
+  const highPriorityTasks = scopedTasks.filter(t => t.priority === 'high');
+  const highPriorityCompleted = highPriorityTasks.filter(t => t.completed).length;
+  const medPriorityTasks = scopedTasks.filter(t => t.priority === 'medium');
+  const medPriorityCompleted = medPriorityTasks.filter(t => t.completed).length;
+  const lowPriorityTasks = scopedTasks.filter(t => t.priority === 'low');
+  const lowPriorityCompleted = lowPriorityTasks.filter(t => t.completed).length;
+
+  const displayTasks = scopedTasks.filter(task => {
+    if (taskTabFilter === 'pending') return !task.completed;
+    if (taskTabFilter === 'completed') return task.completed;
+    return true;
+  });
+
+  // --- 6. Smart Contextual Diagnostics (4 Concrete Insights) ---
   const getContextualDiagnostics = () => {
     // 1. Financial Health Insight
     const isOverPace = actualDailyRate > safeDailyRate && safeDailyRate > 0;
@@ -651,7 +687,7 @@ export const AnalyticsView = () => {
       </div>
 
       {/* 📊 2. HIGH-DENSITY, CONTEXTUAL METRIC CARDS (What the numbers mean) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
         
         {/* 1. Financial Velocity & Burn Rate Card */}
         <div className="glass-card-dark rounded-xl p-4 border border-slate-200 dark:border-slate-800 space-y-2">
@@ -727,11 +763,37 @@ export const AnalyticsView = () => {
           </div>
         </div>
 
-        {/* 4. Strategic Goal Velocity Breakdown */}
+        {/* 4. To-Do Execution Velocity Card */}
+        <div className="glass-card-dark rounded-xl p-4 border border-slate-200 dark:border-slate-800 space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">To-Do Execution Velocity</span>
+            <CheckSquare className="w-4 h-4 text-emerald-500" />
+          </div>
+
+          <div>
+            <div className="flex items-baseline space-x-1.5">
+              <span className="text-xl font-extrabold text-emerald-600 dark:text-emerald-400 font-mono">
+                {taskCompletionPct}%
+              </span>
+              <span className="text-[10px] font-mono text-slate-400">
+                ({completedScopedTasks.length}/{scopedTasks.length} Done)
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 mt-1 text-[10px] font-mono">
+              <span className="text-rose-500 font-bold">{highPriorityTasks.length - highPriorityCompleted} High</span>
+              <span>•</span>
+              <span className="text-amber-500 font-bold">{medPriorityTasks.length - medPriorityCompleted} Med</span>
+              <span>•</span>
+              <span className="text-emerald-600 font-bold">{completedScopedTasks.length} Done</span>
+            </div>
+          </div>
+        </div>
+
+        {/* 5. Strategic Goal Velocity Breakdown */}
         <div className="glass-card-dark rounded-xl p-4 border border-slate-200 dark:border-slate-800 space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">Goal Completion Velocity</span>
-            <Target className="w-4 h-4 text-indigo-500" />
+            <Compass className="w-4 h-4 text-indigo-500" />
           </div>
 
           <div>
@@ -1087,7 +1149,197 @@ export const AnalyticsView = () => {
         </div>
       </div>
 
-      {/* 🎯 7. CONSOLIDATED STRATEGIC GOAL PROGRESS & MILESTONES */}
+      {/* 📋 7. TO-DO LIST & TASK EXECUTION */}
+      <div className="glass-panel-dark rounded-2xl p-5 border border-slate-200 dark:border-slate-800 space-y-4">
+        
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-3">
+          <div>
+            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+              <CheckSquare className="w-4 h-4 text-emerald-500" />
+              <span>
+                {timeframe === 'day'
+                  ? 'Daily To-Do List'
+                  : timeframe === 'week'
+                  ? 'Weekly To-Do List'
+                  : 'Monthly To-Do List'}
+              </span>
+            </h3>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+              {taskCompletionPct}% Score
+            </span>
+
+            {/* Filter Tabs: All | Pending | Completed */}
+            <div className="flex items-center space-x-1 bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-200 dark:border-slate-800 text-xs">
+              <button
+                onClick={() => setTaskTabFilter('all')}
+                className={`px-2.5 py-1 rounded-lg font-bold transition cursor-pointer ${
+                  taskTabFilter === 'all'
+                    ? 'bg-emerald-600 text-white shadow-sm'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                }`}
+              >
+                All ({scopedTasks.length})
+              </button>
+              <button
+                onClick={() => setTaskTabFilter('pending')}
+                className={`px-2.5 py-1 rounded-lg font-bold transition cursor-pointer ${
+                  taskTabFilter === 'pending'
+                    ? 'bg-emerald-600 text-white shadow-sm'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                }`}
+              >
+                Pending ({pendingScopedTasks.length})
+              </button>
+              <button
+                onClick={() => setTaskTabFilter('completed')}
+                className={`px-2.5 py-1 rounded-lg font-bold transition cursor-pointer ${
+                  taskTabFilter === 'completed'
+                    ? 'bg-emerald-600 text-white shadow-sm'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                }`}
+              >
+                Completed ({completedScopedTasks.length})
+              </button>
+            </div>
+
+            <Link
+              to="/tasks"
+              className="p-1.5 text-xs text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1 font-bold"
+              title="Open full Tasks Page"
+            >
+              <span>Manage</span>
+              <ArrowRight className="w-3 h-3" />
+            </Link>
+          </div>
+        </div>
+
+        {/* Priority Execution Breakdown Bar */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="bg-slate-50 dark:bg-slate-900/60 rounded-xl p-3 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block" />
+              <span className="text-xs font-bold text-slate-700 dark:text-slate-300">High Priority</span>
+            </div>
+            <span className="text-xs font-mono font-bold text-rose-600 dark:text-rose-400">
+              {highPriorityCompleted} / {highPriorityTasks.length}
+            </span>
+          </div>
+
+          <div className="bg-slate-50 dark:bg-slate-900/60 rounded-xl p-3 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block" />
+              <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Medium Priority</span>
+            </div>
+            <span className="text-xs font-mono font-bold text-amber-600 dark:text-amber-400">
+              {medPriorityCompleted} / {medPriorityTasks.length}
+            </span>
+          </div>
+
+          <div className="bg-slate-50 dark:bg-slate-900/60 rounded-xl p-3 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-cyan-500 inline-block" />
+              <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Low Priority</span>
+            </div>
+            <span className="text-xs font-mono font-bold text-cyan-600 dark:text-cyan-400">
+              {lowPriorityCompleted} / {lowPriorityTasks.length}
+            </span>
+          </div>
+        </div>
+
+        {/* Task Progress Bar */}
+        <div className="space-y-1">
+          <div className="flex items-center justify-between text-[11px] font-mono text-slate-400">
+            <span>Execution Completion</span>
+            <span>{taskCompletionPct}%</span>
+          </div>
+          <div className="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+            <div
+              className="bg-emerald-500 h-full transition-all duration-500 rounded-full"
+              style={{ width: `${taskCompletionPct}%` }}
+            />
+          </div>
+        </div>
+
+        {/* Task List Feed */}
+        {displayTasks.length === 0 ? (
+          <div className="text-center p-6 bg-slate-50 dark:bg-slate-900/30 rounded-xl border border-slate-200 dark:border-slate-800/60 text-xs text-slate-500 italic">
+            {taskTabFilter === 'completed'
+              ? 'No completed tasks in this timeframe yet.'
+              : taskTabFilter === 'pending'
+              ? 'No pending tasks in this timeframe. Everything is complete!'
+              : 'No tasks scheduled in this timeframe.'}
+          </div>
+        ) : (
+          <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+            {displayTasks.map(task => (
+              <div
+                key={task.id}
+                onClick={() => toggleTaskComplete(task.id)}
+                className={`flex items-center justify-between p-3 rounded-xl border transition cursor-pointer group ${
+                  task.completed
+                    ? 'bg-slate-50/50 dark:bg-slate-900/20 border-slate-200/50 dark:border-slate-800/40 opacity-70'
+                    : 'bg-white dark:bg-slate-900/60 border-slate-200 dark:border-slate-800 hover:border-emerald-500/40 shadow-sm'
+                }`}
+              >
+                <div className="flex items-center space-x-3 min-w-0">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleTaskComplete(task.id);
+                    }}
+                    className={`p-1 rounded-lg transition shrink-0 ${
+                      task.completed
+                        ? 'bg-emerald-500 text-white'
+                        : 'text-slate-400 hover:text-emerald-500 hover:bg-emerald-500/10'
+                    }`}
+                  >
+                    <Check className="w-3.5 h-3.5" />
+                  </button>
+
+                  <div className="min-w-0">
+                    <p className={`text-xs font-medium truncate ${
+                      task.completed ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-900 dark:text-slate-100'
+                    }`}>
+                      {task.title}
+                    </p>
+
+                    <div className="flex flex-wrap items-center gap-1.5 mt-0.5 text-[10px]">
+                      {task.category && (
+                        <span className="text-slate-400 font-mono">{task.category}</span>
+                      )}
+                      {task.dueDate && (
+                        <span className="text-slate-400 font-mono">• Due: {task.dueDate}</span>
+                      )}
+                      {task.linkedGoalTitle && (
+                        <span className="text-indigo-500 dark:text-indigo-400 font-mono">• 🧭 {task.linkedGoalTitle}</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Priority Badge */}
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${
+                  task.priority === 'high'
+                    ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20'
+                    : task.priority === 'medium'
+                    ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20'
+                    : 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20'
+                }`}>
+                  {task.priority === 'high' ? '🔴 High' : task.priority === 'medium' ? '🟡 Medium' : '🔵 Low'}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+
+      </div>
+
+      {/* 🎯 8. CONSOLIDATED STRATEGIC GOAL PROGRESS & MILESTONES */}
       <div className="glass-panel-dark rounded-2xl p-5 border border-slate-200 dark:border-slate-800 space-y-4">
         <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
           <div>
