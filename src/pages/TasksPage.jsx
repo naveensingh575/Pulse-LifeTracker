@@ -80,7 +80,7 @@ export const TasksPage = () => {
     <div className="space-y-6 animate-in fade-in duration-200">
       
       {/* Header Banner */}
-      <div className="glass-panel-dark rounded-2xl p-6 border border-slate-200 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="glass-panel-dark rounded-2xl p-6 border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center space-x-3">
           <div className="p-3 rounded-2xl bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20 shadow-lg shadow-cyan-500/10">
             <CheckSquare className="w-6 h-6" />
@@ -92,22 +92,14 @@ export const TasksPage = () => {
           </div>
         </div>
 
-        {/* Right Header Actions: Status Filter */}
-        <div className="flex items-center space-x-3">
-          <div className="flex items-center bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-200 dark:border-slate-800">
-            {['pending', 'completed', 'all'].map(st => (
-              <button
-                key={st}
-                onClick={() => setStatusFilter(st)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold capitalize transition cursor-pointer ${
-                  statusFilter === st ? 'bg-cyan-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                }`}
-              >
-                {st}
-              </button>
-            ))}
-          </div>
-        </div>
+        {/* Right Header Action: + New Task */}
+        <button
+          onClick={() => openAddModal(activeContext)}
+          className="flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md shadow-indigo-600/25 transition transform hover:scale-[1.02] active:scale-95 cursor-pointer self-start sm:self-auto"
+        >
+          <Plus className="w-4 h-4 stroke-[2.5]" />
+          <span>New Task</span>
+        </button>
       </div>
 
       {/* Quick Add Inline Input Bar */}
@@ -192,17 +184,31 @@ export const TasksPage = () => {
 
       {/* Main Task List Table / Cards with Calendar Export */}
       <div className="glass-panel-dark rounded-2xl p-5 border border-slate-200 dark:border-slate-800 space-y-3">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
             {activeContext === 'All' ? 'Action Feed' : `${activeContext} Tasks`} ({filteredTasks.length})
           </h3>
-          <button
-            onClick={() => openAddModal(activeContext)}
-            className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md shadow-indigo-600/25 transition transform hover:scale-[1.02] active:scale-95 cursor-pointer"
-          >
-            <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-            <span>New Task</span>
-          </button>
+
+          {/* Status Filter Buttons: Pending | Completed | All */}
+          <div className="flex items-center space-x-1 bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-200 dark:border-slate-800 self-start sm:self-auto">
+            {[
+              { id: 'pending', label: 'Pending' },
+              { id: 'completed', label: 'Completed' },
+              { id: 'all', label: 'All' }
+            ].map(st => (
+              <button
+                key={st.id}
+                onClick={() => setStatusFilter(st.id)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                  statusFilter === st.id
+                    ? 'bg-cyan-600 text-white shadow-sm shadow-cyan-600/30'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                }`}
+              >
+                {st.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="space-y-2">
