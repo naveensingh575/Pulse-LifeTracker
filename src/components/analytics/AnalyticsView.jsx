@@ -812,10 +812,10 @@ export const AnalyticsView = () => {
               <Wallet className="w-4 h-4 text-emerald-500" />
               <span>
                 {timeframe === 'day'
-                  ? `Intra-Day Spend Flow vs. Daily Allowance (${selectedDate === todayStr ? 'Today' : formatISTDisplayDate(selectedDate)})`
+                  ? 'Daily Expense Tracker'
                   : timeframe === 'week'
-                  ? `Daily Expense Pacing vs. 7-Day Safe Benchmark (${activeWeekBadge})`
-                  : `Monthly Trajectory: ${MONTH_NAMES_FULL[selectedMonth - 1]} ${selectedYear} (5-Day Intervals)`}
+                  ? 'Weekly Expense Tracker'
+                  : 'Monthly Expense Tracker'}
               </span>
             </h3>
           </div>
@@ -949,7 +949,7 @@ export const AnalyticsView = () => {
           <div>
             <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
               <Activity className="w-4 h-4 text-cyan-500" />
-              <span>Activity & Physical Output Pulse</span>
+              <span>Activity Pulse</span>
             </h3>
           </div>
 
@@ -1054,10 +1054,10 @@ export const AnalyticsView = () => {
               <Flame className="w-4 h-4 text-amber-500" />
               <span>
                 {timeframe === 'day'
-                  ? `Intra-Day Habit Completion Milestones (${selectedDate === todayStr ? 'Today' : formatISTDisplayDate(selectedDate)})`
+                  ? 'Daily Habit Tracker'
                   : timeframe === 'week'
-                  ? `Weekly Habit Adherence Curve (${activeWeekBadge})`
-                  : `Monthly Habit Consistency Trend (${MONTH_NAMES_FULL[selectedMonth - 1]})`}
+                  ? 'Weekly Habit Tracker'
+                  : 'Monthly Habit Tracker'}
               </span>
             </h3>
           </div>
@@ -1093,7 +1093,7 @@ export const AnalyticsView = () => {
           <div>
             <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
               <Target className="w-4 h-4 text-indigo-500" />
-              <span>Strategic Goal Progress & Milestone Completion</span>
+              <span>Goal Progress</span>
             </h3>
           </div>
           <span className="text-xs font-mono font-bold text-slate-500">
