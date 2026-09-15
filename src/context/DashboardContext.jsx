@@ -321,7 +321,8 @@ export const DashboardProvider = ({ children }) => {
         accomplished: j.accomplished || '',
         notes: j.notes || '',
         gratitude: j.gratitude || '',
-        mood: j.mood || 'productive'
+        mood: j.mood || 'productive',
+        updatedAt: j.updated_at || j.created_at || null
       }));
       setJournalEntries(processedJournal);
 
@@ -336,19 +337,24 @@ export const DashboardProvider = ({ children }) => {
     if (userId) {
       fetchUserData();
 
-      // Real-time synchronization across devices & browsers
+      // Real-time synchronization across devices & browsers with debouncing
+      let debounceTimeout = null;
       const channel = supabase
-        .channel('pulse-realtime-sync')
+        .channel(`pulse-realtime-sync-${userId}`)
         .on(
           'postgres_changes',
           { event: '*', schema: 'public' },
           () => {
-            fetchUserData();
+            if (debounceTimeout) clearTimeout(debounceTimeout);
+            debounceTimeout = setTimeout(() => {
+              fetchUserData();
+            }, 1000);
           }
         )
         .subscribe();
 
       return () => {
+        if (debounceTimeout) clearTimeout(debounceTimeout);
         supabase.removeChannel(channel);
       };
     } else {
@@ -462,7 +468,7 @@ export const DashboardProvider = ({ children }) => {
           completed_date: dateStr
         });
       }
-      await supabase.from('habits').update({ streak: newStreak }).eq('id', habitId);
+      await supabase.from('habits').update({ streak: newStreak }).eq('id', habitId).eq('user_id', userId);
     }
 
     return true;
@@ -508,7 +514,7 @@ export const DashboardProvider = ({ children }) => {
   const deleteHabit = async (id) => {
     setHabits(prev => prev.filter(h => h.id !== id));
     if (userId) {
-      await supabase.from('habits').delete().eq('id', id);
+      await supabase.from('habits').delete().eq('id', id).eq('user_id', userId);
     }
   };
 
@@ -550,7 +556,7 @@ export const DashboardProvider = ({ children }) => {
         icon,
         frequency,
         created_at: createdAt
-      }).eq('id', habitId);
+      }).eq('id', habitId).eq('user_id', userId);
 
       if (error) {
         console.error('[PULSE Supabase updateHabit Error]:', error);
@@ -639,7 +645,7 @@ export const DashboardProvider = ({ children }) => {
         asset_name: assetName || null,
         transaction_date: txDate,
         notes
-      }).eq('id', txId);
+      }).eq('id', txId).eq('user_id', userId);
 
       if (error) {
         console.error('[PULSE Supabase updateTransaction Error]:', error);
@@ -650,7 +656,7 @@ export const DashboardProvider = ({ children }) => {
   const deleteTransaction = async (id) => {
     setTransactions(prev => prev.filter(t => t.id !== id));
     if (userId) {
-      await supabase.from('transactions').delete().eq('id', id);
+      await supabase.from('transactions').delete().eq('id', id).eq('user_id', userId);
     }
   };
 
@@ -740,7 +746,7 @@ export const DashboardProvider = ({ children }) => {
         deadline: normalized.deadline || null,
         color: normalized.color,
         icon: normalized.icon
-      }).eq('id', normalized.id);
+      }).eq('id', normalized.id).eq('user_id', userId);
 
       // 2. Comprehensive Sub-goals synchronization in Supabase
       try {
@@ -750,7 +756,8 @@ export const DashboardProvider = ({ children }) => {
         const { data: existingDbSubs } = await supabase
           .from('sub_goals')
           .select('id')
-          .eq('goal_id', normalized.id);
+          .eq('goal_id', normalized.id)
+          .eq('user_id', userId);
 
         const existingDbIds = (existingDbSubs || []).map(s => s.id);
         const keptDbIds = currentSubGoals
@@ -760,7 +767,7 @@ export const DashboardProvider = ({ children }) => {
         // Delete sub-goals that were removed
         const toDeleteIds = existingDbIds.filter(id => !keptDbIds.includes(id));
         if (toDeleteIds.length > 0) {
-          await supabase.from('sub_goals').delete().in('id', toDeleteIds);
+          await supabase.from('sub_goals').delete().in('id', toDeleteIds).eq('user_id', userId);
         }
 
         // Insert new sub-goals or update existing ones
@@ -772,7 +779,7 @@ export const DashboardProvider = ({ children }) => {
               target_date: sg.targetDate || null,
               completed: Boolean(sg.completed),
               completed_at: sg.completed ? new Date().toISOString() : null
-            }).eq('id', sg.id);
+            }).eq('id', sg.id).eq('user_id', userId);
             finalSubGoals.push(sg);
           } else {
             const { data: newSgData, error: insErr } = await supabase.from('sub_goals').insert({
@@ -810,8 +817,8 @@ export const DashboardProvider = ({ children }) => {
   const deleteGoal = async (goalId) => {
     setGoals(prev => prev.filter(g => g.id !== goalId));
     if (userId) {
-      await supabase.from('sub_goals').delete().eq('goal_id', goalId);
-      await supabase.from('goals').delete().eq('id', goalId);
+      await supabase.from('sub_goals').delete().eq('goal_id', goalId).eq('user_id', userId);
+      await supabase.from('goals').delete().eq('id', goalId).eq('user_id', userId);
     }
   };
 
@@ -836,7 +843,7 @@ export const DashboardProvider = ({ children }) => {
       await supabase.from('sub_goals').update({
         completed: nextCompleted,
         completed_at: nextCompleted ? new Date().toISOString() : null
-      }).eq('id', subGoalId);
+      }).eq('id', subGoalId).eq('user_id', userId);
     }
   };
 
@@ -957,7 +964,7 @@ export const DashboardProvider = ({ children }) => {
         due_date: dueDate,
         linked_goal_title: linkedGoalTitle || null,
         notes
-      }).eq('id', taskId);
+      }).eq('id', taskId).eq('user_id', userId);
 
       if (error) {
         console.error('[PULSE Supabase updateTask Error]:', error);
@@ -968,7 +975,7 @@ export const DashboardProvider = ({ children }) => {
   const updateTaskPriority = async (taskId, newPriority) => {
     setTasks(prev => prev.map(t => (t.id === taskId ? { ...t, priority: newPriority } : t)));
     if (userId) {
-      await supabase.from('tasks').update({ priority: newPriority }).eq('id', taskId);
+      await supabase.from('tasks').update({ priority: newPriority }).eq('id', taskId).eq('user_id', userId);
     }
   };
 
@@ -994,14 +1001,14 @@ export const DashboardProvider = ({ children }) => {
       await supabase.from('tasks').update({
         completed: nextComp,
         completed_at: nextComp ? todayStr : null
-      }).eq('id', taskId);
+      }).eq('id', taskId).eq('user_id', userId);
     }
   };
 
   const deleteTask = async (taskId) => {
     setTasks(prev => prev.filter(t => t.id !== taskId));
     if (userId) {
-      await supabase.from('tasks').delete().eq('id', taskId);
+      await supabase.from('tasks').delete().eq('id', taskId).eq('user_id', userId);
     }
   };
 
@@ -1065,14 +1072,14 @@ export const DashboardProvider = ({ children }) => {
         tag: updated.tag || '',
         priority: updated.priority,
         is_completed: Boolean(updated.isCompleted)
-      }).eq('id', deadlineId);
+      }).eq('id', deadlineId).eq('user_id', userId);
     }
   };
 
   const deleteDeadline = async (id) => {
     setDeadlines(prev => prev.filter(d => d.id !== id));
     if (userId) {
-      await supabase.from('deadlines').delete().eq('id', id);
+      await supabase.from('deadlines').delete().eq('id', id).eq('user_id', userId);
     }
   };
 
@@ -1193,7 +1200,7 @@ export const DashboardProvider = ({ children }) => {
         pages_read: pagesRead,
         skill_name: updatedAct.skillName || updatedAct.skill_name || null,
         module_name: updatedAct.moduleName || updatedAct.module_name || null
-      }).eq('id', actId);
+      }).eq('id', actId).eq('user_id', userId);
 
       if (error) {
         console.error('[PULSE Supabase updateActivity Error]:', error);
@@ -1204,7 +1211,7 @@ export const DashboardProvider = ({ children }) => {
   const deleteActivity = async (actId) => {
     setActivities(prev => prev.filter(a => a.id !== actId));
     if (userId) {
-      await supabase.from('activities').delete().eq('id', actId);
+      await supabase.from('activities').delete().eq('id', actId).eq('user_id', userId);
     }
   };
 
