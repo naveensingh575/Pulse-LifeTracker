@@ -51,7 +51,7 @@ import {
   ArrowDownLeft,
   AlertTriangle,
   Check,
-  Calendar,
+  Calendar as CalendarIcon,
   Layers,
   Zap,
   TrendingDown,
@@ -59,7 +59,9 @@ import {
   ChevronLeft,
   ChevronRight,
   ShieldCheck,
-  Gauge
+  Gauge,
+  Sun,
+  CalendarDays
 } from 'lucide-react';
 
 const DISCIPLINE_COLORS = {
@@ -528,38 +530,27 @@ export const AnalyticsView = () => {
         {/* 3-Toggle Navigation Bar & Dynamic Controls: [ Day | Week | Month ] */}
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex items-center space-x-1 bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-200 dark:border-slate-800 text-xs">
-            <button
-              onClick={() => setTimeframe('day')}
-              className={`px-3.5 py-1.5 rounded-lg font-bold transition cursor-pointer ${
-                timeframe === 'day'
-                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-              }`}
-            >
-              Day
-            </button>
-
-            <button
-              onClick={() => setTimeframe('week')}
-              className={`px-3.5 py-1.5 rounded-lg font-bold transition cursor-pointer ${
-                timeframe === 'week'
-                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-              }`}
-            >
-              Week
-            </button>
-
-            <button
-              onClick={() => setTimeframe('month')}
-              className={`px-3.5 py-1.5 rounded-lg font-bold transition cursor-pointer ${
-                timeframe === 'month'
-                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-              }`}
-            >
-              Month
-            </button>
+            {[
+              { id: 'day', label: 'Day', icon: Sun },
+              { id: 'week', label: 'Week', icon: CalendarDays },
+              { id: 'month', label: 'Month', icon: CalendarIcon }
+            ].map(tab => {
+              const Icon = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setTimeframe(tab.id)}
+                  className={`px-3.5 py-1.5 rounded-lg font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                    timeframe === tab.id
+                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                  }`}
+                >
+                  <Icon className="w-3.5 h-3.5" />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
           </div>
 
           {/* Date Picker (Day View Only) */}

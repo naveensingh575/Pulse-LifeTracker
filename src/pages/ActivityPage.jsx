@@ -34,7 +34,9 @@ import {
   Layers,
   Brain,
   Book,
-  Edit2
+  Edit2,
+  Sun,
+  CalendarDays
 } from 'lucide-react';
 
 const CATEGORY_COLORS = {
@@ -282,22 +284,26 @@ export const ActivityPage = () => {
           {/* Time Horizon Selector Tabs: Day | Week | Month */}
           <div className="flex items-center space-x-1 bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-200 dark:border-slate-800 self-start sm:self-auto">
             {[
-              { id: 'day', label: 'Day' },
-              { id: 'week', label: 'Week' },
-              { id: 'month', label: 'Month' }
-            ].map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setTimeframe(tab.id)}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
-                  timeframe === tab.id
-                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
+              { id: 'day', label: 'Day', icon: Sun },
+              { id: 'week', label: 'Week', icon: CalendarDays },
+              { id: 'month', label: 'Month', icon: CalendarIcon }
+            ].map(tab => {
+              const Icon = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setTimeframe(tab.id)}
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                    timeframe === tab.id
+                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                  }`}
+                >
+                  <Icon className="w-3.5 h-3.5" />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
