@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { useDashboard } from '../../context/DashboardContext';
 import {
   getISTDateString,
@@ -63,8 +62,7 @@ import {
   Gauge,
   Sun,
   CalendarDays,
-  CheckSquare,
-  ArrowRight
+  CheckSquare
 } from 'lucide-react';
 
 const DISCIPLINE_COLORS = {
@@ -1205,15 +1203,6 @@ export const AnalyticsView = () => {
                 Completed ({completedScopedTasks.length})
               </button>
             </div>
-
-            <Link
-              to="/tasks"
-              className="p-1.5 text-xs text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1 font-bold"
-              title="Open full Tasks Page"
-            >
-              <span>Manage</span>
-              <ArrowRight className="w-3 h-3" />
-            </Link>
           </div>
         </div>
 
