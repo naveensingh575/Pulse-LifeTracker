@@ -84,6 +84,7 @@ export const AnalyticsView = () => {
     activities = [],
     goals = [],
     tasks = [],
+    journalEntries = [],
     toggleTaskComplete = () => {},
     theme = 'dark'
   } = dashboard;
@@ -850,7 +851,7 @@ export const AnalyticsView = () => {
         scopedActivities={scopedActivities}
         // Tasks & Goals
         scopedTasks={scopedTasks}
-        tasksCompletionRate={tasksCompletionRate}
+        tasksCompletionRate={taskCompletionPct}
         highPriorityTasks={highPriorityTasks}
         highPriorityCompleted={highPriorityCompleted}
         goalsOnTrackCount={goalsOnTrackCount}

@@ -162,20 +162,18 @@ export const SmartPulseIntelligence = ({
         badge: 'Action-Heavy / Pacing Alert',
         color: 'rose',
         desc: 'High operational drive and output, but living expenses and discretionary burn rate are outpacing your safe ceiling.',
-        growthDirective: `Enforce a strict 48-hour cooling-off rule on ${topCategory} and non-essential shopping to stabilize your runway.`
+        growthDirective: `Enforce a strict 48-hour cooling-off rule on ${topCategory || 'Living Expenses'} and non-essential shopping to stabilize your runway.`
       };
     }
 
     return {
-      return: {
-        title: 'The Emerging Builder',
-        icon: '🌱',
-        badge: 'Building Keystone Rhythms',
-        color: 'emerald',
-        desc: 'You are establishing baseline rhythm across your personal dashboard. Early consistency will quickly compound into high momentum.',
-        growthDirective: 'Focus on 1 keystone habit and 2 daily priority tasks. Win small victories daily to establish effortless behavioral momentum.'
-      }
-    }.return;
+      title: 'The Emerging Builder',
+      icon: '🌱',
+      badge: 'Building Keystone Rhythms',
+      color: 'emerald',
+      desc: 'You are establishing baseline rhythm across your personal dashboard. Early consistency will quickly compound into high momentum.',
+      growthDirective: 'Focus on 1 keystone habit and 2 daily priority tasks. Win small victories daily to establish effortless behavioral momentum.'
+    };
   };
 
   const archetype = getOperatingArchetype();
@@ -190,7 +188,7 @@ export const SmartPulseIntelligence = ({
       icon: Wallet,
       severity: 'high',
       title: `Living Burn Rate Exceeds Safe Ceiling`,
-      detail: `Current burn is ${currency}${actualDailyRate.toLocaleString()}/day vs. max safe pace of ${currency}${Math.round(safeDailyRate).toLocaleString()}/day (+${budgetVariancePct}% excess). ${topCategory} drives ${topCategoryPct}% of outlay.`
+      detail: `Current burn is ${currency}${Number(actualDailyRate || 0).toLocaleString()}/day vs. max safe pace of ${currency}${Math.round(Number(safeDailyRate || 0)).toLocaleString()}/day (+${Number(budgetVariancePct || 0)}% excess). ${topCategory || 'Expenses'} drives ${Number(topCategoryPct || 0)}% of outlay.`
     });
   }
 
@@ -235,7 +233,7 @@ export const SmartPulseIntelligence = ({
     improvements.push({
       pillar: 'Financial Optimization',
       icon: Wallet,
-      action: `Cap discretionary ${topCategory.toLowerCase()} to preserve your ${currency}${Math.max(0, budgetBufferRemaining).toLocaleString()} buffer.`,
+      action: `Cap discretionary ${(topCategory || 'Expenses').toLowerCase()} to preserve your ${currency}${Math.max(0, Number(budgetBufferRemaining) || 0).toLocaleString()} buffer.`,
       impact: `Reduces weekly living friction and increases leftover surplus cash for wealth investments.`
     });
   }
