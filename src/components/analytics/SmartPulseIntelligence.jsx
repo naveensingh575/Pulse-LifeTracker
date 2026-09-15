@@ -255,119 +255,77 @@ export const SmartPulseIntelligence = ({
   });
 
   return (
-    <div className="p-5 rounded-2xl bg-gradient-to-br from-indigo-950/20 via-slate-900/60 to-purple-950/20 border border-indigo-500/20 shadow-md space-y-5">
+    <div className="glass-panel-dark rounded-2xl p-5 border border-slate-200 dark:border-slate-800 space-y-4">
       
-      {/* 🌟 1. HEADER: Synced with Page Timeframe */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800/80 pb-3">
+      {/* 🌟 1. HEADER */}
+      <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
         <div className="flex items-center space-x-2.5">
-          <div className="p-2 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-600 text-white shadow-sm">
+          <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 shadow-sm">
             <Brain className="w-4 h-4" />
           </div>
-          <div>
-            <h3 className="text-sm font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-              Smart Pulse Intelligence
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 font-bold">
-                {timeframeLabel}
-              </span>
-            </h3>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400">
-              Pattern synthesis, friction diagnostics & operating personality map across all your logged data
-            </p>
-          </div>
+          <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+            Smart Pulse Intelligence
+          </h3>
         </div>
       </div>
 
-      {/* 🎭 2. PERSONALITY MAP & OPERATING ARCHETYPE */}
-      <div className="p-4 rounded-xl bg-white dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800/80 space-y-3.5">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800/60 pb-3">
-          <div className="flex items-center space-x-3">
-            <span className="text-2xl p-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-              {archetype.icon}
-            </span>
-            <div>
-              <div className="flex items-center space-x-2">
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Your Operating Archetype</span>
-                <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
-                  {archetype.badge}
-                </span>
-              </div>
-              <h4 className="text-base font-extrabold text-slate-900 dark:text-white">
-                {archetype.title}
-              </h4>
+      {/* 📊 MULTI-PILLAR BALANCE RADAR */}
+      <div className="p-3.5 rounded-xl bg-slate-50/70 dark:bg-slate-900/40 border border-slate-200/70 dark:border-slate-800/70 space-y-2">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+          Multi-Pillar Balance Radar
+        </span>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+          {/* 1. Physical */}
+          <div className="p-2.5 rounded-xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 space-y-1">
+            <div className="flex items-center justify-between text-[11px]">
+              <span className="text-slate-500 font-medium flex items-center gap-1">
+                <Activity className="w-3 h-3 text-cyan-500" /> Vitality
+              </span>
+              <span className="font-bold font-mono text-cyan-600 dark:text-cyan-400">{physicalScore}%</span>
+            </div>
+            <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+              <div className="h-full bg-cyan-500 rounded-full transition-all duration-500" style={{ width: `${physicalScore}%` }} />
             </div>
           </div>
 
-          <p className="text-xs text-slate-600 dark:text-slate-300 max-w-md leading-relaxed">
-            {archetype.desc}
-          </p>
-        </div>
-
-        {/* 4-Pillar Balance Radar Metrics */}
-        <div className="space-y-2">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-            Multi-Pillar Balance Radar ({timeframeLabel})
-          </span>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-            {/* 1. Physical */}
-            <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-1">
-              <div className="flex items-center justify-between text-[11px]">
-                <span className="text-slate-500 font-medium flex items-center gap-1">
-                  <Activity className="w-3 h-3 text-cyan-500" /> Vitality
-                </span>
-                <span className="font-bold font-mono text-cyan-600 dark:text-cyan-400">{physicalScore}%</span>
-              </div>
-              <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
-                <div className="h-full bg-cyan-500 rounded-full transition-all duration-500" style={{ width: `${physicalScore}%` }} />
-              </div>
+          {/* 2. Execution */}
+          <div className="p-2.5 rounded-xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 space-y-1">
+            <div className="flex items-center justify-between text-[11px]">
+              <span className="text-slate-500 font-medium flex items-center gap-1">
+                <Zap className="w-3 h-3 text-indigo-500" /> Execution
+              </span>
+              <span className="font-bold font-mono text-indigo-600 dark:text-indigo-400">{executionScore}%</span>
             </div>
-
-            {/* 2. Execution */}
-            <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-1">
-              <div className="flex items-center justify-between text-[11px]">
-                <span className="text-slate-500 font-medium flex items-center gap-1">
-                  <Zap className="w-3 h-3 text-indigo-500" /> Execution
-                </span>
-                <span className="font-bold font-mono text-indigo-600 dark:text-indigo-400">{executionScore}%</span>
-              </div>
-              <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
-                <div className="h-full bg-indigo-500 rounded-full transition-all duration-500" style={{ width: `${executionScore}%` }} />
-              </div>
-            </div>
-
-            {/* 3. Financial */}
-            <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-1">
-              <div className="flex items-center justify-between text-[11px]">
-                <span className="text-slate-500 font-medium flex items-center gap-1">
-                  <Wallet className="w-3 h-3 text-emerald-500" /> Prudence
-                </span>
-                <span className="font-bold font-mono text-emerald-600 dark:text-emerald-400">{financialScore}%</span>
-              </div>
-              <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
-                <div className="h-full bg-emerald-500 rounded-full transition-all duration-500" style={{ width: `${financialScore}%` }} />
-              </div>
-            </div>
-
-            {/* 4. Habits */}
-            <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-1">
-              <div className="flex items-center justify-between text-[11px]">
-                <span className="text-slate-500 font-medium flex items-center gap-1">
-                  <Flame className="w-3 h-3 text-amber-500" /> Discipline
-                </span>
-                <span className="font-bold font-mono text-amber-600 dark:text-amber-400">{disciplineScore}%</span>
-              </div>
-              <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
-                <div className="h-full bg-amber-500 rounded-full transition-all duration-500" style={{ width: `${disciplineScore}%` }} />
-              </div>
+            <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+              <div className="h-full bg-indigo-500 rounded-full transition-all duration-500" style={{ width: `${executionScore}%` }} />
             </div>
           </div>
-        </div>
 
-        {/* Growth Directive */}
-        <div className="p-2.5 rounded-xl bg-indigo-50/60 dark:bg-indigo-950/40 border border-indigo-200/60 dark:border-indigo-500/20 text-xs flex items-start gap-2">
-          <Sparkles className="w-3.5 h-3.5 text-indigo-500 shrink-0 mt-0.5" />
-          <p className="text-slate-700 dark:text-slate-300 leading-snug">
-            <strong className="text-indigo-600 dark:text-indigo-400">Archetype Growth Directive:</strong> {archetype.growthDirective}
-          </p>
+          {/* 3. Financial */}
+          <div className="p-2.5 rounded-xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 space-y-1">
+            <div className="flex items-center justify-between text-[11px]">
+              <span className="text-slate-500 font-medium flex items-center gap-1">
+                <Wallet className="w-3 h-3 text-emerald-500" /> Prudence
+              </span>
+              <span className="font-bold font-mono text-emerald-600 dark:text-emerald-400">{financialScore}%</span>
+            </div>
+            <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+              <div className="h-full bg-emerald-500 rounded-full transition-all duration-500" style={{ width: `${financialScore}%` }} />
+            </div>
+          </div>
+
+          {/* 4. Habits */}
+          <div className="p-2.5 rounded-xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 space-y-1">
+            <div className="flex items-center justify-between text-[11px]">
+              <span className="text-slate-500 font-medium flex items-center gap-1">
+                <Flame className="w-3 h-3 text-amber-500" /> Discipline
+              </span>
+              <span className="font-bold font-mono text-amber-600 dark:text-amber-400">{disciplineScore}%</span>
+            </div>
+            <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+              <div className="h-full bg-amber-500 rounded-full transition-all duration-500" style={{ width: `${disciplineScore}%` }} />
+            </div>
+          </div>
         </div>
       </div>
 
