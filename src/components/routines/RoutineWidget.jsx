@@ -31,12 +31,16 @@ export const createGoogleCalendarUrl = ({ title, details, date }) => {
 // Helper to download .ics iCalendar file
 export const downloadIcsFile = ({ title, details, date }) => {
   const formattedDate = date ? date.replace(/-/g, '') : getISTDateString().replace(/-/g, '');
+  const safeTitle = (title || 'Task').replace(/[\r\n]+/g, ' ').trim();
+  const safeDetails = (details || 'PULSE Task').replace(/[\r\n]+/g, ' ').trim();
+  const safeFileName = safeTitle.replace(/[^a-zA-Z0-9_\-]/g, '_').substring(0, 50) || 'pulse_task';
+
   const icsContent = `BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//PULSE//Daily Operating System//EN
 BEGIN:VEVENT
-SUMMARY:${title}
-DESCRIPTION:${details || 'PULSE Task'}
+SUMMARY:${safeTitle}
+DESCRIPTION:${safeDetails}
 DTSTART:${formattedDate}T090000Z
 DTEND:${formattedDate}T100000Z
 STATUS:CONFIRMED
@@ -47,10 +51,11 @@ END:VCALENDAR`;
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.setAttribute('download', `${title.replace(/\s+/g, '_')}.ics`);
+  link.setAttribute('download', `${safeFileName}.ics`);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+  URL.revokeObjectURL(url);
 };
 
 export const RoutineWidget = () => {

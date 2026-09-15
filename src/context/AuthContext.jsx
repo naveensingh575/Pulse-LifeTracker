@@ -5,15 +5,15 @@ const AuthContext = createContext();
 
 const checkIsRecoveryUrl = () => {
   try {
-    const href = typeof window !== 'undefined' ? window.location.href : '';
-    const hash = typeof window !== 'undefined' ? window.location.hash : '';
-    const search = typeof window !== 'undefined' ? window.location.search : '';
-    return (
-      href.includes('type=recovery') ||
-      hash.includes('type=recovery') ||
-      search.includes('type=recovery') ||
-      sessionStorage.getItem('pulse_recovery_mode') === 'true'
-    );
+    if (typeof window === 'undefined') return false;
+    const hash = window.location.hash || '';
+    const search = window.location.search || '';
+    // Genuine recovery link from Supabase includes access_token or code along with type=recovery
+    const hasRecoveryToken = 
+      (hash.includes('type=recovery') && hash.includes('access_token=')) ||
+      (search.includes('type=recovery') && search.includes('code='));
+    const hasStoredRecovery = sessionStorage.getItem('pulse_recovery_mode') === 'true';
+    return hasRecoveryToken || hasStoredRecovery;
   } catch {
     return false;
   }
@@ -30,7 +30,9 @@ export const AuthProvider = ({ children }) => {
     if (!supaUser) return null;
     const meta = supaUser.user_metadata || {};
     const name = meta.full_name || meta.name || supaUser.email?.split('@')[0] || 'Pulse User';
-    const avatar = meta.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}`;
+    const initial = name.trim().charAt(0).toUpperCase();
+    const localAvatar = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><rect width="64" height="64" rx="32" fill="%236366f1"/><text x="50%" y="54%" text-anchor="middle" dominant-baseline="middle" fill="%23ffffff" font-family="system-ui,-apple-system,sans-serif" font-size="28" font-weight="600">${initial}</text></svg>`;
+    const avatar = meta.avatar_url || localAvatar;
     const provider = supaUser.app_metadata?.provider || 'email';
 
     return {

@@ -64,17 +64,17 @@ export const AuthPage = ({ initialMode }) => {
   // Check URL hash / auth recovery event on mount
   useEffect(() => {
     const hash = typeof window !== 'undefined' ? window.location.hash : '';
-    const href = typeof window !== 'undefined' ? window.location.href : '';
+    const search = typeof window !== 'undefined' ? window.location.search : '';
+    const hasValidToken = (hash.includes('type=recovery') && hash.includes('access_token=')) ||
+                          (search.includes('type=recovery') && search.includes('code='));
     if (
       initialMode === 'update-password' ||
-      hash.includes('type=recovery') ||
-      href.includes('type=recovery') ||
-      hash.includes('mode=update-password') ||
+      hasValidToken ||
       isPasswordRecovery ||
       (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('pulse_recovery_mode') === 'true')
     ) {
       setMode('update-password');
-      setAuthSuccess('Recovery link verified! Please enter your new password below.');
+      setAuthSuccess('Please enter your new password below.');
       setAuthError('');
     }
   }, [initialMode, isPasswordRecovery]);
@@ -115,8 +115,8 @@ export const AuthPage = ({ initialMode }) => {
 
     // Mode: UPDATE NEW PASSWORD
     if (mode === 'update-password') {
-      if (password.length < 6) {
-        setAuthError('New password must be at least 6 characters long.');
+      if (password.length < 8) {
+        setAuthError('New password must be at least 8 characters long.');
         return;
       }
       if (password !== confirmPassword) {
@@ -143,8 +143,13 @@ export const AuthPage = ({ initialMode }) => {
       return;
     }
 
-    if (password.length < 6) {
-      setAuthError('Password must be at least 6 characters long.');
+    if (mode === 'signup' && password.length < 8) {
+      setAuthError('Password must be at least 8 characters long.');
+      return;
+    }
+
+    if (mode === 'signin' && !password) {
+      setAuthError('Please enter your password.');
       return;
     }
 
@@ -175,7 +180,7 @@ export const AuthPage = ({ initialMode }) => {
       } else if (msg.toLowerCase().includes('invalid login credentials')) {
         setAuthError('Incorrect email or password. Please verify your credentials or create a new account.');
       } else if (msg.toLowerCase().includes('user already registered')) {
-        setAuthError('An account with this email already exists. Please switch to Sign In.');
+        setAuthError('Unable to register. If an account already exists with this email, please switch to Sign In.');
       } else {
         setAuthError(msg || 'Authentication failed. Please check your details.');
       }
@@ -412,7 +417,7 @@ export const AuthPage = ({ initialMode }) => {
                       Forgot password?
                     </button>
                   ) : (
-                    <span className="text-[10px] text-slate-400">Min. 6 characters</span>
+                    <span className="text-[10px] text-slate-400">Min. 8 characters</span>
                   )}
                 </div>
                 <div className="relative">
@@ -547,7 +552,7 @@ export const AuthPage = ({ initialMode }) => {
                   <input
                     type="password"
                     required
-                    placeholder="Enter new password (min. 6 characters)"
+                    placeholder="Enter new password (min. 8 characters)"
                     value={password}
                     onChange={e => {
                       setPassword(e.target.value);

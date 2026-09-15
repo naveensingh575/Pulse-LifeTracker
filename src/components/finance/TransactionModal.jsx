@@ -200,6 +200,7 @@ export const TransactionModal = ({ isOpen, onClose, onSave, initialData }) => {
                 <input
                   type="text"
                   required
+                  maxLength={150}
                   placeholder={formData.type === 'income' ? 'e.g. Monthly Salary, Freelance Invoice' : 'e.g. Grocery Mart, Cloud Server Bill, Rent EMI'}
                   value={formData.description}
                   onChange={e => setFormData({ ...formData, description: e.target.value })}
@@ -276,6 +277,7 @@ export const TransactionModal = ({ isOpen, onClose, onSave, initialData }) => {
             </label>
             <input
               type="text"
+              maxLength={500}
               placeholder="e.g. Transaction reference, units, or remarks"
               value={formData.notes}
               onChange={e => setFormData({ ...formData, notes: e.target.value })}

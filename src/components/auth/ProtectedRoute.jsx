@@ -17,12 +17,7 @@ export const ProtectedRoute = ({ children }) => {
   }
 
   // If user is currently in password recovery mode, force reset password screen
-  const inRecovery = isPasswordRecovery || 
-    (typeof window !== 'undefined' && (
-      sessionStorage.getItem('pulse_recovery_mode') === 'true' || 
-      window.location.href.includes('type=recovery') ||
-      window.location.hash.includes('type=recovery')
-    ));
+  const inRecovery = Boolean(isPasswordRecovery);
 
   if (inRecovery) {
     return <Navigate to="/reset-password" replace />;

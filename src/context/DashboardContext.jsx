@@ -382,8 +382,8 @@ export const DashboardProvider = ({ children }) => {
   };
 
   const setMonthlyAllocation = async (ymStr, { expenseBudget, investmentGoal }) => {
-    const cleanExp = Math.max(0, Number(expenseBudget) || 0);
-    const cleanInv = Math.max(0, Number(investmentGoal) || 0);
+    const cleanExp = Math.min(1000000000, Math.max(0, Number(expenseBudget) || 0));
+    const cleanInv = Math.min(1000000000, Math.max(0, Number(investmentGoal) || 0));
 
     // Optimistic state update
     setMonthlyAllocations(prev => ({
@@ -512,9 +512,14 @@ export const DashboardProvider = ({ children }) => {
   };
 
   const deleteHabit = async (id) => {
+    const prevHabits = habits;
     setHabits(prev => prev.filter(h => h.id !== id));
     if (userId) {
-      await supabase.from('habits').delete().eq('id', id).eq('user_id', userId);
+      const { error } = await supabase.from('habits').delete().eq('id', id).eq('user_id', userId);
+      if (error) {
+        setHabits(prevHabits);
+        console.error('[PULSE] Failed to delete habit:', error.message);
+      }
     }
   };
 
@@ -522,7 +527,7 @@ export const DashboardProvider = ({ children }) => {
     const updatedHabit = typeof arg1 === 'object' && arg1 !== null && !arg2 ? arg1 : { ...(arg2 || {}), id: (arg1?.id || arg1) };
     const habitId = updatedHabit.id;
     if (!habitId) {
-      console.warn('[PULSE] updateHabit missing habit id:', arg1, arg2);
+      console.warn('[PULSE] updateHabit: missing habit id');
       return;
     }
 
@@ -608,7 +613,7 @@ export const DashboardProvider = ({ children }) => {
     const updatedTx = typeof arg1 === 'object' && arg1 !== null && !arg2 ? arg1 : { ...(arg2 || {}), id: (arg1?.id || arg1) };
     const txId = updatedTx.id;
     if (!txId) {
-      console.warn('[PULSE] updateTransaction missing tx id:', arg1, arg2);
+      console.warn('[PULSE] updateTransaction: missing tx id');
       return;
     }
 
@@ -654,9 +659,14 @@ export const DashboardProvider = ({ children }) => {
   };
 
   const deleteTransaction = async (id) => {
+    const prevTx = transactions;
     setTransactions(prev => prev.filter(t => t.id !== id));
     if (userId) {
-      await supabase.from('transactions').delete().eq('id', id).eq('user_id', userId);
+      const { error } = await supabase.from('transactions').delete().eq('id', id).eq('user_id', userId);
+      if (error) {
+        setTransactions(prevTx);
+        console.error('[PULSE] Failed to delete transaction:', error.message);
+      }
     }
   };
 
@@ -815,10 +825,15 @@ export const DashboardProvider = ({ children }) => {
   };
 
   const deleteGoal = async (goalId) => {
+    const prevGoals = goals;
     setGoals(prev => prev.filter(g => g.id !== goalId));
     if (userId) {
-      await supabase.from('sub_goals').delete().eq('goal_id', goalId).eq('user_id', userId);
-      await supabase.from('goals').delete().eq('id', goalId).eq('user_id', userId);
+      const { error: subErr } = await supabase.from('sub_goals').delete().eq('goal_id', goalId).eq('user_id', userId);
+      const { error: gErr } = await supabase.from('goals').delete().eq('id', goalId).eq('user_id', userId);
+      if (gErr || subErr) {
+        setGoals(prevGoals);
+        console.error('[PULSE] Failed to delete goal:', (gErr || subErr)?.message);
+      }
     }
   };
 
@@ -1006,9 +1021,14 @@ export const DashboardProvider = ({ children }) => {
   };
 
   const deleteTask = async (taskId) => {
+    const prevTasks = tasks;
     setTasks(prev => prev.filter(t => t.id !== taskId));
     if (userId) {
-      await supabase.from('tasks').delete().eq('id', taskId).eq('user_id', userId);
+      const { error } = await supabase.from('tasks').delete().eq('id', taskId).eq('user_id', userId);
+      if (error) {
+        setTasks(prevTasks);
+        console.error('[PULSE] Failed to delete task:', error.message);
+      }
     }
   };
 
@@ -1077,9 +1097,14 @@ export const DashboardProvider = ({ children }) => {
   };
 
   const deleteDeadline = async (id) => {
+    const prevDeadlines = deadlines;
     setDeadlines(prev => prev.filter(d => d.id !== id));
     if (userId) {
-      await supabase.from('deadlines').delete().eq('id', id).eq('user_id', userId);
+      const { error } = await supabase.from('deadlines').delete().eq('id', id).eq('user_id', userId);
+      if (error) {
+        setDeadlines(prevDeadlines);
+        console.error('[PULSE] Failed to delete deadline:', error.message);
+      }
     }
   };
 
@@ -1149,7 +1174,7 @@ export const DashboardProvider = ({ children }) => {
     const updatedAct = typeof arg1 === 'object' && arg1 !== null && !arg2 ? arg1 : { ...(arg2 || {}), id: (arg1?.id || arg1) };
     const actId = updatedAct.id;
     if (!actId) {
-      console.warn('[PULSE] updateActivity missing activity id:', arg1, arg2);
+      console.warn('[PULSE] updateActivity: missing activity id');
       return;
     }
 
@@ -1209,9 +1234,14 @@ export const DashboardProvider = ({ children }) => {
   };
 
   const deleteActivity = async (actId) => {
+    const prevActs = activities;
     setActivities(prev => prev.filter(a => a.id !== actId));
     if (userId) {
-      await supabase.from('activities').delete().eq('id', actId).eq('user_id', userId);
+      const { error } = await supabase.from('activities').delete().eq('id', actId).eq('user_id', userId);
+      if (error) {
+        setActivities(prevActs);
+        console.error('[PULSE] Failed to delete activity:', error.message);
+      }
     }
   };
 

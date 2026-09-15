@@ -104,8 +104,8 @@ export const MoneyTracker = () => {
     const exp = parseFloat(tempExpenseBudget) || 0;
     const inv = parseFloat(tempInvestmentGoal) || 0;
     setMonthlyAllocation(activeMonthKey, {
-      expenseBudget: Math.max(0, exp),
-      investmentGoal: Math.max(0, inv)
+      expenseBudget: Math.min(1000000000, Math.max(0, exp)),
+      investmentGoal: Math.min(1000000000, Math.max(0, inv))
     });
     setIsBudgetModalOpen(false);
   };

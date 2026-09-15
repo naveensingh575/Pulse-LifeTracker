@@ -129,6 +129,7 @@ ${gratitude || '*No entries recorded.*'}
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   // Filtered past journal entries for search sidebar
