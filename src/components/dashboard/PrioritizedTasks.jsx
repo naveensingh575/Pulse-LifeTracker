@@ -9,6 +9,7 @@ import {
   Zap,
   Target
 } from 'lucide-react';
+import { checkAndCelebrateTasks } from '../../utils/celebrationUtils';
 
 export const PrioritizedTasks = () => {
   const { tasks, toggleTask, addTask } = useDashboard();
@@ -20,6 +21,13 @@ export const PrioritizedTasks = () => {
   const otherActiveTasks = tasks.filter(t => !t.completed && t.priority !== 'high');
   const displayTasks = [...highPriorityTasks, ...otherActiveTasks].slice(0, 5);
   const completedCount = tasks.filter(t => t.completed).length;
+
+  const handleToggleTask = (task) => {
+    toggleTask(task.id);
+    if (!task.completed && highPriorityTasks.length === 1 && highPriorityTasks[0].id === task.id) {
+      checkAndCelebrateTasks(new Date().toISOString().split('T')[0], true);
+    }
+  };
 
   const handleQuickAdd = (e) => {
     e.preventDefault();
@@ -100,7 +108,7 @@ export const PrioritizedTasks = () => {
           displayTasks.map(task => (
             <div
               key={task.id}
-              onClick={() => toggleTask(task.id)}
+              onClick={() => handleToggleTask(task)}
               className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950/60 hover:bg-indigo-50/40 dark:hover:bg-indigo-950/30 border border-slate-200 dark:border-slate-800/80 transition cursor-pointer group"
             >
               <div className="flex items-center space-x-2.5 min-w-0">

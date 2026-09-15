@@ -80,28 +80,6 @@ export const Sidebar = () => {
         </div>
 
       </aside>
-
-      {/* Mobile Bottom Sticky Navigation */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-950/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 flex justify-around items-center h-16 px-2">
-        {navItems.map((item) => {
-          const IconC = item.icon;
-          return (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.to === '/'}
-              className={({ isActive }) =>
-                `flex flex-col items-center justify-center space-y-1 transition ${
-                  isActive ? 'text-indigo-600 dark:text-indigo-400 font-bold' : 'text-slate-500 dark:text-slate-400'
-                }`
-              }
-            >
-              <IconC className="w-4 h-4" />
-              <span className="text-[9px] truncate max-w-[55px] font-medium">{item.label}</span>
-            </NavLink>
-          );
-        })}
-      </nav>
     </>
   );
 };

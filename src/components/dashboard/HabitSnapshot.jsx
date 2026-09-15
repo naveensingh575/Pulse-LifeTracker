@@ -10,6 +10,7 @@ import {
   Sparkles,
   Award
 } from 'lucide-react';
+import { checkAndCelebrateHabits } from '../../utils/celebrationUtils';
 
 export const HabitSnapshot = () => {
   const { habits, isHabitDoneOn, toggleHabitForDate } = useDashboard();
@@ -21,6 +22,13 @@ export const HabitSnapshot = () => {
   const completedHabits = activeHabits.filter(h => isHabitDoneOn(h.id, todayStr));
   const completedCount = completedHabits.length;
   const pendingHabits = activeHabits.filter(h => !isHabitDoneOn(h.id, todayStr));
+
+  const handleToggleHabit = (habitId) => {
+    toggleHabitForDate(habitId, todayStr);
+    if (pendingHabits.length === 1 && pendingHabits[0].id === habitId) {
+      checkAndCelebrateHabits(todayStr, true);
+    }
+  };
 
   const percent = totalHabits > 0 ? Math.round((completedCount / totalHabits) * 100) : 0;
 
@@ -117,7 +125,7 @@ export const HabitSnapshot = () => {
             {pendingHabits.map((habit) => (
               <button
                 key={habit.id}
-                onClick={() => toggleHabitForDate(habit.id, todayStr)}
+                onClick={() => handleToggleHabit(habit.id)}
                 className="flex items-center space-x-1.5 px-2.5 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-950 hover:bg-emerald-500/15 dark:hover:bg-emerald-950/40 border border-slate-200 dark:border-slate-800 hover:border-emerald-500/30 text-xs font-semibold text-slate-700 dark:text-slate-300 transition group cursor-pointer"
                 title={`Mark '${habit.name}' as completed for today`}
               >

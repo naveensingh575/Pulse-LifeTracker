@@ -4,9 +4,9 @@ import { useDashboard, SUPPORTED_CURRENCIES } from '../../context/DashboardConte
 import { useAuth } from '../../context/AuthContext';
 import { PulseLogo } from '../common/PulseLogo';
 import { getLocalDateString, formatDisplayDate } from '../../utils/dateUtils';
-import { Sun, Moon, Calendar, LogOut, ChevronDown, LogIn, Globe } from 'lucide-react';
+import { Sun, Moon, Calendar, LogOut, ChevronDown, LogIn, Globe, Search } from 'lucide-react';
 
-export const Navbar = () => {
+export const Navbar = ({ onOpenQuickCapture }) => {
   const { theme, toggleTheme, currency, setCurrency } = useDashboard();
   const { user, logout } = useAuth();
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -28,10 +28,24 @@ export const Navbar = () => {
           </div>
         </div>
 
-        {/* Date Display (Uncluttered) */}
-        <div className="hidden md:flex items-center space-x-2 text-xs font-medium text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-900/60 px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-800">
-          <Calendar className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" />
-          <span>{currentDateStr}</span>
+        {/* Center: Date Display & Quick Capture Pill */}
+        <div className="hidden md:flex items-center space-x-2.5">
+          <div className="flex items-center space-x-2 text-xs font-medium text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-900/60 px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-800">
+            <Calendar className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" />
+            <span>{currentDateStr}</span>
+          </div>
+
+          {onOpenQuickCapture && (
+            <button
+              onClick={onOpenQuickCapture}
+              className="flex items-center space-x-1.5 px-3 py-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 bg-slate-100 dark:bg-slate-900/60 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-full border border-slate-200 dark:border-slate-800 transition cursor-pointer"
+              title="Quick Capture (Cmd + K)"
+            >
+              <Search className="w-3.5 h-3.5 text-indigo-500" />
+              <span className="font-medium">Quick Capture</span>
+              <kbd className="text-[10px] font-mono bg-slate-200 dark:bg-slate-800 px-1.5 py-0.5 rounded text-slate-500 dark:text-slate-400">⌘K</kbd>
+            </button>
+          )}
         </div>
 
         {/* Action Controls & User Avatar Menu */}

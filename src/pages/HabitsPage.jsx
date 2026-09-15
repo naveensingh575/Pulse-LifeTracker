@@ -19,8 +19,10 @@ import {
   Check,
   Sparkles,
   CalendarDays,
-  Sun
+  Sun,
+  Download
 } from 'lucide-react';
+import { exportHabitsToCSV } from '../utils/exportUtils';
 
 export const HabitsPage = () => {
   const {
@@ -150,6 +152,16 @@ export const HabitsPage = () => {
               <span>Month</span>
             </button>
           </div>
+
+          {/* Export CSV Button */}
+          <button
+            onClick={() => exportHabitsToCSV(habits, isHabitDoneOn)}
+            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900/60 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold border border-slate-200 dark:border-slate-800 transition cursor-pointer"
+            title="Export habit check-in history to CSV"
+          >
+            <Download className="w-3.5 h-3.5 text-amber-500" />
+            <span className="hidden sm:inline">Export CSV</span>
+          </button>
         </div>
       </div>
 

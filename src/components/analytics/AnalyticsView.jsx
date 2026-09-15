@@ -64,6 +64,7 @@ import {
   CalendarDays,
   CheckSquare
 } from 'lucide-react';
+import { SmartCorrelationWidget } from './SmartCorrelationWidget';
 
 const DISCIPLINE_COLORS = {
   Running: '#38bdf8',   // Sky Blue
@@ -683,6 +684,9 @@ export const AnalyticsView = () => {
           )}
         </div>
       </div>
+
+      {/* 🧠 SMART PULSE: CROSS-PILLAR CORRELATION INTELLIGENCE */}
+      <SmartCorrelationWidget />
 
       {/* 📊 2. HIGH-DENSITY, CONTEXTUAL METRIC CARDS (What the numbers mean) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
