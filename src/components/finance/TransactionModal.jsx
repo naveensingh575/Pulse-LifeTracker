@@ -91,11 +91,18 @@ export const TransactionModal = ({ isOpen, onClose, onSave, initialData }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden text-slate-900 dark:text-slate-100">
+    <>
+      {/* Backdrop: Clicking closes modal */}
+      <div
+        className="fixed inset-0 z-40 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-150"
+        onClick={onClose}
+      />
+
+      {/* Modal Card: FIXED at top-20 on mobile, centered on sm */}
+      <div className="fixed top-20 sm:top-1/2 left-4 right-4 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 z-50 max-w-md mx-auto w-[calc(100%-2rem)] sm:w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden text-slate-900 dark:text-slate-100 animate-in zoom-in-95 duration-150 max-h-[calc(100vh-6rem)] flex flex-col">
         
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50">
+        <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 shrink-0">
           <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
             <span className="text-emerald-600 dark:text-emerald-400 font-extrabold text-lg">{currency}</span>
             <span>{initialData ? 'Edit Transaction' : 'Log Transaction'}</span>
@@ -105,7 +112,8 @@ export const TransactionModal = ({ isOpen, onClose, onSave, initialData }) => {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[85vh] overflow-y-auto">
+        <form onSubmit={handleSubmit} className="p-5 sm:p-6 space-y-4 overflow-y-auto">
+
           
           {/* 3-Way Transaction Type Toggle */}
           <div>
@@ -304,6 +312,7 @@ export const TransactionModal = ({ isOpen, onClose, onSave, initialData }) => {
         </form>
 
       </div>
-    </div>
+    </>
   );
 };
+
