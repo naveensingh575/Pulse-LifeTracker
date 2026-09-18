@@ -142,7 +142,7 @@ export const HabitTracker = ({ activeCategoryProp }) => {
           </div>
         </div>
 
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto space-x-2">
           {/* Week Navigation Controls */}
           <div className="flex items-center bg-slate-100 dark:bg-slate-950 p-0.5 rounded-xl border border-slate-200 dark:border-slate-800">
             <button
@@ -173,12 +173,13 @@ export const HabitTracker = ({ activeCategoryProp }) => {
 
           <button
             onClick={handleOpenAdd}
-            className="flex items-center space-x-1 px-2.5 py-1.5 rounded-xl bg-amber-600/10 hover:bg-amber-600/20 text-amber-700 dark:text-amber-300 text-xs font-semibold border border-amber-500/30 transition"
+            className="flex items-center space-x-1 px-2.5 py-1.5 rounded-xl bg-amber-600/10 hover:bg-amber-600/20 text-amber-700 dark:text-amber-300 text-xs font-semibold border border-amber-500/30 transition shrink-0 ml-auto sm:ml-0"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>New Habit</span>
           </button>
         </div>
+
       </div>
 
       {/* Category Tabs */}

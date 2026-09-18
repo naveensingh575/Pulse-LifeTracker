@@ -20,7 +20,9 @@ import {
   Sparkles,
   CalendarDays,
   Sun,
-  Download
+  Download,
+  Plus,
+  X
 } from 'lucide-react';
 import { exportHabitsToCSV } from '../utils/exportUtils';
 
@@ -29,7 +31,8 @@ export const HabitsPage = () => {
     habits,
     isHabitDoneOn,
     toggleHabitForDate,
-    getDayCompletionStats
+    getDayCompletionStats,
+    addHabit
   } = useDashboard();
 
   const [gridMode, setGridMode] = useState('7day'); // 'day' | '7day' | 'monthly'
@@ -42,6 +45,35 @@ export const HabitsPage = () => {
 
   const todayStr = getISTDateString();
   const [selectedDayDate, setSelectedDayDate] = useState(todayStr);
+
+  // Add Habit Modal State
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newHabitName, setNewHabitName] = useState('');
+  const [newHabitCategory, setNewHabitCategory] = useState('Health');
+  const [newHabitStartDate, setNewHabitStartDate] = useState(todayStr);
+
+  const handleOpenAdd = () => {
+    setNewHabitName('');
+    setNewHabitCategory(selectedCategory !== 'All' ? selectedCategory : 'Health');
+    setNewHabitStartDate(getISTDateString());
+    setShowAddModal(true);
+  };
+
+  const handleSaveHabit = (e) => {
+    e.preventDefault();
+    if (!newHabitName.trim()) return;
+
+    addHabit({
+      name: newHabitName.trim(),
+      category: newHabitCategory,
+      icon: 'Smile',
+      createdAt: newHabitStartDate || getISTDateString()
+    });
+
+    setNewHabitName('');
+    setNewHabitStartDate(getISTDateString());
+    setShowAddModal(false);
+  };
 
   const shiftDayDate = (days) => {
     const parts = selectedDayDate.split('-');
@@ -113,7 +145,7 @@ export const HabitsPage = () => {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-3">
           {/* 3-View Mode Switcher: Day | Week | Month */}
           <div className="flex items-center bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-200 dark:border-slate-800">
             <button
@@ -153,10 +185,10 @@ export const HabitsPage = () => {
             </button>
           </div>
 
-          {/* Export CSV Button */}
+          {/* Export CSV Button — moved towards right end on mobile */}
           <button
             onClick={() => exportHabitsToCSV(habits, isHabitDoneOn)}
-            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900/60 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold border border-slate-200 dark:border-slate-800 transition cursor-pointer"
+            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900/60 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold border border-slate-200 dark:border-slate-800 transition cursor-pointer ml-auto sm:ml-0 shrink-0"
             title="Export habit check-in history to CSV"
           >
             <Download className="w-3.5 h-3.5 text-amber-500" />
@@ -318,10 +350,31 @@ export const HabitsPage = () => {
                 </div>
               );
             })}
+
+            {/* Add New Habit Card (Same size as listed habit cards) */}
+            <div
+              onClick={handleOpenAdd}
+              className="p-4 rounded-xl border border-dashed border-amber-500/40 dark:border-amber-500/30 hover:border-amber-500 bg-amber-500/5 hover:bg-amber-500/10 text-slate-700 dark:text-slate-300 flex items-center justify-between transition-all cursor-pointer min-h-[68px] group"
+            >
+              <div className="space-y-1">
+                <p className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition">
+                  <Plus className="w-4 h-4 text-amber-500" />
+                  Add New Habit
+                </p>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
+                  Create a habit to track daily
+                </span>
+              </div>
+
+              <div className="px-3.5 py-2 rounded-xl text-xs font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 group-hover:bg-amber-500 group-hover:text-slate-950 transition-all">
+                + Add
+              </div>
+            </div>
           </div>
 
         </div>
       )}
+
 
       {/* 📅 2. 7-DAY WEEKLY GRID VIEW */}
       {gridMode === '7day' && (
@@ -488,6 +541,89 @@ export const HabitsPage = () => {
         </div>
       )}
 
+      {/* Add Habit Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="w-full max-w-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-4 shadow-2xl text-slate-900 dark:text-slate-100">
+            <div className="flex items-center justify-between">
+              <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                <Plus className="w-4 h-4 text-amber-500" />
+                <span>Add New Habit</span>
+              </h4>
+              <button
+                onClick={() => setShowAddModal(false)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveHabit} className="space-y-3">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Habit Title</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Read 20 Mins"
+                  value={newHabitName}
+                  onChange={e => setNewHabitName(e.target.value)}
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:border-amber-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Category</label>
+                <select
+                  value={newHabitCategory}
+                  onChange={e => setNewHabitCategory(e.target.value)}
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:border-amber-500"
+                >
+                  <option value="Health">Health</option>
+                  <option value="Mind">Mind</option>
+                  <option value="Fitness">Fitness</option>
+                  <option value="Skill">Skill</option>
+                  <option value="Productivity">Productivity</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1">
+                  <CalendarIcon className="w-3.5 h-3.5 text-amber-500" />
+                  <span>Start Tracking From</span>
+                </label>
+                <input
+                  type="date"
+                  required
+                  value={newHabitStartDate}
+                  onChange={e => setNewHabitStartDate(e.target.value)}
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:border-amber-500 font-mono"
+                />
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">
+                  Defaults to Today ({getISTDateString()}). Prior dates won't count against your completion %.
+                </p>
+              </div>
+
+              <div className="flex justify-end space-x-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  className="px-3 py-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-slate-700 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-semibold shadow-md transition cursor-pointer"
+                >
+                  Save Habit
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
+
