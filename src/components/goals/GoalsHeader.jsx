@@ -21,8 +21,10 @@ import {
   Layers,
   Sparkles,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Download
 } from 'lucide-react';
+import { exportGoalsToCSV } from '../../utils/exportUtils';
 
 const iconMap = {
   PiggyBank,
@@ -140,18 +142,30 @@ export const GoalsHeader = () => {
       
       {/* Section Header & Horizon Filter Tabs */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center space-x-2">
-          <div className="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
-            <Compass className="w-4 h-4" />
+        <div className="flex items-center justify-between w-full sm:w-auto gap-3">
+          <div className="flex items-center space-x-2">
+            <div className="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+              <Compass className="w-4 h-4" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">Objectives</h2>
+            </div>
           </div>
-          <div>
-            <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">Objectives</h2>
-          </div>
+
+          {/* Download CSV button on mobile - right most to Objectives */}
+          <button
+            onClick={() => exportGoalsToCSV(goals)}
+            className="flex sm:hidden items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900/60 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold border border-slate-200 dark:border-slate-800 transition cursor-pointer shrink-0"
+            title="Export all goals to CSV"
+          >
+            <Download className="w-3.5 h-3.5 text-indigo-500" />
+            <span>Export CSV</span>
+          </button>
         </div>
 
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center justify-between sm:justify-end space-x-2 w-full sm:w-auto">
           {/* Horizon Filter Tabs */}
-          <div className="flex items-center space-x-1 bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-200 dark:border-slate-800">
+          <div className="flex items-center space-x-1 bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-200 dark:border-slate-800 w-full sm:w-auto justify-between sm:justify-start">
             <button
               onClick={() => setHorizonFilter('all')}
               className={`px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
@@ -187,6 +201,16 @@ export const GoalsHeader = () => {
               <span className="text-[10px] opacity-80">({longGoalsCount})</span>
             </button>
           </div>
+
+          {/* Download CSV button on desktop - right most */}
+          <button
+            onClick={() => exportGoalsToCSV(goals)}
+            className="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900/60 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold border border-slate-200 dark:border-slate-800 transition cursor-pointer shrink-0"
+            title="Export all goals to CSV"
+          >
+            <Download className="w-3.5 h-3.5 text-indigo-500" />
+            <span>Export CSV</span>
+          </button>
         </div>
       </div>
 

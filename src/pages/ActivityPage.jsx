@@ -36,8 +36,10 @@ import {
   Book,
   Edit2,
   Sun,
-  CalendarDays
+  CalendarDays,
+  Download
 } from 'lucide-react';
+import { exportActivitiesToCSV } from '../utils/exportUtils';
 
 const CATEGORY_COLORS = {
   gym: '#6366f1',       // Indigo
@@ -282,29 +284,41 @@ export const ActivityPage = () => {
             <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Activities Aggregations</h3>
           </div>
 
-          {/* Time Horizon Selector Tabs: Day | Week | Month */}
-          <div className="flex items-center space-x-1 bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-200 dark:border-slate-800 self-start sm:self-auto">
-            {[
-              { id: 'day', label: 'Day', icon: Sun },
-              { id: 'week', label: 'Week', icon: CalendarDays },
-              { id: 'month', label: 'Month', icon: CalendarIcon }
-            ].map(tab => {
-              const Icon = tab.icon;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setTimeframe(tab.id)}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
-                    timeframe === tab.id
-                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                  }`}
-                >
-                  <Icon className="w-3.5 h-3.5" />
-                  <span>{tab.label}</span>
-                </button>
-              );
-            })}
+          <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-2">
+            {/* Time Horizon Selector Tabs: Day | Week | Month */}
+            <div className="flex items-center space-x-1 bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-200 dark:border-slate-800">
+              {[
+                { id: 'day', label: 'Day', icon: Sun },
+                { id: 'week', label: 'Week', icon: CalendarDays },
+                { id: 'month', label: 'Month', icon: CalendarIcon }
+              ].map(tab => {
+                const Icon = tab.icon;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setTimeframe(tab.id)}
+                    className={`px-3 py-1.5 sm:px-3.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                      timeframe === tab.id
+                        ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                    }`}
+                  >
+                    <Icon className="w-3.5 h-3.5" />
+                    <span>{tab.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Download CSV Button right to Activities Aggregations Day Week Month */}
+            <button
+              onClick={() => exportActivitiesToCSV(activities)}
+              className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900/60 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold border border-slate-200 dark:border-slate-800 transition cursor-pointer shrink-0 ml-auto sm:ml-0"
+              title="Export all activities to CSV"
+            >
+              <Download className="w-3.5 h-3.5 text-indigo-500" />
+              <span>Export CSV</span>
+            </button>
           </div>
         </div>
 
