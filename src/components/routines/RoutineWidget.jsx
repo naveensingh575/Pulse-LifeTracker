@@ -198,6 +198,7 @@ export const RoutineWidget = () => {
                 <span>Google Calendar</span>
               </a>
 
+              {/* Download .ics — hidden on mobile, visible on sm+ */}
               <button
                 onClick={() =>
                   downloadIcsFile({
@@ -205,13 +206,14 @@ export const RoutineWidget = () => {
                     details: 'Daily Morning Planning Routine'
                   })
                 }
-                className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 transition"
+                className="hidden sm:flex p-1.5 rounded-lg bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 transition"
                 title="Download .ics Calendar File"
               >
                 <Download className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
+
         </div>
       )}
 

@@ -57,9 +57,10 @@ export const PrioritizedTasks = () => {
         </div>
 
         <div className="flex items-center space-x-2">
+          {/* + Add Task — hidden on mobile, shown sm+ */}
           <button
             onClick={() => setShowQuickAdd(!showQuickAdd)}
-            className="flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold border border-slate-300 dark:border-slate-700 transition cursor-pointer"
+            className="hidden sm:flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold border border-slate-300 dark:border-slate-700 transition cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>{showQuickAdd ? 'Cancel' : 'Add Task'}</span>
@@ -73,11 +74,12 @@ export const PrioritizedTasks = () => {
             <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
           </Link>
         </div>
+
       </div>
 
-      {/* Quick Add Form */}
+      {/* Quick Add Form — hidden on mobile (trigger button is hidden there too) */}
       {showQuickAdd && (
-        <form onSubmit={handleQuickAdd} className="p-3 bg-indigo-50/50 dark:bg-indigo-950/20 rounded-xl border border-indigo-200 dark:border-indigo-500/30 flex items-center space-x-2 animate-in fade-in duration-150">
+        <form onSubmit={handleQuickAdd} className="hidden sm:flex p-3 bg-indigo-50/50 dark:bg-indigo-950/20 rounded-xl border border-indigo-200 dark:border-indigo-500/30 items-center space-x-2 animate-in fade-in duration-150">
           <input
             type="text"
             required
@@ -95,6 +97,7 @@ export const PrioritizedTasks = () => {
           </button>
         </form>
       )}
+
 
       {/* Task List */}
       <div className="space-y-2">

@@ -93,9 +93,10 @@ export const FinanceSnapshot = () => {
         </div>
 
         <div className="flex items-center space-x-2">
+          {/* Quick Expense — hidden on mobile, shown sm+ */}
           <button
             onClick={() => setIsQuickExpenseOpen(true)}
-            className="flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition shadow-sm cursor-pointer"
+            className="hidden sm:flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition shadow-sm cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Quick Expense</span>
@@ -109,6 +110,7 @@ export const FinanceSnapshot = () => {
             <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
           </Link>
         </div>
+
       </div>
 
       {/* Monthly Budget Consumption Bar */}
