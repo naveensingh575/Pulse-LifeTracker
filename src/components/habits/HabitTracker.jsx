@@ -421,51 +421,28 @@ export const HabitTracker = ({ activeCategoryProp }) => {
             );
           })
         )}
-
-        {/* Add New Habit Card (Inline at bottom of Week list) */}
-        <div
-          onClick={handleOpenAdd}
-          className="group bg-slate-50/50 dark:bg-slate-900/30 hover:bg-amber-500/5 rounded-xl p-3 border border-dashed border-amber-500/40 dark:border-amber-500/30 hover:border-amber-500 transition-all flex items-center justify-between cursor-pointer min-h-[52px]"
-        >
-          <div className="flex items-center space-x-3">
-            <div className="p-2 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 shrink-0">
-              <Plus className="w-4 h-4 text-amber-500" />
-            </div>
-            <div>
-              <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition">
-                Add New Habit
-              </h4>
-              <p className="text-[10px] text-slate-500 dark:text-slate-400">
-                Create a habit to track weekly
-              </p>
-            </div>
-          </div>
-
-          <div className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 group-hover:bg-amber-500 group-hover:text-slate-950 transition-all">
-            + Add
-          </div>
-        </div>
       </div>
 
       {/* Add / Edit Habit Modal with Track From Date Selector */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-4 pt-20 sm:pt-4 pointer-events-none">
+        <>
           {/* Backdrop: Clicking closes modal */}
           <div
-            className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-150 pointer-events-auto"
+            className="fixed inset-0 z-40 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-150"
             onClick={() => {
               setShowAddModal(false);
               setEditingHabit(null);
             }}
           />
 
-          {/* Modal Card: Fixed on screen at top */}
-          <div className="relative z-10 w-full max-w-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-4 shadow-2xl text-slate-900 dark:text-slate-100 pointer-events-auto animate-in zoom-in-95 duration-150">
+          {/* Modal Card: FIXED at top of screen on mobile (top-20), centered on sm */}
+          <div className="fixed top-20 sm:top-1/2 left-4 right-4 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 z-50 max-w-sm mx-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-4 shadow-2xl text-slate-900 dark:text-slate-100 animate-in zoom-in-95 duration-150 max-h-[calc(100vh-6rem)] overflow-y-auto">
             <div className="flex items-center justify-between">
               <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
                 {editingHabit ? <Edit2 className="w-4 h-4 text-amber-500" /> : <Plus className="w-4 h-4 text-amber-500" />}
                 <span>{editingHabit ? 'Edit Habit' : 'Add New Habit'}</span>
               </h4>
+
 
               <button
                 onClick={() => {
@@ -543,9 +520,10 @@ export const HabitTracker = ({ activeCategoryProp }) => {
               </div>
             </form>
           </div>
-        </div>
+        </>
       )}
 
     </div>
   );
 };
+

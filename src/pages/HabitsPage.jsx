@@ -543,20 +543,21 @@ export const HabitsPage = () => {
 
       {/* Add Habit Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-4 pt-20 sm:pt-4 pointer-events-none">
+        <>
           {/* Backdrop: Clicking closes modal */}
           <div
-            className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-150 pointer-events-auto"
+            className="fixed inset-0 z-40 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-150"
             onClick={() => setShowAddModal(false)}
           />
 
-          {/* Modal Card: Fixed on screen at top */}
-          <div className="relative z-10 w-full max-w-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-4 shadow-2xl text-slate-900 dark:text-slate-100 pointer-events-auto animate-in zoom-in-95 duration-150">
+          {/* Modal Card: FIXED at top of screen on mobile (top-20), centered on sm */}
+          <div className="fixed top-20 sm:top-1/2 left-4 right-4 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 z-50 max-w-sm mx-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-4 shadow-2xl text-slate-900 dark:text-slate-100 animate-in zoom-in-95 duration-150 max-h-[calc(100vh-6rem)] overflow-y-auto">
             <div className="flex items-center justify-between">
               <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
                 <Plus className="w-4 h-4 text-amber-500" />
                 <span>Add New Habit</span>
               </h4>
+
 
               <button
                 onClick={() => setShowAddModal(false)}
@@ -628,10 +629,11 @@ export const HabitsPage = () => {
               </div>
             </form>
           </div>
-        </div>
+        </>
       )}
 
     </div>
   );
 };
+
 
