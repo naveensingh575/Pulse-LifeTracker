@@ -4,6 +4,7 @@ import { useDashboard } from '../context/DashboardContext';
 import {
   getISTYearMonth,
   getISTDateString,
+  getISTWeekDays,
   getMonthCalendarGrid,
   formatISTDisplayDate,
   MONTH_NAMES_FULL,
@@ -187,12 +188,28 @@ export const HabitsPage = () => {
 
           {/* Export CSV Button — moved towards right end on mobile */}
           <button
-            onClick={() => exportHabitsToCSV(habits, isHabitDoneOn)}
+            onClick={() => {
+              let dates = [];
+              let label = '';
+              if (gridMode === 'day') {
+                dates = [selectedDayDate];
+                label = `Day_${selectedDayDate}`;
+              } else if (gridMode === '7day') {
+                const weekDays = getISTWeekDays();
+                dates = weekDays.map(d => d.dateStr);
+                label = `Week_${dates[0]}_to_${dates[dates.length - 1]}`;
+              } else {
+                const daysInMonth = new Date(selectedYear, selectedMonth, 0).getDate();
+                dates = Array.from({ length: daysInMonth }, (_, i) => `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${String(i + 1).padStart(2, '0')}`);
+                label = `Month_${selectedYear}_${String(selectedMonth).padStart(2, '0')}`;
+              }
+              exportHabitsToCSV(filteredHabits, isHabitDoneOn, dates, label);
+            }}
             className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900/60 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold border border-slate-200 dark:border-slate-800 transition cursor-pointer ml-auto sm:ml-0 shrink-0"
-            title="Export habit check-in history to CSV"
+            title={`Export ${gridMode === '7day' ? 'weekly' : gridMode} habits to CSV`}
           >
             <Download className="w-3.5 h-3.5 text-amber-500" />
-            <span className="hidden sm:inline">Export CSV</span>
+            <span>Export CSV</span>
           </button>
         </div>
       </div>

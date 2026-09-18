@@ -154,9 +154,9 @@ export const GoalsHeader = () => {
 
           {/* Download CSV button on mobile - right most to Objectives */}
           <button
-            onClick={() => exportGoalsToCSV(goals)}
+            onClick={() => exportGoalsToCSV(filteredGoals, horizonFilter)}
             className="flex sm:hidden items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900/60 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold border border-slate-200 dark:border-slate-800 transition cursor-pointer shrink-0"
-            title="Export all goals to CSV"
+            title={`Export ${horizonFilter} goals to CSV`}
           >
             <Download className="w-3.5 h-3.5 text-indigo-500" />
             <span>Export CSV</span>
@@ -204,9 +204,9 @@ export const GoalsHeader = () => {
 
           {/* Download CSV button on desktop - right most */}
           <button
-            onClick={() => exportGoalsToCSV(goals)}
+            onClick={() => exportGoalsToCSV(filteredGoals, horizonFilter)}
             className="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900/60 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold border border-slate-200 dark:border-slate-800 transition cursor-pointer shrink-0"
-            title="Export all goals to CSV"
+            title={`Export ${horizonFilter} goals to CSV`}
           >
             <Download className="w-3.5 h-3.5 text-indigo-500" />
             <span>Export CSV</span>

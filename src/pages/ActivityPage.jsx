@@ -312,9 +312,16 @@ export const ActivityPage = () => {
 
             {/* Download CSV Button right to Activities Aggregations Day Week Month */}
             <button
-              onClick={() => exportActivitiesToCSV(activities)}
+              onClick={() => {
+                const label = timeframe === 'day'
+                  ? `Day_${selectedDate}`
+                  : timeframe === 'week'
+                  ? `Week_${weekStartStr}_to_${weekEndStr}`
+                  : `Month_${selectedYear}_${String(selectedMonth).padStart(2, '0')}`;
+                exportActivitiesToCSV(activeLogs, label);
+              }}
               className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900/60 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold border border-slate-200 dark:border-slate-800 transition cursor-pointer shrink-0 ml-auto sm:ml-0"
-              title="Export all activities to CSV"
+              title={`Export ${timeframe} activities to CSV`}
             >
               <Download className="w-3.5 h-3.5 text-indigo-500" />
               <span>Export CSV</span>

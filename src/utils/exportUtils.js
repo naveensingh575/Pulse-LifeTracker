@@ -23,11 +23,11 @@ const escapeCSV = (val) => {
 };
 
 /**
- * Export Financial Transactions to CSV
+ * Export Financial Transactions to CSV based on active selection (Day, Week, Month)
  */
-export const exportTransactionsToCSV = (transactions = [], currency = '₹') => {
+export const exportTransactionsToCSV = (transactions = [], currency = '₹', periodLabel = '') => {
   if (!transactions || transactions.length === 0) {
-    alert('No transactions available to export.');
+    alert(`No transactions found for the selected ${periodLabel || 'period'} to export.`);
     return;
   }
 
@@ -42,28 +42,34 @@ export const exportTransactionsToCSV = (transactions = [], currency = '₹') => 
 
   const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
   const dateStr = new Date().toISOString().split('T')[0];
-  downloadCSV(`pulse_transactions_${dateStr}.csv`, csvContent);
+  const safePeriod = periodLabel ? periodLabel.replace(/[^a-zA-Z0-9_-]/g, '_') : dateStr;
+  downloadCSV(`pulse_transactions_${safePeriod}.csv`, csvContent);
 };
 
 /**
- * Export Habits to CSV
+ * Export Habits to CSV based on active view (Day, Week, Month, or custom date range)
  */
-export const exportHabitsToCSV = (habits = [], isHabitDoneOn = () => false) => {
+export const exportHabitsToCSV = (habits = [], isHabitDoneOn = () => false, customDates = null, periodLabel = '') => {
   if (!habits || habits.length === 0) {
     alert('No habits available to export.');
     return;
   }
 
-  // Generate last 30 days columns
-  const dates = [];
-  const now = new Date();
-  for (let i = 29; i >= 0; i--) {
-    const d = new Date(now);
-    d.setDate(d.getDate() - i);
-    dates.push(d.toISOString().split('T')[0]);
+  // Use custom dates if provided (e.g. 1 day for Day view, 7 days for Week view, full month for Month view)
+  let dates = [];
+  if (Array.isArray(customDates) && customDates.length > 0) {
+    dates = customDates;
+  } else {
+    // Default: last 30 days columns
+    const now = new Date();
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      dates.push(d.toISOString().split('T')[0]);
+    }
   }
 
-  const headers = ['Habit Name', 'Category', 'Target Frequency', ...dates];
+  const headers = ['Habit Name', 'Category', 'Frequency', ...dates];
   const rows = habits.map(h => {
     const checkins = dates.map(d => (isHabitDoneOn(h.id, d) ? 'Completed' : 'Pending'));
     return [
@@ -76,38 +82,42 @@ export const exportHabitsToCSV = (habits = [], isHabitDoneOn = () => false) => {
 
   const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
   const dateStr = new Date().toISOString().split('T')[0];
-  downloadCSV(`pulse_habits_history_${dateStr}.csv`, csvContent);
+  const safePeriod = periodLabel ? periodLabel.replace(/[^a-zA-Z0-9_-]/g, '_') : dateStr;
+  downloadCSV(`pulse_habits_${safePeriod}.csv`, csvContent);
 };
 
 /**
- * Export Tasks to CSV
+ * Export Tasks to CSV based on active filter (Status, Board Context)
  */
-export const exportTasksToCSV = (tasks = []) => {
+export const exportTasksToCSV = (tasks = [], filterLabel = '') => {
   if (!tasks || tasks.length === 0) {
-    alert('No tasks available to export.');
+    alert(`No tasks found for the selected ${filterLabel || 'filter'} to export.`);
     return;
   }
 
-  const headers = ['Task Title', 'Priority', 'Status', 'Due Date', 'Created At'];
+  const headers = ['Task Title', 'Category', 'Priority', 'Status', 'Due Date', 'Notes', 'Created At'];
   const rows = tasks.map(t => [
     escapeCSV(t.title || ''),
+    escapeCSV(t.category || 'Work'),
     escapeCSV(t.priority || 'medium'),
     escapeCSV(t.completed ? 'Completed' : 'Pending'),
     escapeCSV(t.due_date || t.dueDate || ''),
+    escapeCSV(t.notes || ''),
     escapeCSV(t.created_at || '')
   ]);
 
   const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
   const dateStr = new Date().toISOString().split('T')[0];
-  downloadCSV(`pulse_tasks_${dateStr}.csv`, csvContent);
+  const safeLabel = filterLabel ? filterLabel.replace(/[^a-zA-Z0-9_-]/g, '_') : dateStr;
+  downloadCSV(`pulse_tasks_${safeLabel}.csv`, csvContent);
 };
 
 /**
- * Export Activities to CSV
+ * Export Activities to CSV based on active selection (Day, Week, Month)
  */
-export const exportActivitiesToCSV = (activities = []) => {
+export const exportActivitiesToCSV = (activities = [], periodLabel = '') => {
   if (!activities || activities.length === 0) {
-    alert('No activities available to export.');
+    alert(`No activities logged for the selected ${periodLabel || 'period'} to export.`);
     return;
   }
 
@@ -149,15 +159,16 @@ export const exportActivitiesToCSV = (activities = []) => {
 
   const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
   const dateStr = new Date().toISOString().split('T')[0];
-  downloadCSV(`pulse_activities_${dateStr}.csv`, csvContent);
+  const safePeriod = periodLabel ? periodLabel.replace(/[^a-zA-Z0-9_-]/g, '_') : dateStr;
+  downloadCSV(`pulse_activities_${safePeriod}.csv`, csvContent);
 };
 
 /**
- * Export Goals to CSV
+ * Export Goals to CSV based on active horizon filter (Short, Long, All)
  */
-export const exportGoalsToCSV = (goals = []) => {
+export const exportGoalsToCSV = (goals = [], horizonLabel = 'all') => {
   if (!goals || goals.length === 0) {
-    alert('No goals available to export.');
+    alert(`No goals available in ${horizonLabel} to export.`);
     return;
   }
 
@@ -197,5 +208,6 @@ export const exportGoalsToCSV = (goals = []) => {
 
   const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
   const dateStr = new Date().toISOString().split('T')[0];
-  downloadCSV(`pulse_goals_${dateStr}.csv`, csvContent);
+  const safeLabel = horizonLabel ? horizonLabel.replace(/[^a-zA-Z0-9_-]/g, '_') : 'all';
+  downloadCSV(`pulse_goals_${safeLabel}_${dateStr}.csv`, csvContent);
 };

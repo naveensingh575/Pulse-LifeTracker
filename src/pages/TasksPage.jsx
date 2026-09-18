@@ -105,9 +105,12 @@ export const TasksPage = () => {
           </button>
 
           <button
-            onClick={() => exportTasksToCSV(tasks)}
+            onClick={() => {
+              const label = `${statusFilter}_${activeContext}`;
+              exportTasksToCSV(filteredTasks, label);
+            }}
             className="flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900/60 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold border border-slate-200 dark:border-slate-800 transition cursor-pointer"
-            title="Export all tasks to CSV"
+            title={`Export ${statusFilter} (${activeContext}) tasks to CSV`}
           >
             <Download className="w-3.5 h-3.5 text-indigo-500" />
             <span>Export CSV</span>

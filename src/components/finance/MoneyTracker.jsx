@@ -252,12 +252,19 @@ export const MoneyTracker = ({ openAddModalTrigger }) => {
 
           {/* Download CSV Button right most to Day Week Month option */}
           <button
-            onClick={() => exportTransactionsToCSV(transactions, currency)}
+            onClick={() => {
+              const label = timeframe === 'day'
+                ? `Day_${selectedDate}`
+                : timeframe === 'week'
+                ? `Week_${weekStartStr}_to_${weekEndStr}`
+                : `Month_${activeMonthKey}`;
+              exportTransactionsToCSV(timeframeTransactions, currency, label);
+            }}
             className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900/60 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold border border-slate-200 dark:border-slate-800 transition cursor-pointer shrink-0 ml-auto sm:ml-0"
-            title="Export all transactions to CSV"
+            title={`Export ${timeframe} transactions to CSV`}
           >
             <Download className="w-3.5 h-3.5 text-emerald-500" />
-            <span className="hidden sm:inline">Export CSV</span>
+            <span>Export CSV</span>
           </button>
         </div>
       </div>
