@@ -17,9 +17,7 @@ export const ProtectedRoute = ({ children }) => {
   }
 
   // If user is currently in password recovery mode, force reset password screen
-  const inRecovery = Boolean(isPasswordRecovery);
-
-  if (inRecovery) {
+  if (isPasswordRecovery) {
     return <Navigate to="/reset-password" replace />;
   }
 
@@ -29,3 +27,4 @@ export const ProtectedRoute = ({ children }) => {
 
   return children;
 };
+

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { HashRouter, Routes, Route } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
+import { HashRouter, Routes, Route, useNavigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { DashboardProvider } from './context/DashboardContext';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { AuthPage } from './components/auth/AuthPage';
@@ -18,6 +18,76 @@ import { TasksPage } from './pages/TasksPage';
 import { AnalyticsPage } from './pages/AnalyticsPage';
 import { JournalPage } from './pages/JournalPage';
 import { ActivityPage } from './pages/ActivityPage';
+
+import { ShieldCheck, Loader2 } from 'lucide-react';
+
+// ── Global Email Verified Success Overlay ────────────────────────────────────
+// Renders on top of all routing when the user clicks their verification link.
+const EmailVerifiedOverlay = () => {
+  const { emailVerified, setEmailVerified } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!emailVerified) return;
+    const timer = setTimeout(() => {
+      setEmailVerified(false);
+      navigate('/');
+    }, 2500);
+    return () => clearTimeout(timer);
+  }, [emailVerified, navigate, setEmailVerified]);
+
+  if (!emailVerified) return null;
+
+  return (
+    <div className="fixed inset-0 z-[9999] bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-6 text-center space-y-6">
+      {/* Ambient glows */}
+      <div className="absolute top-1/4 left-1/4 w-80 h-80 bg-emerald-500/10 dark:bg-emerald-600/20 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-indigo-500/10 dark:bg-indigo-600/20 rounded-full blur-3xl pointer-events-none" />
+
+      <div className="z-10 space-y-5 max-w-sm w-full">
+        {/* Success icon */}
+        <div className="flex items-center justify-center">
+          <div className="w-20 h-20 rounded-full bg-emerald-500/15 dark:bg-emerald-500/20 flex items-center justify-center ring-4 ring-emerald-500/20">
+            <ShieldCheck className="w-10 h-10 text-emerald-500" />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <h2 className="text-2xl font-black text-slate-900 dark:text-white">
+            Authentication Successful!
+          </h2>
+          <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+            Your email has been verified and your account is now active.
+            Taking you to your dashboard…
+          </p>
+        </div>
+
+        {/* Animated progress bar */}
+        <div className="w-full h-1 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-emerald-500 rounded-full"
+            style={{
+              animation: 'pulse-fill 2.5s ease-in-out forwards',
+              width: '0%'
+            }}
+          />
+        </div>
+
+        <div className="flex items-center justify-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+          <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-500" />
+          <span>Entering Pulse Life Tracker…</span>
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes pulse-fill {
+          from { width: 0%; }
+          to   { width: 100%; }
+        }
+      `}</style>
+    </div>
+  );
+};
 
 const AppLayout = () => {
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
@@ -70,6 +140,8 @@ export default function App() {
     <HashRouter>
       <AuthProvider>
         <DashboardProvider>
+          {/* Global email-verified overlay — renders on top of any route */}
+          <EmailVerifiedOverlay />
           <Routes>
             <Route path="/login" element={<AuthPage />} />
             <Route path="/reset-password" element={<AuthPage initialMode="update-password" />} />
@@ -87,3 +159,4 @@ export default function App() {
     </HashRouter>
   );
 }
+

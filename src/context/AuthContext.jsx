@@ -8,12 +8,27 @@ const checkIsRecoveryUrl = () => {
     if (typeof window === 'undefined') return false;
     const hash = window.location.hash || '';
     const search = window.location.search || '';
-    // Genuine recovery link from Supabase includes access_token or code along with type=recovery
-    const hasRecoveryToken = 
+    const hasRecoveryToken =
       (hash.includes('type=recovery') && hash.includes('access_token=')) ||
       (search.includes('type=recovery') && search.includes('code='));
     const hasStoredRecovery = sessionStorage.getItem('pulse_recovery_mode') === 'true';
     return hasRecoveryToken || hasStoredRecovery;
+  } catch {
+    return false;
+  }
+};
+
+// Detect if the URL contains an email-verification confirmation token from Supabase
+const checkIsEmailConfirmUrl = () => {
+  try {
+    if (typeof window === 'undefined') return false;
+    const hash = window.location.hash || '';
+    const search = window.location.search || '';
+    // Supabase sends ?token_hash=...&type=signup or #access_token=...&type=signup
+    return (
+      (hash.includes('type=signup') || search.includes('type=signup')) ||
+      (hash.includes('type=email_change') || search.includes('type=email_change'))
+    );
   } catch {
     return false;
   }
@@ -24,6 +39,8 @@ export const AuthProvider = ({ children }) => {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isPasswordRecovery, setIsPasswordRecovery] = useState(checkIsRecoveryUrl);
+  // True when the user just landed back from clicking the email verification link
+  const [emailVerified, setEmailVerified] = useState(false);
 
   // Helper to format Supabase user into friendly profile
   const formatUser = (supaUser) => {
@@ -69,10 +86,22 @@ export const AuthProvider = ({ children }) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
       setSession(newSession);
       setUser(newSession ? formatUser(newSession.user) : null);
+
       if (event === 'PASSWORD_RECOVERY' || checkIsRecoveryUrl()) {
         sessionStorage.setItem('pulse_recovery_mode', 'true');
         setIsPasswordRecovery(true);
       }
+
+      // When user clicks the email verification link, Supabase fires SIGNED_IN
+      // and the URL contains type=signup. Show the verified success screen.
+      if (event === 'SIGNED_IN' && checkIsEmailConfirmUrl()) {
+        setEmailVerified(true);
+        // Clean the token from the URL so it doesn't linger
+        try {
+          window.history.replaceState(null, '', window.location.pathname);
+        } catch { /* ignore */ }
+      }
+
       setLoading(false);
     });
 
@@ -80,6 +109,7 @@ export const AuthProvider = ({ children }) => {
       subscription?.unsubscribe();
     };
   }, []);
+
 
   // Sign in with Email & Password
   const signInWithEmail = async (email, password) => {
@@ -162,6 +192,8 @@ export const AuthProvider = ({ children }) => {
         loading,
         isPasswordRecovery,
         setIsPasswordRecovery,
+        emailVerified,
+        setEmailVerified,
         signInWithEmail,
         signUpWithEmail,
         resendConfirmationEmail,
@@ -176,3 +208,4 @@ export const AuthProvider = ({ children }) => {
 };
 
 export const useAuth = () => useContext(AuthContext);
+

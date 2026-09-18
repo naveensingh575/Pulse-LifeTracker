@@ -28,8 +28,11 @@ export const AuthPage = ({ initialMode }) => {
     resetPasswordForEmail,
     updateUserPassword,
     isPasswordRecovery,
+    emailVerified,
+    setEmailVerified,
     logout
   } = useAuth();
+
   
   const navigate = useNavigate();
 
@@ -163,7 +166,13 @@ export const AuthPage = ({ initialMode }) => {
         if (result?.user && !result.session) {
           setNeedsConfirmation(true);
           setAuthSuccess(`Verification email sent to ${cleanEmail}! Please check your inbox to activate your account.`);
+          // Clear all form fields — user must fill sign-in manually
+          setEmail('');
+          setPassword('');
+          setName('');
+          setConfirmPassword('');
           setMode('signin');
+
         } else {
           setAuthSuccess('Account created successfully! Entering PULSE...');
           setTimeout(() => navigate('/'), 600);
@@ -219,7 +228,57 @@ export const AuthPage = ({ initialMode }) => {
     setResetEmailSent(false);
   };
 
+  // ─── EMAIL VERIFIED SUCCESS SCREEN ───────────────────────────────────────────
+  // Shown when user clicks the confirmation link in their inbox and is signed in
+  if (emailVerified) {
+    // Auto-redirect to dashboard after showing the success state
+    setTimeout(() => {
+      setEmailVerified(false);
+      navigate('/');
+    }, 2500);
+
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-6 text-center space-y-6 relative overflow-hidden">
+        {/* Ambient glows */}
+        <div className="absolute top-1/4 left-1/4 w-80 h-80 bg-emerald-500/10 dark:bg-emerald-600/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-indigo-500/10 dark:bg-indigo-600/20 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="z-10 space-y-5 max-w-sm">
+          {/* Animated success icon */}
+          <div className="flex items-center justify-center">
+            <div className="w-20 h-20 rounded-full bg-emerald-500/15 dark:bg-emerald-500/20 flex items-center justify-center ring-4 ring-emerald-500/20 animate-in zoom-in duration-300">
+              <ShieldCheck className="w-10 h-10 text-emerald-500" />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <h2 className="text-2xl font-black text-slate-900 dark:text-white">
+              Authentication Successful!
+            </h2>
+            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+              Your email has been verified and your account is now active.
+              You're being signed in to your dashboard…
+            </p>
+          </div>
+
+          {/* Progress bar */}
+          <div className="w-full h-1 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+            <div className="h-full bg-emerald-500 rounded-full animate-[grow_2.5s_ease-in-out_forwards]"
+              style={{ animation: 'width 2.5s ease-in-out forwards', width: '100%' }}
+            />
+          </div>
+
+          <div className="flex items-center justify-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+            <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-500" />
+            <span>Entering Pulse Life Tracker…</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
+
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex items-center justify-center p-4 relative overflow-hidden transition-colors">
       
       {/* Ambient background glows */}
