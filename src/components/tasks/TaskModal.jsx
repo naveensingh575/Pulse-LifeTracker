@@ -88,11 +88,18 @@ export const TaskModal = ({ isOpen, onClose, initialCategory = 'Work', initialTa
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 shadow-2xl space-y-5">
+    <>
+      {/* Backdrop: Clicking closes modal */}
+      <div
+        className="fixed inset-0 z-40 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-150"
+        onClick={onClose}
+      />
+
+      {/* Modal Card: FIXED at top-20 on mobile, centered on sm */}
+      <div className="fixed top-20 sm:top-1/2 left-4 right-4 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 z-50 max-w-lg mx-auto w-[calc(100%-2rem)] sm:w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-5 sm:p-6 space-y-4 text-slate-900 dark:text-slate-100 animate-in zoom-in-95 duration-150 max-h-[calc(100vh-6rem)] overflow-y-auto">
         
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 shrink-0">
           <div className="flex items-center space-x-2.5">
             <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
               {initialTask ? <Edit2 className="w-5 h-5" /> : <CheckSquare className="w-5 h-5" />}
@@ -111,6 +118,7 @@ export const TaskModal = ({ isOpen, onClose, initialCategory = 'Work', initialTa
             <X className="w-5 h-5" />
           </button>
         </div>
+
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -231,10 +239,10 @@ export const TaskModal = ({ isOpen, onClose, initialCategory = 'Work', initialTa
               <span>{initialTask ? 'Save Task' : 'Add Task'}</span>
             </button>
           </div>
-
         </form>
-
       </div>
-    </div>
+    </>
   );
 };
+
+
