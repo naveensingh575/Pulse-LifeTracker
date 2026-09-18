@@ -203,13 +203,13 @@ export const ActivityPage = () => {
     <div className="space-y-6 animate-in fade-in duration-300">
       
       {/* Header Banner */}
-      <div className="glass-panel-dark rounded-2xl p-6 border border-slate-200 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center space-x-3">
-          <div className="p-3 rounded-2xl bg-gradient-to-br from-indigo-500 to-cyan-500 text-white shadow-lg shadow-indigo-500/20">
-            <Dumbbell className="w-6 h-6" />
+      <div className="glass-panel-dark rounded-2xl p-4 sm:p-6 border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3">
+        <div className="flex items-center space-x-2.5 sm:space-x-3">
+          <div className="p-2.5 sm:p-3 rounded-2xl bg-gradient-to-br from-indigo-500 to-cyan-500 text-white shadow-lg shadow-indigo-500/20 shrink-0">
+            <Dumbbell className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+            <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
               Activity Pulse
             </h2>
           </div>
@@ -217,12 +217,13 @@ export const ActivityPage = () => {
 
         <button
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-extrabold shadow-lg shadow-indigo-600/30 transition self-start md:self-auto cursor-pointer active:scale-95"
+          className="flex items-center space-x-1.5 sm:space-x-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-extrabold shadow-lg shadow-indigo-600/30 transition cursor-pointer active:scale-95 shrink-0"
         >
           <Plus className="w-4 h-4" />
           <span>Log Activity</span>
         </button>
       </div>
+
 
       {/* PR Highlights (Personal Records) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
