@@ -543,14 +543,21 @@ export const HabitsPage = () => {
 
       {/* Add Habit Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-4 pt-20 sm:pt-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-150 overflow-y-auto">
-          <div className="w-full max-w-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-4 shadow-2xl text-slate-900 dark:text-slate-100">
+        <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-4 pt-20 sm:pt-4 pointer-events-none">
+          {/* Backdrop: Clicking closes modal */}
+          <div
+            className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-150 pointer-events-auto"
+            onClick={() => setShowAddModal(false)}
+          />
 
+          {/* Modal Card: Fixed on screen at top */}
+          <div className="relative z-10 w-full max-w-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-4 shadow-2xl text-slate-900 dark:text-slate-100 pointer-events-auto animate-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between">
               <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
                 <Plus className="w-4 h-4 text-amber-500" />
                 <span>Add New Habit</span>
               </h4>
+
               <button
                 onClick={() => setShowAddModal(false)}
                 className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
