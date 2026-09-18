@@ -14,11 +14,13 @@ export const Navbar = ({ onOpenQuickCapture }) => {
   const currentDateStr = formatDisplayDate(getLocalDateString());
 
   return (
-    <header className="sticky top-0 z-30 w-full backdrop-blur-xl bg-white/80 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800/80 transition-colors">
+    // z-50 ensures the navbar sits above the MobileBottomNav (z-40) and its drawer (z-50 backdrop)
+    // On mobile the navbar must never be covered by any page content or overlays
+    <header className="sticky top-0 z-50 w-full backdrop-blur-xl bg-white/80 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800/80 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         
-        {/* Brand Logo & Tagline */}
-        <div className="flex items-center space-x-2.5 sm:space-x-3">
+        {/* Brand Logo & Tagline — touch-friendly on mobile */}
+        <Link to="/" className="flex items-center space-x-2.5 sm:space-x-3 min-h-[44px] touch-manipulation">
           <PulseLogo size="md" />
           <div>
             <h1 className="text-lg font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-1.5">
@@ -26,7 +28,7 @@ export const Navbar = ({ onOpenQuickCapture }) => {
             </h1>
             <p className="text-[11px] text-slate-500 dark:text-slate-400 italic hidden sm:block">"Your Life, in Rhythm."</p>
           </div>
-        </div>
+        </Link>
 
         {/* Center: Date Display & Quick Capture Pill */}
         <div className="hidden md:flex items-center space-x-2.5">
@@ -51,12 +53,12 @@ export const Navbar = ({ onOpenQuickCapture }) => {
         {/* Action Controls & User Avatar Menu */}
         <div className="flex items-center space-x-2 sm:space-x-3">
           
-          {/* Dynamic Global Currency Switcher */}
-          <div className="relative">
+          {/* Dynamic Global Currency Switcher — min 44px touch target on mobile */}
+          <div className="relative flex items-center">
             <select
               value={currency}
               onChange={(e) => setCurrency(e.target.value)}
-              className="bg-slate-100 dark:bg-slate-900/60 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold py-1.5 pl-2.5 pr-6 rounded-xl border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer transition appearance-none"
+              className="bg-slate-100 dark:bg-slate-900/60 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold py-2 pl-2.5 pr-7 rounded-xl border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer transition appearance-none min-h-[36px] touch-manipulation"
               title="Select Global Currency"
               aria-label="Select Currency"
             >
@@ -66,13 +68,13 @@ export const Navbar = ({ onOpenQuickCapture }) => {
                 </option>
               ))}
             </select>
-            <ChevronDown className="w-3 h-3 text-slate-400 absolute right-2 top-2.5 pointer-events-none" />
+            <ChevronDown className="w-3 h-3 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
 
           {/* Light/Dark Theme Toggle Button */}
           <button
             onClick={toggleTheme}
-            className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition cursor-pointer border border-transparent hover:border-slate-200 dark:hover:border-slate-800"
+            className="p-2 min-h-[36px] min-w-[36px] flex items-center justify-center rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition cursor-pointer border border-transparent hover:border-slate-200 dark:hover:border-slate-800 touch-manipulation"
             aria-label="Toggle theme"
             title="Toggle Light / Dark Mode"
           >
@@ -88,7 +90,7 @@ export const Navbar = ({ onOpenQuickCapture }) => {
             <div className="relative">
               <button
                 onClick={() => setShowUserMenu(!showUserMenu)}
-                className="flex items-center space-x-2.5 p-1 px-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/60 transition border border-transparent hover:border-slate-200 dark:hover:border-slate-800 cursor-pointer"
+                className="flex items-center space-x-2.5 p-1 px-2 min-h-[36px] rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/60 transition border border-transparent hover:border-slate-200 dark:hover:border-slate-800 cursor-pointer touch-manipulation"
               >
                 <img
                   src={user.avatar}
@@ -135,3 +137,4 @@ export const Navbar = ({ onOpenQuickCapture }) => {
     </header>
   );
 };
+

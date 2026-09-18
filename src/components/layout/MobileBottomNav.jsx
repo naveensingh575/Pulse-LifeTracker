@@ -78,7 +78,7 @@ export const MobileBottomNav = ({ onOpenQuickCapture }) => {
 
       {/* 📂 "MORE" SLIDE-UP BOTTOM SHEET */}
       {isMoreOpen && (
-        <div className="lg:hidden fixed inset-0 z-50 flex flex-col justify-end">
+        <div className="lg:hidden fixed inset-0 z-[60] flex flex-col justify-end">
           {/* Backdrop */}
           <div
             className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm transition-opacity"
