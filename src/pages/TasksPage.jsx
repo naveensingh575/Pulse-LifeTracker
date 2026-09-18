@@ -110,7 +110,7 @@ export const TasksPage = () => {
             title="Export all tasks to CSV"
           >
             <Download className="w-3.5 h-3.5 text-indigo-500" />
-            <span className="hidden sm:inline">Export CSV</span>
+            <span>Export CSV</span>
           </button>
         </div>
       </div>
