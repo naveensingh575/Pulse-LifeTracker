@@ -14,9 +14,12 @@ export const Navbar = ({ onOpenQuickCapture }) => {
   const currentDateStr = formatDisplayDate(getLocalDateString());
 
   return (
-    // z-50 ensures the navbar sits above the MobileBottomNav (z-40) and its drawer (z-50 backdrop)
-    // On mobile the navbar must never be covered by any page content or overlays
-    <header className="sticky top-0 z-50 w-full backdrop-blur-xl bg-white/80 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800/80 transition-colors">
+    // z-50 ensures the navbar sits above the MobileBottomNav (z-40) and its drawer (z-60 backdrop)
+    // padding-top: env(safe-area-inset-top) pushes content below the iPhone Dynamic Island / notch
+    <header
+      className="sticky top-0 z-50 w-full backdrop-blur-xl bg-white/80 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800/80 transition-colors"
+      style={{ paddingTop: 'env(safe-area-inset-top)' }}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         
         {/* Brand Logo & Tagline — touch-friendly on mobile */}
