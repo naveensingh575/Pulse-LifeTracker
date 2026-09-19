@@ -161,18 +161,14 @@ export const AuthProvider = ({ children }) => {
     return data;
   };
 
-  // Request Password Reset Email with secure redirect link
-  // IMPORTANT: The redirectTo URL must be in Supabase Dashboard →
-  // Authentication → URL Configuration → Redirect URLs allowlist.
-  // Add both:  https://pulse-life-tracker.vercel.app  AND  http://localhost:3000
+  // Request Password Reset Email
+  // NOTE: No custom redirectTo is passed here — Supabase uses the Site URL configured
+  // in Dashboard → Authentication → URL Configuration. This bypasses the redirect allowlist
+  // restriction and ensures the email always arrives and the link always works.
+  // Site URL must be set to: https://pulse-life-tracker.vercel.app
   const resetPasswordForEmail = async (email) => {
     const cleanEmail = email.trim().toLowerCase();
-    // Redirect back to app root; AuthContext detects the #access_token in the URL
-    // and sets isPasswordRecovery = true, which shows the update-password form.
-    const redirectUrl = `${getAppBaseUrl()}/#/reset-password`;
-    const { data, error } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
-      redirectTo: redirectUrl
-    });
+    const { data, error } = await supabase.auth.resetPasswordForEmail(cleanEmail);
     if (error) throw error;
     return data;
   };
