@@ -111,6 +111,14 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
 
+  // Build the correct app base URL — works for both localhost dev and production Vercel.
+  // Using window.location.origin (no pathname suffix) avoids broken redirects
+  // when Supabase overrides the redirect_to based on its allowlist.
+  const getAppBaseUrl = () => {
+    if (typeof window === 'undefined') return 'https://pulse-life-tracker.vercel.app';
+    return window.location.origin;
+  };
+
   // Sign in with Email & Password
   const signInWithEmail = async (email, password) => {
     const { data, error } = await supabase.auth.signInWithPassword({
@@ -133,7 +141,7 @@ export const AuthProvider = ({ children }) => {
         data: {
           full_name: cleanName
         },
-        emailRedirectTo: window.location.origin
+        emailRedirectTo: getAppBaseUrl()
       }
     });
     if (error) throw error;
@@ -146,7 +154,7 @@ export const AuthProvider = ({ children }) => {
       type: 'signup',
       email: email.trim().toLowerCase(),
       options: {
-        emailRedirectTo: window.location.origin
+        emailRedirectTo: getAppBaseUrl()
       }
     });
     if (error) throw error;
@@ -154,9 +162,14 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Request Password Reset Email with secure redirect link
+  // IMPORTANT: The redirectTo URL must be in Supabase Dashboard →
+  // Authentication → URL Configuration → Redirect URLs allowlist.
+  // Add both:  https://pulse-life-tracker.vercel.app  AND  http://localhost:3000
   const resetPasswordForEmail = async (email) => {
     const cleanEmail = email.trim().toLowerCase();
-    const redirectUrl = `${window.location.origin}${window.location.pathname}#/reset-password`;
+    // Redirect back to app root; AuthContext detects the #access_token in the URL
+    // and sets isPasswordRecovery = true, which shows the update-password form.
+    const redirectUrl = `${getAppBaseUrl()}/#/reset-password`;
     const { data, error } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
       redirectTo: redirectUrl
     });
