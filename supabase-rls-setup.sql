@@ -292,3 +292,47 @@ CREATE POLICY "journal_entries_delete_policy" ON public.journal_entries
 -- ============================================================================
 -- SELECT tablename, rowsecurity FROM pg_tables WHERE schemaname = 'public' 
 -- AND tablename IN ('habits', 'habit_completions', 'monthly_allocations', 'transactions', 'goals', 'sub_goals', 'tasks', 'deadlines', 'activities', 'journal_entries');
+
+-- ============================================================================
+-- DELETE ACCOUNT RPC FUNCTION
+-- ============================================================================
+-- This function is called by the client with: supabase.rpc('delete_user_account')
+-- SECURITY DEFINER allows it to delete from auth.users without exposing the
+-- service_role key on the frontend. It runs as the DB owner, but only
+-- deletes the row for the currently authenticated user (auth.uid()).
+-- ============================================================================
+
+CREATE OR REPLACE FUNCTION public.delete_user_account()
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  current_user_id uuid := auth.uid();
+BEGIN
+  -- Guard: only run if user is authenticated
+  IF current_user_id IS NULL THEN
+    RAISE EXCEPTION 'Not authenticated';
+  END IF;
+
+  -- Delete all user data across all 10 tables
+  DELETE FROM public.habit_completions   WHERE user_id = current_user_id;
+  DELETE FROM public.habits              WHERE user_id = current_user_id;
+  DELETE FROM public.monthly_allocations WHERE user_id = current_user_id;
+  DELETE FROM public.transactions        WHERE user_id = current_user_id;
+  DELETE FROM public.sub_goals           WHERE user_id = current_user_id;
+  DELETE FROM public.goals               WHERE user_id = current_user_id;
+  DELETE FROM public.deadlines           WHERE user_id = current_user_id;
+  DELETE FROM public.tasks               WHERE user_id = current_user_id;
+  DELETE FROM public.activities          WHERE user_id = current_user_id;
+  DELETE FROM public.journal_entries     WHERE user_id = current_user_id;
+
+  -- Delete the auth user record itself
+  DELETE FROM auth.users WHERE id = current_user_id;
+END;
+$$;
+
+-- Grant execute permission to authenticated users only
+GRANT EXECUTE ON FUNCTION public.delete_user_account() TO authenticated;
+

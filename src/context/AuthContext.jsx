@@ -184,6 +184,21 @@ export const AuthProvider = ({ children }) => {
     setSession(null);
   };
 
+  // Delete Account & All Data (calls a SECURITY DEFINER Postgres RPC)
+  // This safely deletes all user rows across all 10 tables + the auth.users record
+  // without ever exposing the service_role key on the frontend.
+  const deleteAccount = async () => {
+    const { error } = await supabase.rpc('delete_user_account');
+    if (error) throw error;
+    // Clean up local state after successful deletion
+    sessionStorage.removeItem('pulse_recovery_mode');
+    setIsPasswordRecovery(false);
+    setUser(null);
+    setSession(null);
+    // Supabase will invalidate the session server-side; also sign out locally
+    await supabase.auth.signOut();
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -199,7 +214,8 @@ export const AuthProvider = ({ children }) => {
         resendConfirmationEmail,
         resetPasswordForEmail,
         updateUserPassword,
-        logout
+        logout,
+        deleteAccount
       }}
     >
       {children}

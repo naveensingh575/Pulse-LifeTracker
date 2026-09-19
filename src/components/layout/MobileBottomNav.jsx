@@ -38,7 +38,13 @@ export const MobileBottomNav = ({ onOpenQuickCapture }) => {
   return (
     <>
       {/* 📱 5-TOUCHPOINT DEDICATED BOTTOM BAR */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 backdrop-blur-xl bg-white/95 dark:bg-slate-950/95 border-t border-slate-200 dark:border-slate-800/90 h-16 px-2 flex items-center justify-around shadow-lg">
+      <nav
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 backdrop-blur-xl bg-white/95 dark:bg-slate-950/95 border-t border-slate-200 dark:border-slate-800/90 px-2 flex items-end justify-around shadow-lg"
+        style={{
+          paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+          minHeight: 'calc(4rem + env(safe-area-inset-bottom, 0px))',
+        }}
+      >
         {primaryTabs.map((item) => {
           const IconC = item.icon;
           return (
@@ -48,7 +54,7 @@ export const MobileBottomNav = ({ onOpenQuickCapture }) => {
               end={item.to === '/'}
               onClick={() => setIsMoreOpen(false)}
               className={({ isActive }) =>
-                `flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all duration-200 ${
+                `flex flex-col items-center justify-center h-16 py-1 px-3 rounded-xl transition-all duration-200 ${
                   isActive
                     ? 'text-indigo-600 dark:text-indigo-400 font-bold scale-105'
                     : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
@@ -64,7 +70,7 @@ export const MobileBottomNav = ({ onOpenQuickCapture }) => {
         {/* 5th Tab: "More" Drawer Trigger */}
         <button
           onClick={() => setIsMoreOpen(!isMoreOpen)}
-          className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all duration-200 cursor-pointer ${
+          className={`flex flex-col items-center justify-center h-16 py-1 px-3 rounded-xl transition-all duration-200 cursor-pointer ${
             isMoreOpen || isSecondaryActive
               ? 'text-indigo-600 dark:text-indigo-400 font-bold scale-105'
               : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
@@ -86,7 +92,10 @@ export const MobileBottomNav = ({ onOpenQuickCapture }) => {
           />
 
           {/* Drawer Panel */}
-          <div className="relative bg-white dark:bg-slate-900 rounded-t-3xl border-t border-slate-200 dark:border-slate-800 p-5 space-y-4 shadow-2xl z-10 pb-20 animate-in slide-in-from-bottom duration-200">
+          <div
+            className="relative bg-white dark:bg-slate-900 rounded-t-3xl border-t border-slate-200 dark:border-slate-800 p-5 space-y-4 shadow-2xl z-10 animate-in slide-in-from-bottom duration-200"
+            style={{ paddingBottom: 'calc(5rem + env(safe-area-inset-bottom, 0px))' }}
+          >
             {/* Header */}
             <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
               <div className="flex items-center space-x-2">

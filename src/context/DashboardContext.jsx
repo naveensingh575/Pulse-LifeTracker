@@ -10,6 +10,7 @@ import {
   detectDeviceDefaultCurrency
 } from '../utils/dateUtils';
 import { isLivingBudgetExpense } from '../utils/financeUtils';
+import { triggerHaptic } from '../utils/hapticUtils';
 
 export const SUPPORTED_CURRENCIES = [
   { symbol: '$', code: 'USD', name: 'US Dollar ($)' },
@@ -432,6 +433,7 @@ export const DashboardProvider = ({ children }) => {
 
     if (nextState) {
       currentCompletions[dateStr] = true;
+      triggerHaptic('light'); // Tactile feedback on Android when habit is marked done
     } else {
       delete currentCompletions[dateStr];
     }
@@ -1018,6 +1020,9 @@ export const DashboardProvider = ({ children }) => {
         completed_at: nextComp ? todayStr : null
       }).eq('id', taskId).eq('user_id', userId);
     }
+
+    // Tactile feedback on Android when task is checked off
+    if (nextComp) triggerHaptic('medium');
   };
 
   const deleteTask = async (taskId) => {

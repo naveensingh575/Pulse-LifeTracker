@@ -18,8 +18,9 @@ import { TasksPage } from './pages/TasksPage';
 import { AnalyticsPage } from './pages/AnalyticsPage';
 import { JournalPage } from './pages/JournalPage';
 import { ActivityPage } from './pages/ActivityPage';
+import { PrivacyPage } from './pages/PrivacyPage';
 
-import { ShieldCheck, Loader2 } from 'lucide-react';
+import { ShieldCheck, Loader2, WifiOff } from 'lucide-react';
 
 // ── Global Email Verified Success Overlay ────────────────────────────────────
 // Renders on top of all routing when the user clicks their verification link.
@@ -91,6 +92,7 @@ const EmailVerifiedOverlay = () => {
 
 const AppLayout = () => {
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [isOnline, setIsOnline] = useState(() => typeof navigator !== 'undefined' ? navigator.onLine : true);
 
   // Global Cmd+K / Ctrl+K listener
   useEffect(() => {
@@ -104,12 +106,37 @@ const AppLayout = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  // Offline / Online detection — purely informational, no state mutations
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 selection:bg-indigo-500 selection:text-white transition-colors">
       <Navbar onOpenQuickCapture={() => setIsCommandPaletteOpen(true)} />
+
+      {/* Offline Banner — shown only when network is unavailable */}
+      {!isOnline && (
+        <div className="sticky top-[env(safe-area-inset-top,0px)] z-40 w-full bg-amber-500 text-white px-4 py-2 flex items-center justify-center space-x-2 text-xs font-bold shadow-md">
+          <WifiOff className="w-3.5 h-3.5 shrink-0" />
+          <span>You're offline — connect to the internet to sync your data.</span>
+        </div>
+      )}
+
       <div className="flex flex-1">
         <Sidebar />
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full pb-24 lg:pb-12">
+        {/* Safe-area-aware main padding: pb-24 for mobile bottom nav + home bar inset */}
+        <main
+          className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full lg:pb-12"
+          style={{ paddingBottom: 'calc(6rem + env(safe-area-inset-bottom, 0px))' }}
+        >
           <Routes>
             <Route path="/" element={<OverviewPage />} />
             <Route path="/habits" element={<HabitsPage />} />
@@ -119,6 +146,7 @@ const AppLayout = () => {
             <Route path="/tasks" element={<TasksPage />} />
             <Route path="/journal" element={<JournalPage />} />
             <Route path="/analytics" element={<AnalyticsPage />} />
+            <Route path="/privacy" element={<PrivacyPage />} />
           </Routes>
         </main>
       </div>
