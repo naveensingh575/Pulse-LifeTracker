@@ -282,14 +282,16 @@ export const AnalyticsView = () => {
   });
 
   // --- 3. Scoped Activity & Physical Volume Output ---
+  const getActivityMins = (a) => Number(a.durationMins ?? a.duration) || 0;
+
   const runningActs = scopedActivities.filter(a => a.type === 'running');
   const totalRunningKm = runningActs.reduce((sum, a) => sum + (Number(a.distance) || 0), 0);
-  const totalRunningMins = runningActs.reduce((sum, a) => sum + (Number(a.duration) || 0), 0);
+  const totalRunningMins = runningActs.reduce((sum, a) => sum + getActivityMins(a), 0);
   const avgRunningPace = totalRunningKm > 0 ? (totalRunningMins / totalRunningKm).toFixed(2) : 0;
 
   const gymActs = scopedActivities.filter(a => a.type === 'gym');
   const totalGymSessions = gymActs.length;
-  const totalGymMins = gymActs.reduce((sum, a) => sum + (Number(a.duration) || 0), 0);
+  const totalGymMins = gymActs.reduce((sum, a) => sum + getActivityMins(a), 0);
   const totalVolumeLiftedKg = gymActs.reduce((sum, a) => {
     if (Array.isArray(a.exercises)) {
       return sum + a.exercises.reduce((eSum, ex) => eSum + ((Number(ex.sets) || 1) * (Number(ex.reps) || 1) * (Number(ex.weightKg) || 0)), 0);
@@ -300,16 +302,17 @@ export const AnalyticsView = () => {
   const swimActs = scopedActivities.filter(a => a.type === 'swimming');
   const sportsActs = scopedActivities.filter(a => a.type === 'sports');
   const totalSwimLaps = swimActs.reduce((sum, a) => sum + (Number(a.laps) || 0), 0);
-  const totalSwimMins = swimActs.reduce((sum, a) => sum + (Number(a.duration) || 0), 0);
-  const totalSportsHours = (sportsActs.reduce((sum, a) => sum + (Number(a.duration) || 0), 0) / 60).toFixed(1);
+  const totalSwimMins = swimActs.reduce((sum, a) => sum + getActivityMins(a), 0);
+  const totalSportsMins = sportsActs.reduce((sum, a) => sum + getActivityMins(a), 0);
+  const totalSportsHours = (totalSportsMins / 60).toFixed(1);
 
   const readingActs = scopedActivities.filter(a => a.type === 'reading');
   const totalPagesRead = readingActs
     .filter(a => a.subType === 'book' || !a.subType)
     .reduce((sum, a) => sum + (Number(a.pagesRead) || 0), 0);
-  const totalLearningMins = readingActs.reduce((sum, a) => sum + (Number(a.duration) || 0), 0);
+  const totalLearningMins = readingActs.reduce((sum, a) => sum + getActivityMins(a), 0);
 
-  const totalActiveOutputMins = totalRunningMins + totalGymMins + totalSwimMins + Math.round(Number(totalSportsHours) * 60) + totalLearningMins;
+  const totalActiveOutputMins = totalRunningMins + totalGymMins + totalSwimMins + totalSportsMins + totalLearningMins;
 
   // Target baseline comparisons (prorated by timeframe)
   const targetKm = timeframe === 'day' ? 3.0 : timeframe === 'week' ? 15.0 : 40.0;
@@ -535,17 +538,12 @@ export const AnalyticsView = () => {
   const disciplineEffortData = [
     { name: 'Running / Cardio', mins: totalRunningMins, color: DISCIPLINE_COLORS.Running },
     { name: 'Gym / Strength', mins: totalGymMins, color: DISCIPLINE_COLORS.Gym },
-    { name: 'Swimming & Sports', mins: totalSwimMins + Math.round(Number(totalSportsHours) * 60), color: DISCIPLINE_COLORS.Swimming },
+    { name: 'Swimming', mins: totalSwimMins, color: DISCIPLINE_COLORS.Swimming },
+    { name: 'Sports & Games', mins: totalSportsMins, color: DISCIPLINE_COLORS.Sports },
     { name: 'Reading & Learning', mins: totalLearningMins, color: DISCIPLINE_COLORS.Reading }
   ].filter(d => d.mins > 0);
 
-  const displayDisciplineData = disciplineEffortData.length > 0
-    ? disciplineEffortData
-    : [
-        { name: 'Running', mins: 45, color: DISCIPLINE_COLORS.Running },
-        { name: 'Gym', mins: 60, color: DISCIPLINE_COLORS.Gym },
-        { name: 'Reading', mins: 30, color: DISCIPLINE_COLORS.Reading }
-      ];
+  const displayDisciplineData = disciplineEffortData;
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
@@ -1083,24 +1081,57 @@ export const AnalyticsView = () => {
 
         {/* Discipline Distribution Chart */}
         <div className="p-3 bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-slate-200 dark:border-slate-800 space-y-3">
-          <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
-            Discipline Effort Allocation (% of active minutes in scope)
-          </span>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-            {displayDisciplineData.map((item, idx) => {
-              const pct = totalActiveOutputMins > 0 ? Math.round((item.mins / totalActiveOutputMins) * 100) : 25;
-              return (
-                <div key={idx} className="p-2 rounded-lg bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs">
-                  <div className="flex items-center space-x-2">
-                    <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
-                    <span className="font-bold text-slate-700 dark:text-slate-300">{item.name}</span>
-                  </div>
-                  <span className="font-mono font-extrabold text-slate-900 dark:text-slate-100">{item.mins}m ({pct}%)</span>
-                </div>
-              );
-            })}
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
+              Discipline Effort Allocation (% of active minutes in scope)
+            </span>
+            <span className="text-xs font-mono font-bold text-slate-500 dark:text-slate-400">
+              Total: {totalActiveOutputMins}m
+            </span>
           </div>
+
+          {displayDisciplineData.length > 0 ? (
+            <div className="space-y-3">
+              {/* Stacked Percentage Bar */}
+              <div className="h-2 w-full rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden flex">
+                {displayDisciplineData.map((item, idx) => {
+                  const pct = totalActiveOutputMins > 0 ? ((item.mins / totalActiveOutputMins) * 100).toFixed(1) : 0;
+                  return (
+                    <div
+                      key={idx}
+                      style={{ width: `${pct}%`, backgroundColor: item.color }}
+                      title={`${item.name}: ${item.mins}m (${pct}%)`}
+                      className="h-full transition-all duration-300"
+                    />
+                  );
+                })}
+              </div>
+
+              {/* Grid of disciplines */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+                {displayDisciplineData.map((item, idx) => {
+                  const pct = totalActiveOutputMins > 0 ? Math.round((item.mins / totalActiveOutputMins) * 100) : 0;
+                  return (
+                    <div key={idx} className="p-2.5 rounded-lg bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs">
+                      <div className="flex items-center space-x-2 min-w-0">
+                        <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
+                        <span className="font-bold text-slate-700 dark:text-slate-300 truncate">{item.name}</span>
+                      </div>
+                      <span className="font-mono font-extrabold text-slate-900 dark:text-slate-100 shrink-0 ml-2">
+                        {item.mins}m ({pct}%)
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            <div className="p-4 rounded-lg bg-white dark:bg-slate-950 border border-dashed border-slate-200 dark:border-slate-800 text-center">
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                No activity logs recorded for this timeframe. Log runs, gym workouts, swimming, sports, or study in <span className="font-semibold text-slate-700 dark:text-slate-300">Activity Pulse</span> to see effort allocation.
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
