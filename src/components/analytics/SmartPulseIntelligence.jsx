@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useMemo } from 'react';
+import { useDashboard } from '../../context/DashboardContext';
+import { calculateCrossDomainCorrelations } from '../../utils/correlationUtils';
 import {
   Sparkles,
   Zap,
@@ -13,7 +15,9 @@ import {
   ShieldCheck,
   Brain,
   Compass,
-  BookOpen
+  BookOpen,
+  Layers,
+  Link2
 } from 'lucide-react';
 
 export const SmartPulseIntelligence = ({
@@ -62,6 +66,22 @@ export const SmartPulseIntelligence = ({
   journalEntries = [],
   currency = '₹'
 }) => {
+  const dashboard = useDashboard() || {};
+  const allActivities = dashboard.activities || scopedActivities || [];
+  const allTasks = dashboard.tasks || scopedTasks || [];
+  const allTransactions = dashboard.transactions || [];
+
+  const correlationData = useMemo(() => {
+    return calculateCrossDomainCorrelations({
+      habits,
+      tasks: allTasks,
+      activities: allActivities,
+      transactions: allTransactions,
+      journalEntries,
+      lookbackDays: timeframe === 'day' ? 7 : timeframe === 'week' ? 14 : 30
+    });
+  }, [habits, allTasks, allActivities, allTransactions, journalEntries, timeframe]);
+
   // 1. Dynamic Active Timeframe Title Label
   const timeframeLabel =
     timeframe === 'day'
@@ -340,6 +360,57 @@ export const SmartPulseIntelligence = ({
               <div className="h-full bg-amber-500 rounded-full transition-all duration-500" style={{ width: `${disciplineScore}%` }} />
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* 🔗 2. CROSS-DOMAIN CORRELATION ENGINE (Live Behavioral Linkages) */}
+      <div className="p-4 rounded-xl bg-gradient-to-r from-indigo-500/5 via-cyan-500/5 to-purple-500/5 dark:from-indigo-950/30 dark:via-cyan-950/20 dark:to-purple-950/30 border border-indigo-200/70 dark:border-indigo-500/20 space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-indigo-100 dark:border-indigo-900/50 pb-2.5">
+          <div className="flex items-center space-x-2">
+            <div className="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+              <Link2 className="w-3.5 h-3.5" />
+            </div>
+            <div>
+              <span className="text-xs font-extrabold text-slate-900 dark:text-white flex items-center gap-1.5">
+                Cross-Domain Correlation Engine
+              </span>
+              <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                Live behavioral linkages across physical energy, execution velocity, and financial discipline
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center space-x-2">
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold border border-indigo-500/20">
+              Synergy Index: {correlationData.synergyIndex}/100
+            </span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {correlationData.insights.map((insight) => (
+            <div
+              key={insight.id}
+              className="p-3 rounded-xl bg-white/80 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 space-y-2 text-xs backdrop-blur-sm shadow-sm"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-[9px] uppercase font-mono font-bold px-1.5 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200/60 dark:border-indigo-800/60">
+                  {insight.badge}
+                </span>
+                <span className="text-[11px] font-extrabold font-mono text-emerald-600 dark:text-emerald-400">
+                  {insight.stat}
+                </span>
+              </div>
+              <div>
+                <p className="font-bold text-slate-900 dark:text-slate-100 text-xs">{insight.title}</p>
+                <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5 leading-snug">{insight.detail}</p>
+              </div>
+              <div className="pt-1 border-t border-slate-100 dark:border-slate-800/80">
+                <p className="text-[10px] text-indigo-700 dark:text-cyan-300 font-medium">
+                  💡 {insight.recommendation}
+                </p>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 

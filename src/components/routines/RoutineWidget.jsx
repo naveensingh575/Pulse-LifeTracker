@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useDashboard } from '../../context/DashboardContext';
 import { getISTDateString, formatISTDisplayDate } from '../../utils/dateUtils';
@@ -8,7 +8,11 @@ import {
   Calendar,
   Flame,
   Download,
-  Check
+  Check,
+  Sparkles,
+  Zap,
+  CheckCircle2,
+  Smile
 } from 'lucide-react';
 
 // Helper to generate Google Calendar URLs
@@ -60,29 +64,49 @@ END:VCALENDAR`;
 
 export const RoutineWidget = () => {
   const {
-    habits,
-    tasks,
-    isHabitDoneOn,
-    toggleHabitForDate
+    habits = [],
+    tasks = [],
+    isHabitDoneOn = () => false,
+    toggleHabitForDate,
+    getJournalEntry = () => null,
+    saveJournalEntry = async () => {}
   } = useDashboard();
 
-  const [activeTab, setActiveTab] = useState('morning'); // 'morning' | 'evening'
   const todayStr = getISTDateString();
+
+  // Smart time-aware default tab: Evening Review if >= 6 PM or < 5 AM IST; Morning Planning otherwise
+  const [activeTab, setActiveTab] = useState(() => {
+    const currentHour = new Date().getHours();
+    return currentHour >= 18 || currentHour < 5 ? 'evening' : 'morning';
+  });
 
   // Calculations for Morning Mode
   const openTasks = tasks.filter(t => !t.completed);
+  const focusStorageKey = `pulse_focus_tasks_${todayStr}`;
+
   const [topPriorities, setTopPriorities] = useState(() => {
+    try {
+      const saved = localStorage.getItem(focusStorageKey);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {}
     return openTasks.slice(0, 3).map(t => t.id);
   });
 
   const togglePrioritySelection = (taskId) => {
-    setTopPriorities(prev =>
-      prev.includes(taskId)
+    setTopPriorities(prev => {
+      const next = prev.includes(taskId)
         ? prev.filter(id => id !== taskId)
         : prev.length < 3
         ? [...prev, taskId]
-        : prev
-    );
+        : prev;
+      try {
+        localStorage.setItem(focusStorageKey, JSON.stringify(next));
+      } catch (e) {}
+      return next;
+    });
   };
 
   // Calculations for Evening Mode using real IST Today completions
@@ -95,6 +119,35 @@ export const RoutineWidget = () => {
     ((completedHabitsToday / (totalHabits || 1)) * 0.6 +
       (completedTasksToday / (totalTasks || 1)) * 0.4) * 100
   );
+
+  // Micro-journal reflection state for evening review
+  const existingTodayJournal = getJournalEntry ? getJournalEntry(todayStr) : null;
+  const [eveningMood, setEveningMood] = useState('productive');
+  const [eveningHighlight, setEveningHighlight] = useState('');
+  const [reflectionSaved, setReflectionSaved] = useState(false);
+
+  useEffect(() => {
+    if (existingTodayJournal) {
+      if (existingTodayJournal.mood) setEveningMood(existingTodayJournal.mood);
+      if (existingTodayJournal.accomplished) setEveningHighlight(existingTodayJournal.accomplished);
+    }
+  }, [existingTodayJournal]);
+
+  const handleSaveReflection = async () => {
+    if (!saveJournalEntry) return;
+    try {
+      await saveJournalEntry(todayStr, {
+        mood: eveningMood,
+        accomplished: eveningHighlight,
+        notes: existingTodayJournal?.notes || '',
+        gratitude: existingTodayJournal?.gratitude || ''
+      });
+      setReflectionSaved(true);
+      setTimeout(() => setReflectionSaved(false), 2500);
+    } catch (err) {
+      console.error('Error saving evening reflection', err);
+    }
+  };
 
   return (
     <div className="glass-panel-dark rounded-2xl p-5 border border-slate-200 dark:border-slate-800 space-y-4 shadow-md">
@@ -264,6 +317,73 @@ export const RoutineWidget = () => {
             </div>
           </div>
 
+          {/* 60-Second Micro-Reflection */}
+          <div className="p-3 bg-slate-50 dark:bg-slate-900/40 rounded-xl border border-slate-200 dark:border-slate-800 space-y-2.5">
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                60-Second Evening Reflection
+              </span>
+              <span className="text-[10px] text-slate-400">Syncs directly to Journal</span>
+            </div>
+
+            {/* Mood selector buttons */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 text-xs">
+              {[
+                { id: 'high_energy', label: 'High Energy', emoji: '⚡' },
+                { id: 'productive', label: 'Productive', emoji: '😊' },
+                { id: 'calm', label: 'Calm', emoji: '🧘' },
+                { id: 'tired', label: 'Tired', emoji: '😴' }
+              ].map(m => (
+                <button
+                  key={m.id}
+                  type="button"
+                  onClick={() => setEveningMood(m.id)}
+                  className={`px-2.5 py-1.5 rounded-lg border text-[11px] font-semibold flex items-center justify-center gap-1 transition ${
+                    eveningMood === m.id
+                      ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                      : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:border-slate-300'
+                  }`}
+                >
+                  <span>{m.emoji}</span>
+                  <span>{m.label}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Highlight input & 1-tap save */}
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={eveningHighlight}
+                onChange={(e) => setEveningHighlight(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleSaveReflection();
+                }}
+                placeholder="Today's win or breakthrough in one sentence..."
+                className="flex-1 px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-indigo-500"
+              />
+              <button
+                type="button"
+                onClick={handleSaveReflection}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 shrink-0 ${
+                  reflectionSaved
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm'
+                }`}
+              >
+                {reflectionSaved ? (
+                  <>
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>Saved!</span>
+                  </>
+                ) : (
+                  <span>Log Win</span>
+                )}
+              </button>
+            </div>
+          </div>
+
           {/* Calendar Nightly Reminder & Journal Link */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
             <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Evening Review Actions:</span>
@@ -272,7 +392,7 @@ export const RoutineWidget = () => {
                 to="/journal"
                 className="flex items-center space-x-1 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition shadow-sm cursor-pointer"
               >
-                <span>✍️ Write Reflection Journal</span>
+                <span>✍️ Full Journal</span>
               </Link>
 
               <a

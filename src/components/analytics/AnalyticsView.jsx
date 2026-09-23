@@ -62,9 +62,12 @@ import {
   Gauge,
   Sun,
   CalendarDays,
-  CheckSquare
+  CheckSquare,
+  Share2
 } from 'lucide-react';
 import { SmartPulseIntelligence } from './SmartPulseIntelligence';
+import { DisciplineShareModal } from './DisciplineShareModal';
+import { getOperatingPersonality } from '../../utils/correlationUtils';
 
 const DISCIPLINE_COLORS = {
   Running: '#38bdf8',   // Sky Blue
@@ -102,6 +105,9 @@ export const AnalyticsView = () => {
 
   // Week View Slide Offset (0 = current week, -1 = last week, +1 = next week)
   const [weekOffset, setWeekOffset] = useState(0);
+
+  // Discipline Proof of Work Share Modal State
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   const getWeekRefDate = () => {
     const d = new Date();
@@ -395,6 +401,19 @@ export const AnalyticsView = () => {
     if (taskTabFilter === 'pending') return !task.completed;
     if (taskTabFilter === 'completed') return task.completed;
     return true;
+  });
+
+  // Top Habit Streak & Operating Archetype Calculation for Proof of Work
+  const topStreak = habits.length > 0 ? Math.max(0, ...habits.map(h => Number(h.streak) || 0)) : 0;
+  const avgHabitStreak = habits.length > 0 ? Math.round(habits.reduce((acc, h) => acc + (Number(h.streak) || 0), 0) / habits.length) : 0;
+  const userArchetype = getOperatingPersonality({
+    totalActiveMins: totalActiveOutputMins,
+    overallTaskCompletionRate: taskCompletionPct,
+    avgHabitStreak,
+    habitsLength: habits.length,
+    tasksLength: scopedTasks.length,
+    highPriorityRate: highPriorityTasks.length > 0 ? Math.round((highPriorityCompleted / highPriorityTasks.length) * 100) : 0,
+    savingsRatePct: periodIncome > 0 ? Math.round(((periodIncome - periodLivingExpenses) / periodIncome) * 100) : 0
   });
 
   // --- 6. Smart Contextual Diagnostics (4 Concrete Insights) ---
@@ -723,6 +742,17 @@ export const AnalyticsView = () => {
               </button>
             </div>
           )}
+
+          {/* Share Proof of Work Action */}
+          <button
+            onClick={() => setIsShareModalOpen(true)}
+            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 text-xs font-bold transition cursor-pointer shadow-sm"
+            title="Generate shareable weekly discipline card"
+          >
+            <Share2 className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Share Proof of Work</span>
+            <span className="sm:hidden">Share</span>
+          </button>
         </div>
       </div>
 
@@ -1486,6 +1516,19 @@ export const AnalyticsView = () => {
           </div>
         )}
       </div>
+
+      {/* 🚀 DISCIPLINE PROOF OF WORK SHARE MODAL */}
+      <DisciplineShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        disciplineScore={habitScore}
+        operatingArchetype={userArchetype.name}
+        archetypeIcon={userArchetype.icon}
+        topStreak={topStreak}
+        totalActiveMins={totalActiveOutputMins}
+        tasksCompleted={completedScopedTasks.length}
+        weekBadge={activeWeekBadge}
+      />
 
     </div>
   );
