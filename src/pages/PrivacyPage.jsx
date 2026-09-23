@@ -1,22 +1,20 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React from "react";
+import { Link } from "react-router-dom";
 import {
   ArrowLeft,
   Shield,
   Lock,
-  EyeOff,
-  Trash2,
   Mail,
   FileText,
   CheckCircle2,
-  BookOpen,
   Share2,
   Clock,
   Users,
   Server,
   RefreshCw,
-  Sparkles
-} from 'lucide-react';
+  Sparkles,
+  Cookie
+} from "lucide-react";
 
 export const PrivacyPage = () => {
   return (
@@ -31,7 +29,7 @@ export const PrivacyPage = () => {
           <div>
             <h1 className="text-xl font-black text-slate-900 dark:text-white">Privacy Policy</h1>
             <p className="text-xs text-slate-500 dark:text-slate-400 font-mono mt-0.5">
-              Effective Date: September 23, 2026
+              Last updated: September 23, 2026
             </p>
           </div>
         </div>
@@ -47,276 +45,292 @@ export const PrivacyPage = () => {
       {/* Intro Card */}
       <div className="bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/30 rounded-2xl p-5 text-sm text-indigo-900 dark:text-indigo-200 leading-relaxed space-y-2">
         <p>
-          Pulse Life Tracker (“Pulse,” “we,” “our,” or “us”) respects your privacy and is committed to protecting the information you entrust to us.
+          At Pulse Life Tracker (“Pulse,” “we,” “us,” or “our”), privacy is an important part of how we build our product.
         </p>
         <p>
-          This Privacy Policy explains what information Pulse collects, how we use and protect it, when it may be shared, and the choices and rights available to you.
+          Pulse is designed to help you organize and understand your personal life—including your habits, goals, tasks, activities, journal entries, and finances—while keeping your information private and under your control.
         </p>
-        <p className="font-bold text-indigo-700 dark:text-indigo-300">
-          We do not sell your personal information, use it for advertising, or share it with advertisers.
+        <p className="font-semibold text-indigo-700 dark:text-indigo-300">
+          This Privacy Policy explains what information we collect, how we use it, and the choices you have.
         </p>
       </div>
 
       <div className="space-y-4">
 
-        {/* 1. Information We Collect */}
-        <Section icon={<FileText className="w-5 h-5" />} color="indigo" title="1. Information We Collect">
-          <div className="space-y-3 text-sm text-slate-600 dark:text-slate-400">
+        {/* 1. Information You Provide */}
+        <Section icon={<FileText className="w-5 h-5" />} color="indigo" title="1. Information You Provide">
+          <div className="text-sm text-slate-600 dark:text-slate-400 space-y-4">
+            <p>
+              When you use Pulse, you may choose to provide the following information:
+            </p>
+
             <div>
-              <h3 className="font-bold text-slate-800 dark:text-slate-200 mb-1">Account Information</h3>
-              <p className="mb-1">When you create an account, we may collect:</p>
-              <ul className="list-disc list-inside space-y-1 pl-1">
-                <li>Your email address</li>
-                <li>Your display name</li>
-                <li>Authentication information needed to maintain your account</li>
+              <p className="font-semibold text-slate-800 dark:text-slate-200 mb-1.5">Account Information</p>
+              <ul className="list-disc list-inside space-y-1 text-xs pl-1">
+                <li>Email address</li>
+                <li>Profile name</li>
+                <li>Information required to authenticate and secure your account</li>
               </ul>
-              <p className="text-xs text-slate-500 dark:text-slate-400 italic mt-1.5">
-                Your password is handled by our authentication provider and is not stored by Pulse in plain text.
+            </div>
+
+            <div>
+              <p className="font-semibold text-slate-800 dark:text-slate-200 mb-1.5">Personal Information You Choose to Track</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">Pulse allows you to record information such as:</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                <div className="bg-slate-100 dark:bg-slate-900/40 p-2.5 rounded-lg border border-slate-200/60 dark:border-slate-800/60">
+                  • Habits
+                </div>
+                <div className="bg-slate-100 dark:bg-slate-900/40 p-2.5 rounded-lg border border-slate-200/60 dark:border-slate-800/60">
+                  • Goals
+                </div>
+                <div className="bg-slate-100 dark:bg-slate-900/40 p-2.5 rounded-lg border border-slate-200/60 dark:border-slate-800/60">
+                  • Tasks and to-do items
+                </div>
+                <div className="bg-slate-100 dark:bg-slate-900/40 p-2.5 rounded-lg border border-slate-200/60 dark:border-slate-800/60">
+                  • Activities
+                </div>
+                <div className="bg-slate-100 dark:bg-slate-900/40 p-2.5 rounded-lg border border-slate-200/60 dark:border-slate-800/60">
+                  • Journal and reflection entries
+                </div>
+                <div className="bg-slate-100 dark:bg-slate-900/40 p-2.5 rounded-lg border border-slate-200/60 dark:border-slate-800/60">
+                  • Personal finance records
+                </div>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+                • Progress and other information you choose to add
               </p>
             </div>
 
-            <div className="pt-2 border-t border-slate-100 dark:border-slate-800/60">
-              <h3 className="font-bold text-slate-800 dark:text-slate-200 mb-1">Content You Create</h3>
-              <p className="mb-1">Pulse stores information that you choose to enter into the app, including:</p>
-              <ul className="list-disc list-inside space-y-1 pl-1">
-                <li>Habits and habit records</li>
-                <li>Tasks and to-do items</li>
-                <li>Goals</li>
-                <li>Journal entries</li>
-                <li>Financial transactions and related records</li>
-                <li>Activity logs and other information you choose to save in Pulse</li>
-              </ul>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5">
-                This information is used to provide the features you request and to maintain your personal Pulse account.
-              </p>
-            </div>
-
-            <div className="pt-2 border-t border-slate-100 dark:border-slate-800/60">
-              <h3 className="font-bold text-slate-800 dark:text-slate-200 mb-1">Technical and Session Information</h3>
-              <p>
-                Pulse may process limited technical information that is necessary to operate, secure, and maintain the service, such as authentication and session information.
-              </p>
-              <p className="font-medium text-slate-700 dark:text-slate-300 mt-1">
-                Pulse does not use advertising trackers, advertising SDKs, or third-party tracking pixels.
-              </p>
-            </div>
+            <p className="text-xs italic text-slate-700 dark:text-slate-300 font-medium">
+              You decide what information you want to store in Pulse.
+            </p>
           </div>
         </Section>
 
         {/* 2. How We Use Your Information */}
         <Section icon={<CheckCircle2 className="w-5 h-5" />} color="emerald" title="2. How We Use Your Information">
-          <div className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
-            <p>We use your information only for purposes related to operating and supporting Pulse, including to:</p>
-            <ul className="list-disc list-inside space-y-1.5 pl-1">
-              <li>Create and maintain your account</li>
-              <li>Authenticate you securely</li>
-              <li>Store and display the information you enter</li>
-              <li>Provide habit, goal, task, journal, financial, and activity features</li>
-              <li>Protect the service against unauthorized access, abuse, or security incidents</li>
-              <li>Respond to support requests</li>
-              <li>Maintain, troubleshoot, and improve the reliability of the application</li>
-              <li>Comply with applicable legal obligations</li>
+          <div className="text-sm text-slate-600 dark:text-slate-400 space-y-3">
+            <p>
+              We use your information to provide and operate Pulse, including to:
+            </p>
+            <ul className="list-disc list-inside space-y-1.5 text-xs pl-1">
+              <li>Create and manage your account</li>
+              <li>Store and display your personal records</li>
+              <li>Provide tracking, planning, and productivity features</li>
+              <li>Keep your account securely signed in</li>
+              <li>Maintain and improve the reliability of the service</li>
+              <li>Provide customer support</li>
+              <li>Protect the service from misuse and unauthorized activity</li>
+              <li>Comply with applicable legal requirements</li>
             </ul>
-            <p className="font-bold text-emerald-700 dark:text-emerald-400 pt-1">
-              We do not sell your information or use your personal information for targeted advertising.
+            <p className="text-xs text-slate-700 dark:text-slate-300 font-medium pt-1">
+              Your personal records are used to provide the Pulse experience to you.
             </p>
-          </div>
-        </Section>
-
-        {/* 3. Your Journal and Financial Information */}
-        <Section icon={<BookOpen className="w-5 h-5" />} color="purple" title="3. Your Journal and Financial Information">
-          <div className="space-y-2 text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-            <p>We understand that journal entries and financial records can be highly personal.</p>
-            <p>
-              Your private journal entries and financial information are intended to remain private to your account. We do not sell, rent, or use this information for advertising.
-            </p>
-            <p>
-              Authorized personnel may access limited account information when reasonably necessary to provide support, investigate a technical issue, maintain the service, or comply with a legal obligation.
-            </p>
-            <p className="text-xs text-slate-500 dark:text-slate-400 italic">
-              We do not intentionally access private journal or financial content for support unless you explicitly provide or authorize access for that purpose, except where access is required by law or necessary to protect the security and integrity of the service.
-            </p>
-          </div>
-        </Section>
-
-        {/* 4. How We Share Information */}
-        <Section icon={<Share2 className="w-5 h-5" />} color="amber" title="4. How We Share Information">
-          <div className="space-y-3 text-sm text-slate-600 dark:text-slate-400">
-            <p className="font-bold text-slate-800 dark:text-slate-200">
-              We do not sell, rent, or trade your personal information.
-            </p>
-            <p>We may share or allow access to information only in limited circumstances necessary to operate Pulse, such as:</p>
-
-            <div className="space-y-2.5 pl-1">
-              <div>
-                <strong className="text-slate-800 dark:text-slate-200 block">Service Providers</strong>
-                <p>
-                  We use trusted third-party service providers to provide essential services such as authentication, hosting, and data storage.
-                </p>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                  For example, Pulse uses Supabase as a service provider for authentication and data storage. These providers process information on our behalf and are expected to protect it appropriately.
-                </p>
-              </div>
-
-              <div>
-                <strong className="text-slate-800 dark:text-slate-200 block">Legal Requirements</strong>
-                <p>
-                  We may disclose information when required to do so by applicable law, regulation, court order, subpoena, or other valid legal process.
-                </p>
-              </div>
-
-              <div>
-                <strong className="text-slate-800 dark:text-slate-200 block">Security and Protection</strong>
-                <p>
-                  We may disclose information where reasonably necessary to prevent fraud, abuse, security threats, or other harm to Pulse, our users, or others.
-                </p>
-              </div>
+            <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/50 text-xs font-semibold text-emerald-800 dark:text-emerald-300">
+              We do not sell your personal information or use your personal records for targeted advertising.
             </div>
           </div>
         </Section>
 
-        {/* 5. Data Security */}
-        <Section icon={<Lock className="w-5 h-5" />} color="cyan" title="5. Data Security">
-          <div className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
+        {/* 3. Privacy and Security */}
+        <Section icon={<Lock className="w-5 h-5" />} color="amber" title="3. Privacy and Security">
+          <div className="text-sm text-slate-600 dark:text-slate-400 space-y-3">
             <p>
-              We take reasonable technical and organizational measures to protect your information against unauthorized access, loss, misuse, alteration, or disclosure.
+              We use industry-standard technical and organizational measures to protect information stored and transmitted through Pulse.
             </p>
-            <p className="font-medium text-slate-700 dark:text-slate-300">These measures include:</p>
-            <ul className="list-disc list-inside space-y-1 pl-1">
-              <li>Encryption of data transmitted between your device and our services</li>
-              <li>Encryption of stored data</li>
-              <li>Access controls designed to limit access to authorized users and personnel</li>
-              <li>Security measures provided by our infrastructure and service providers</li>
+            <p className="text-xs font-medium text-slate-800 dark:text-slate-200">
+              These measures include:
+            </p>
+            <ul className="space-y-2 text-xs">
+              <li className="flex items-start gap-2 bg-slate-100 dark:bg-slate-900/40 p-2.5 rounded-lg border border-slate-200/60 dark:border-slate-800/60">
+                <span className="font-bold text-slate-900 dark:text-white shrink-0">• Encrypted connections:</span>
+                <span>Information transmitted between your device and our services is protected using HTTPS/TLS.</span>
+              </li>
+              <li className="flex items-start gap-2 bg-slate-100 dark:bg-slate-900/40 p-2.5 rounded-lg border border-slate-200/60 dark:border-slate-800/60">
+                <span className="font-bold text-slate-900 dark:text-white shrink-0">• Secure storage:</span>
+                <span>Data stored by Pulse is protected using security controls provided by our cloud infrastructure.</span>
+              </li>
+              <li className="flex items-start gap-2 bg-slate-100 dark:bg-slate-900/40 p-2.5 rounded-lg border border-slate-200/60 dark:border-slate-800/60">
+                <span className="font-bold text-slate-900 dark:text-white shrink-0">• Account protection:</span>
+                <span>Authentication and access controls are used to protect your account and personal records.</span>
+              </li>
+              <li className="flex items-start gap-2 bg-slate-100 dark:bg-slate-900/40 p-2.5 rounded-lg border border-slate-200/60 dark:border-slate-800/60">
+                <span className="font-bold text-slate-900 dark:text-white shrink-0">• Limited access:</span>
+                <span>Access to information is restricted to what is necessary to operate and maintain the service.</span>
+              </li>
             </ul>
             <p className="text-xs text-slate-500 dark:text-slate-400 italic pt-1">
-              No method of storing or transmitting information over the internet can be guaranteed to be completely secure. We therefore cannot guarantee absolute security, but we continuously take reasonable steps to protect your information.
+              We continuously work to maintain appropriate security practices as Pulse evolves.
             </p>
           </div>
         </Section>
 
-        {/* 6. Data Retention */}
-        <Section icon={<Clock className="w-5 h-5" />} color="slate" title="6. Data Retention">
-          <div className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
-            <p>
-              We retain your information for as long as reasonably necessary to provide Pulse and fulfill the purposes described in this Privacy Policy.
-            </p>
-            <p>
-              When you delete your account, we initiate deletion of your account and associated personal data, subject to information that may need to be retained for legal, security, fraud-prevention, or other legitimate business requirements.
-            </p>
-            <p className="text-xs text-slate-500 dark:text-slate-400 italic">
-              Where applicable, information remaining in backup systems may take additional time to be removed through normal backup and retention processes.
-            </p>
-          </div>
-        </Section>
+        {/* 4. Information Sharing */}
+        <Section icon={<Share2 className="w-5 h-5" />} color="rose" title="4. Information Sharing">
+          <div className="text-sm text-slate-600 dark:text-slate-400 space-y-4">
+            <div>
+              <p className="font-bold text-rose-600 dark:text-rose-400 mb-1">We Don't Sell Your Information</p>
+              <p className="text-xs text-slate-600 dark:text-slate-300">
+                We do not sell, rent, or trade your personal information to advertisers or data brokers.
+              </p>
+              <p className="text-xs text-slate-600 dark:text-slate-300 mt-1">
+                We do not use your personal records to build advertising profiles.
+              </p>
+            </div>
 
-        {/* 7. Your Rights and Choices */}
-        <Section icon={<Trash2 className="w-5 h-5" />} color="rose" title="7. Your Rights and Choices">
-          <div className="space-y-3 text-sm text-slate-600 dark:text-slate-400">
-            <p>You have control over the information stored in your Pulse account.</p>
+            <div>
+              <p className="font-bold text-slate-800 dark:text-slate-200 mb-1.5">Service Providers</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">
+                Pulse may use trusted technology providers to operate the service, such as providers for:
+              </p>
+              <ul className="list-disc list-inside space-y-1 text-xs pl-1">
+                <li>Cloud hosting</li>
+                <li>Database infrastructure</li>
+                <li>Authentication</li>
+                <li>Email delivery</li>
+                <li>Security and application services</li>
+              </ul>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+                These providers process information as necessary to provide their services to Pulse.
+              </p>
+            </div>
 
-            <div className="space-y-2.5">
-              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
-                <strong className="text-slate-800 dark:text-slate-200 block mb-1">Delete Your Account</strong>
-                <p className="text-xs mb-1">You can permanently delete your account from the profile menu:</p>
-                <code className="text-xs font-mono font-bold text-rose-600 dark:text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20 inline-block mb-1">
-                  Profile → Delete Account
-                </code>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Account deletion is intended to remove your Pulse account and associated data and cannot be undone.
-                </p>
-              </div>
-
-              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
-                <strong className="text-slate-800 dark:text-slate-200 block mb-1">Export Your Data</strong>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  You can export your information from supported Pulse modules using the Download Report feature. Exports are provided in standard CSV format and can be opened using applications such as Microsoft Excel or Google Sheets.
-                </p>
-              </div>
-
-              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
-                <strong className="text-slate-800 dark:text-slate-200 block mb-1">Update Your Information</strong>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Where available, you may update or correct information associated with your account directly within the application. For additional privacy requests, you may contact us using the details below.
-                </p>
-              </div>
+            <div>
+              <p className="font-bold text-slate-800 dark:text-slate-200 mb-1">Legal Requirements</p>
+              <p className="text-xs text-slate-600 dark:text-slate-300">
+                We may disclose information when required to comply with applicable law or valid legal processes, or when reasonably necessary to protect the security and rights of Pulse, our users, or others.
+              </p>
             </div>
           </div>
         </Section>
 
-        {/* 8. Tracking and Advertising */}
-        <Section icon={<EyeOff className="w-5 h-5" />} color="indigo" title="8. Tracking and Advertising">
-          <div className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
-            <p>Pulse does not use:</p>
-            <ul className="list-disc list-inside space-y-1 pl-1">
-              <li>Advertising networks</li>
-              <li>Advertising SDKs</li>
-              <li>Third-party advertising pixels</li>
-              <li>Cross-site advertising trackers</li>
+        {/* 5. Cookies and Similar Technologies */}
+        <Section icon={<Cookie className="w-5 h-5" />} color="cyan" title="5. Cookies and Similar Technologies">
+          <div className="text-sm text-slate-600 dark:text-slate-400 space-y-3">
+            <p>
+              Pulse may use cookies, local storage, or similar technologies necessary to provide core functionality such as:
+            </p>
+            <ul className="list-disc list-inside space-y-1 text-xs pl-1">
+              <li>Account authentication</li>
+              <li>Maintaining your session</li>
+              <li>Security</li>
+              <li>Remembering preferences</li>
+              <li>Application functionality</li>
             </ul>
-            <p className="font-bold text-indigo-700 dark:text-indigo-400 pt-1">
-              We do not sell your personal information to advertisers.
+            <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 pt-1">
+              We do not use these technologies for cross-site behavioral advertising.
             </p>
           </div>
         </Section>
 
-        {/* 9. Children's Privacy */}
-        <Section icon={<Users className="w-5 h-5" />} color="amber" title="9. Children's Privacy">
-          <div className="space-y-2 text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+        {/* 6. Your Data and Your Choices */}
+        <Section icon={<Users className="w-5 h-5" />} color="purple" title="6. Your Data and Your Choices">
+          <div className="text-sm text-slate-600 dark:text-slate-400 space-y-4">
             <p>
-              Pulse is not intended for children who are not legally permitted to use the service under applicable law.
+              Pulse is designed to give you control over your information.
             </p>
-            <p>
-              We do not knowingly collect personal information from children in violation of applicable privacy laws. If you believe a child has provided personal information to us improperly, please contact us so that we can review and take appropriate action.
-            </p>
+            <div>
+              <p className="font-semibold text-slate-800 dark:text-slate-200 mb-1.5">
+                Depending on the features available in your account, you can:
+              </p>
+              <ul className="list-disc list-inside space-y-1 text-xs pl-1">
+                <li>View your information</li>
+                <li>Update your information</li>
+                <li>Edit or delete personal records</li>
+                <li>Export your data</li>
+                <li>Delete your account</li>
+              </ul>
+            </div>
+
+            <div className="bg-slate-100 dark:bg-slate-900/40 p-3 rounded-xl border border-slate-200/60 dark:border-slate-800/60 space-y-1.5">
+              <p className="font-bold text-xs text-slate-900 dark:text-white">Data Export</p>
+              <p className="text-xs">
+                Where available, Pulse allows you to export your personal records in commonly usable formats such as CSV.
+              </p>
+            </div>
+
+            <div className="bg-slate-100 dark:bg-slate-900/40 p-3 rounded-xl border border-slate-200/60 dark:border-slate-800/60 space-y-1.5">
+              <p className="font-bold text-xs text-slate-900 dark:text-white">Account Deletion</p>
+              <p className="text-xs">
+                You can delete your Pulse account through the account settings or profile menu where the feature is available.
+              </p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                When you delete your account, we take reasonable steps to remove your associated personal information from our active systems.
+              </p>
+            </div>
           </div>
         </Section>
 
-        {/* 10. Third-Party Services */}
-        <Section icon={<Server className="w-5 h-5" />} color="cyan" title="10. Third-Party Services">
-          <div className="space-y-2 text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-            <p>
-              Pulse may rely on third-party service providers to operate parts of the application.
-            </p>
-            <p>
-              These providers may process information on our behalf as necessary to provide services such as authentication, hosting, infrastructure, or data storage.
-            </p>
-            <p className="text-xs text-slate-500 dark:text-slate-400 italic">
-              Their handling of information may also be subject to their own privacy policies and terms.
-            </p>
-          </div>
-        </Section>
-
-        {/* 11. Changes to This Privacy Policy */}
-        <Section icon={<RefreshCw className="w-5 h-5" />} color="emerald" title="11. Changes to This Privacy Policy">
-          <div className="space-y-2 text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-            <p>
-              We may update this Privacy Policy from time to time to reflect changes to Pulse, our practices, or applicable legal requirements.
-            </p>
-            <p>
-              When we make material changes, we will take reasonable steps to notify users through the application or other appropriate means.
-            </p>
-            <p className="text-xs font-mono text-slate-500 dark:text-slate-400 pt-1">
-              The updated policy will include a revised Effective Date at the top of this page.
-            </p>
-          </div>
-        </Section>
-
-        {/* 12. Contact Us */}
-        <Section icon={<Mail className="w-5 h-5" />} color="indigo" title="12. Contact Us">
+        {/* 7. Data Retention */}
+        <Section icon={<Clock className="w-5 h-5" />} color="slate" title="7. Data Retention">
           <div className="text-sm text-slate-600 dark:text-slate-400 space-y-2">
             <p>
-              If you have questions about this Privacy Policy, want to make a privacy request, or need assistance with account deletion, please contact:
+              We retain your information while your account is active or for as long as reasonably necessary to provide the Pulse service.
+            </p>
+            <p>
+              When you delete your account, information associated with your account is removed from our active systems in accordance with our deletion processes.
+            </p>
+            <p className="text-xs text-slate-500 dark:text-slate-500">
+              Certain information may be retained where necessary to meet legal, security, or operational requirements.
+            </p>
+          </div>
+        </Section>
+
+        {/* 8. Children's Privacy */}
+        <Section icon={<Shield className="w-5 h-5" />} color="amber" title="8. Children's Privacy">
+          <div className="text-sm text-slate-600 dark:text-slate-400 space-y-2">
+            <p>
+              Pulse is not intended for children below the minimum age permitted under applicable law.
+            </p>
+            <p>
+              We do not knowingly collect personal information from children where doing so would violate applicable law.
+            </p>
+          </div>
+        </Section>
+
+        {/* 9. Third-Party Services */}
+        <Section icon={<Server className="w-5 h-5" />} color="indigo" title="9. Third-Party Services">
+          <div className="text-sm text-slate-600 dark:text-slate-400 space-y-2">
+            <p>
+              Pulse may use third-party services necessary to operate and maintain the application.
+            </p>
+            <p>
+              These services may include cloud infrastructure, authentication, email, security, and other technology services.
+            </p>
+            <p className="text-xs text-slate-500 dark:text-slate-500">
+              Third-party services operate under their own privacy policies and terms.
+            </p>
+          </div>
+        </Section>
+
+        {/* 10. Changes to This Privacy Policy */}
+        <Section icon={<RefreshCw className="w-5 h-5" />} color="emerald" title="10. Changes to This Privacy Policy">
+          <div className="text-sm text-slate-600 dark:text-slate-400 space-y-2">
+            <p>
+              We may update this Privacy Policy from time to time as Pulse evolves or as applicable requirements change.
+            </p>
+            <p>
+              When we make significant changes, we will update the “Last updated” date and provide additional notice where appropriate.
+            </p>
+          </div>
+        </Section>
+
+        {/* 11. Contact Us */}
+        <Section icon={<Mail className="w-5 h-5" />} color="cyan" title="11. Contact Us">
+          <div className="text-sm text-slate-600 dark:text-slate-400 space-y-2">
+            <p>
+              If you have questions about this Privacy Policy or your information, please contact us:
             </p>
             <p>
               <a
                 href="mailto:naveensingh575@gmail.com"
                 className="text-indigo-600 dark:text-indigo-400 font-bold hover:underline"
               >
-                naveensingh575@gmail.com
+                Email: naveensingh575@gmail.com
               </a>
             </p>
             <p className="text-xs text-slate-500 dark:text-slate-500 pt-1">
-              We aim to respond to privacy-related requests within a reasonable period.
+              We aim to respond to privacy-related inquiries within 5 business days.
             </p>
           </div>
         </Section>
@@ -335,35 +349,35 @@ export const PrivacyPage = () => {
           Pulse is designed with a simple principle: Your personal information belongs to you.
         </p>
         <p className="text-xs text-slate-600 dark:text-slate-400 max-w-xl mx-auto">
-          We do not sell your data, use it for advertising, or share it for commercial purposes unrelated to operating Pulse.
+          We do not sell your personal information or use your personal records for targeted advertising.
         </p>
       </div>
 
       {/* Footer */}
       <div className="text-center py-4 text-xs text-slate-400 dark:text-slate-600">
-        Pulse Life Tracker · Privacy Policy · Effective September 23, 2026
+        Pulse Life Tracker · Privacy Policy · September 2026
       </div>
     </div>
   );
 };
 
 const colorMap = {
-  indigo: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-500/30',
-  emerald: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/30',
-  amber: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-500/30',
-  rose: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-500/30',
-  cyan: 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-200 dark:border-cyan-500/30',
-  purple: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-500/30',
-  slate: 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800',
+  indigo: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-500/30",
+  emerald: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/30",
+  amber: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-500/30",
+  rose: "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-500/30",
+  cyan: "bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-200 dark:border-cyan-500/30",
+  purple: "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-500/30",
+  slate: "bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800",
 };
 
 const Section = ({ icon, color, title, children }) => (
   <div className="glass-panel-dark rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
-    <div className={`flex items-center space-x-2.5 px-5 py-3 border-b border-slate-200 dark:border-slate-800 ${colorMap[color]?.split(' ').filter(c => c.startsWith('bg-')).join(' ')}`}>
-      <div className={colorMap[color]?.split(' ').filter(c => !c.startsWith('bg-')).join(' ')}>
+    <div className={`flex items-center space-x-2.5 px-5 py-3 border-b border-slate-200 dark:border-slate-800 ${colorMap[color]?.split(" ").filter(c => c.startsWith("bg-")).join(" ")}`}>
+      <div className={colorMap[color]?.split(" ").filter(c => !c.startsWith("bg-")).join(" ")}>
         {icon}
       </div>
-      <h2 className={`font-bold text-sm ${colorMap[color]?.split(' ').filter(c => c.startsWith('text-')).join(' ')}`}>{title}</h2>
+      <h2 className={`font-bold text-sm ${colorMap[color]?.split(" ").filter(c => c.startsWith("text-")).join(" ")}`}>{title}</h2>
     </div>
     <div className="p-5">{children}</div>
   </div>
