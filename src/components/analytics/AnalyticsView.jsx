@@ -270,16 +270,49 @@ export const AnalyticsView = () => {
     habitDeltaText = `${doneSlots} completions in ${MONTH_NAMES_FULL[selectedMonth - 1]}`;
   }
 
-  // Find lowest adherence habit
+  // Find lowest adherence habit across selected timeframe
   let lowestHabit = null;
   let lowestHabitCount = 999;
-  habits.forEach(h => {
-    const c = activeWeekDays.filter(d => isHabitDoneOn(h.id, d.dateStr)).length;
-    if (c < lowestHabitCount) {
-      lowestHabitCount = c;
-      lowestHabit = h;
+  let lowestHabitPossibleDays = 1;
+
+  if (habits.length > 0) {
+    if (timeframe === 'day') {
+      lowestHabitPossibleDays = 1;
+      habits.forEach(h => {
+        const done = isHabitDoneOn(h.id, selectedDate) ? 1 : 0;
+        if (done < lowestHabitCount) {
+          lowestHabitCount = done;
+          lowestHabit = h;
+        }
+      });
+    } else if (timeframe === 'week') {
+      lowestHabitPossibleDays = 7;
+      habits.forEach(h => {
+        const c = activeWeekDays.filter(d => isHabitDoneOn(h.id, d.dateStr)).length;
+        if (c < lowestHabitCount) {
+          lowestHabitCount = c;
+          lowestHabit = h;
+        }
+      });
+    } else {
+      // Month
+      const isCurrentMonth = selectedMonthKey === `${currentISTYM.year}-${String(currentISTYM.month).padStart(2, '0')}`;
+      const daysToCount = Math.max(1, isCurrentMonth ? currentDayNum : 30);
+      lowestHabitPossibleDays = daysToCount;
+      habits.forEach(h => {
+        let c = 0;
+        for (let dayI = 1; dayI <= daysToCount; dayI++) {
+          const dStr = `${selectedMonthKey}-${String(dayI).padStart(2, '0')}`;
+          if (isHabitDoneOn(h.id, dStr)) c += 1;
+        }
+        if (c < lowestHabitCount) {
+          lowestHabitCount = c;
+          lowestHabit = h;
+        }
+      });
     }
-  });
+  }
+  if (lowestHabitCount === 999) lowestHabitCount = 0;
 
   // --- 3. Scoped Activity & Physical Volume Output ---
   const getActivityMins = (a) => Number(a.durationMins ?? a.duration) || 0;
@@ -382,17 +415,26 @@ export const AnalyticsView = () => {
     };
 
     // 2. Habit Formation Nudge
+    const lowestHabitPct = lowestHabitPossibleDays > 0 ? Math.round((lowestHabitCount / lowestHabitPossibleDays) * 100) : 0;
+    const habitHeadline = !lowestHabit
+      ? 'Habits consistency on track.'
+      : timeframe === 'day'
+      ? `${lowestHabit.name} is ${lowestHabitCount === 1 ? 'completed today' : 'not yet completed today'}.`
+      : timeframe === 'week'
+      ? `'${lowestHabit.name}' has ${lowestHabitCount}/7 completions this week (${lowestHabitPct}%).`
+      : `'${lowestHabit.name}' has ${lowestHabitCount}/${lowestHabitPossibleDays} completions this month (${lowestHabitPct}%).`;
+
+    const habitAdvice = lowestHabit && (lowestHabitCount / lowestHabitPossibleDays < 0.6)
+      ? `Anchor '${lowestHabit.name}' immediately after your morning planning routine before 10 AM to double consistency.`
+      : `Strong execution consistency across all ${habits.length} daily habits. Keep daily streaks unbroken.`;
+
     const habitInsight = {
       title: 'Habit Formation Nudge',
       icon: Flame,
       color: habitScore >= 70 ? 'emerald' : 'amber',
       badge: `${habitScore}% Discipline Score`,
-      headline: lowestHabit
-        ? `'${lowestHabit.name}' has ${lowestHabitCount}/7 completions this week (${Math.round((lowestHabitCount / 7) * 100)}%).`
-        : 'Habits consistency on track.',
-      advice: lowestHabit && lowestHabitCount < 4
-        ? `Anchor '${lowestHabit.name}' immediately after your morning planning routine before 10 AM to double consistency.`
-        : `Strong execution consistency across all ${habits.length} daily habits. Keep daily streaks unbroken.`
+      headline: habitHeadline,
+      advice: habitAdvice
     };
 
     // 3. Activity & Recovery Balance
@@ -838,6 +880,7 @@ export const AnalyticsView = () => {
         habitRating={habitRating}
         lowestHabit={lowestHabit}
         lowestHabitCount={lowestHabitCount}
+        lowestHabitPossibleDays={lowestHabitPossibleDays}
         habits={habits}
         isHabitDoneOn={isHabitDoneOn}
         // Activity

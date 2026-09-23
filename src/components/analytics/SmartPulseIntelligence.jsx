@@ -40,6 +40,7 @@ export const SmartPulseIntelligence = ({
   habitRating = 'Consistent',
   lowestHabit,
   lowestHabitCount = 0,
+  lowestHabitPossibleDays = 1,
   habits = [],
   isHabitDoneOn = () => false,
   // Activity
@@ -72,31 +73,36 @@ export const SmartPulseIntelligence = ({
   // 2. Compute 4-Pillar Balance Scores (0–100)
   // A. Physical Vitality
   let physicalScore = 0;
-  if (timeframe === 'day') {
-    physicalScore = totalActiveOutputMins >= 45 ? 100 : totalActiveOutputMins >= 30 ? 75 : totalActiveOutputMins > 0 ? 45 : 15;
-  } else if (timeframe === 'week') {
-    physicalScore = Math.min(100, Math.round((totalActiveOutputMins / 180) * 100)) || (scopedActivities.length > 0 ? 50 : 15);
-  } else {
-    physicalScore = Math.min(100, Math.round((totalActiveOutputMins / 700) * 100)) || (scopedActivities.length > 0 ? 50 : 15);
+  if (totalActiveOutputMins > 0 || scopedActivities.length > 0) {
+    if (timeframe === 'day') {
+      physicalScore = totalActiveOutputMins >= 45 ? 100 : totalActiveOutputMins >= 30 ? 75 : totalActiveOutputMins > 0 ? 50 : 30;
+    } else if (timeframe === 'week') {
+      physicalScore = Math.min(100, Math.max(scopedActivities.length > 0 ? 30 : 0, Math.round((totalActiveOutputMins / 180) * 100)));
+    } else {
+      physicalScore = Math.min(100, Math.max(scopedActivities.length > 0 ? 30 : 0, Math.round((totalActiveOutputMins / 700) * 100)));
+    }
   }
 
   // B. Execution Velocity
   const executionScore = scopedTasks.length > 0
     ? tasksCompletionRate
-    : 70; // baseline if no pending tasks
+    : 100;
 
   // C. Financial Prudence
-  let financialScore = 80;
+  let financialScore = 100;
   if (safeDailyRate > 0) {
     if (actualDailyRate <= safeDailyRate) {
-      financialScore = Math.min(100, 85 + Math.round((budgetBufferRemaining / (safeDailyRate * 10 || 1)) * 15));
+      const savingsRatio = (safeDailyRate - actualDailyRate) / safeDailyRate;
+      financialScore = Math.min(100, 80 + Math.round(savingsRatio * 20));
     } else {
-      financialScore = Math.max(20, 80 - Math.min(60, budgetVariancePct));
+      financialScore = Math.max(10, 80 - Math.min(70, budgetVariancePct));
     }
+  } else if (periodLivingExpenses > 0) {
+    financialScore = 80;
   }
 
   // D. Habit Discipline
-  const disciplineScore = habits.length > 0 ? habitScore : 70;
+  const disciplineScore = habits.length > 0 ? habitScore : 100;
 
   // 3. Dynamic Personality Archetype Map ("Operating Archetype")
   const getOperatingArchetype = () => {
@@ -193,13 +199,14 @@ export const SmartPulseIntelligence = ({
   }
 
   // Habits friction
-  if (lowestHabit && lowestHabitCount < (timeframe === 'week' ? 4 : timeframe === 'day' ? 1 : 14)) {
+  const lowestHabitPct = lowestHabitPossibleDays > 0 ? (lowestHabitCount / lowestHabitPossibleDays) : 1;
+  if (lowestHabit && lowestHabitPct < 0.6) {
     frictionPoints.push({
       pillar: 'Habit Adherence',
       icon: Flame,
       severity: 'medium',
       title: `'${lowestHabit.name}' is Lagging Behind Target`,
-      detail: `Only ${lowestHabitCount} check-in${lowestHabitCount === 1 ? '' : 's'} logged in this horizon. Habits slipping below 50% adherence require immediate anchor pairing.`
+      detail: `${lowestHabitCount} of ${lowestHabitPossibleDays} check-in${lowestHabitPossibleDays === 1 ? '' : 's'} (${Math.round(lowestHabitPct * 100)}%) logged in this horizon. Habits slipping below 60% adherence require immediate anchor pairing.`
     });
   }
 
@@ -238,12 +245,19 @@ export const SmartPulseIntelligence = ({
     });
   }
 
-  if (lowestHabit) {
+  if (lowestHabit && lowestHabitPct < 1) {
     improvements.push({
       pillar: 'Habit Anchoring',
       icon: Flame,
       action: `Anchor '${lowestHabit.name}' immediately following your morning coffee or planning session before 10 AM.`,
       impact: `Habit stacking doubles 30-day consistency by piggybacking on an already established behavioral neural pathway.`
+    });
+  } else if (habits.length > 0) {
+    improvements.push({
+      pillar: 'Habit Momentum',
+      icon: Flame,
+      action: `Maintain unbroken streaks across your active daily routines.`,
+      impact: `Compound consistency transforms intentional discipline into effortless baseline behavior.`
     });
   }
 
