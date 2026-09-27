@@ -9,11 +9,25 @@ import {
   Compass,
   CheckSquare,
   BookOpen,
-  LineChart
+  LineChart,
+  Shield,
+  Sparkles,
+  Crown,
+  ArrowRight
 } from 'lucide-react';
 
 export const Sidebar = () => {
-  const { goals, habits, activities, tasks, remainingBalance, journalEntries, currency } = useDashboard();
+  const {
+    goals,
+    habits,
+    activities,
+    tasks,
+    remainingBalance,
+    journalEntries,
+    currency,
+    subscriptionTier,
+    openPricingModal
+  } = useDashboard();
 
   const navItems = [
     { to: '/', label: 'My Pulse', icon: LayoutDashboard },
@@ -69,14 +83,49 @@ export const Sidebar = () => {
           })}
         </div>
 
-        {/* Operating Tip Footer Widget */}
-        <div className="mt-auto bg-slate-50 dark:bg-gradient-to-br dark:from-indigo-950/40 dark:to-slate-900/60 p-3.5 rounded-xl border border-slate-200 dark:border-indigo-500/20 text-xs space-y-1.5">
-          <p className="font-bold text-indigo-600 dark:text-indigo-300 flex items-center gap-1">
-            ✨ Operating Tip
-          </p>
-          <p className="text-slate-600 dark:text-slate-400 leading-relaxed text-[11px]">
-            Log your daily workout reps, running pace & deep reading sessions in Activity Pulse to track your growth!
-          </p>
+        {/* Membership & Founder Pass Status Widget */}
+        <div className="mt-auto">
+          {subscriptionTier === 'founder' ? (
+            <div
+              onClick={openPricingModal}
+              className="p-3.5 rounded-2xl bg-gradient-to-br from-emerald-500/10 via-cyan-500/10 to-indigo-500/10 border border-emerald-500/30 text-xs space-y-1.5 cursor-pointer hover:border-emerald-500/50 transition group"
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-extrabold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5 text-[11px] uppercase tracking-wider">
+                  <Shield className="w-3.5 h-3.5 text-emerald-500" />
+                  <span>Founder Active</span>
+                </span>
+                <span className="text-[10px] px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 font-bold">
+                  Lifetime
+                </span>
+              </div>
+              <p className="text-slate-600 dark:text-slate-400 text-[11px] leading-snug">
+                Full unlocked access to all intelligence suites.
+              </p>
+            </div>
+          ) : (
+            <div
+              onClick={openPricingModal}
+              className="p-3.5 rounded-2xl bg-gradient-to-br from-indigo-50/80 via-white to-cyan-50/80 dark:from-indigo-950/40 dark:via-slate-900/60 dark:to-slate-950 border border-indigo-200 dark:border-indigo-500/30 text-xs space-y-2 cursor-pointer hover:border-indigo-400 dark:hover:border-indigo-500/60 transition shadow-sm group"
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-extrabold text-indigo-700 dark:text-indigo-300 flex items-center gap-1.5 text-xs">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-500 animate-pulse" />
+                  <span>Founder Pass</span>
+                </span>
+                <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-700 dark:text-amber-400">
+                  Early Pass
+                </span>
+              </div>
+              <p className="text-slate-600 dark:text-slate-400 text-[11px] leading-snug">
+                Claim 100% free lifetime access with your early invite code.
+              </p>
+              <div className="flex items-center justify-between pt-1 text-[11px] font-bold text-indigo-600 dark:text-indigo-400 group-hover:translate-x-0.5 transition-transform">
+                <span>Unlock Pass</span>
+                <ArrowRight className="w-3 h-3" />
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Privacy Policy Footer Link */}

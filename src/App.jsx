@@ -19,6 +19,7 @@ import { AnalyticsPage } from './pages/AnalyticsPage';
 import { JournalPage } from './pages/JournalPage';
 import { ActivityPage } from './pages/ActivityPage';
 import { PrivacyPage } from './pages/PrivacyPage';
+import { PricingModal } from './components/pricing/PricingModal';
 
 import { ShieldCheck, Loader2, WifiOff } from 'lucide-react';
 
@@ -159,6 +160,9 @@ const AppLayout = () => {
         isOpen={isCommandPaletteOpen}
         onClose={() => setIsCommandPaletteOpen(false)}
       />
+
+      {/* 👑 Pulse Membership & Founder Pass Modal */}
+      <PricingModal />
     </div>
   );
 };

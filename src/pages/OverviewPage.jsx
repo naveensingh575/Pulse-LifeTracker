@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useDashboard } from '../context/DashboardContext';
+import { OnboardingWizard } from '../components/onboarding/OnboardingWizard';
 import { QuickStartGuide } from '../components/onboarding/QuickStartGuide';
 import { SmartFocusBanner } from '../components/focus/SmartFocusBanner';
 import { RoutineWidget } from '../components/routines/RoutineWidget';
@@ -19,7 +20,7 @@ export const OverviewPage = () => {
   if (isBrandNewUser && showOnboarding) {
     return (
       <div className="space-y-6 animate-in fade-in duration-200">
-        <QuickStartGuide onDismiss={() => setShowOnboarding(false)} />
+        <OnboardingWizard onDismiss={() => setShowOnboarding(false)} />
       </div>
     );
   }

@@ -11,6 +11,7 @@ import {
 } from '../utils/dateUtils';
 import { isLivingBudgetExpense } from '../utils/financeUtils';
 import { triggerHaptic } from '../utils/hapticUtils';
+import { validatePromoCode, PLAN_TIERS } from '../utils/pricingUtils';
 
 export const SUPPORTED_CURRENCIES = [
   { symbol: '$', code: 'USD', name: 'US Dollar ($)' },
@@ -156,6 +157,58 @@ export const DashboardProvider = ({ children }) => {
 
   // Navigation view state: 'overview' | 'analytics'
   const [activeView, setActiveView] = useState('overview');
+
+  // Subscription & Founder Pass state: persisted in localStorage and synced to Supabase metadata
+  const [subscriptionTier, setSubscriptionTier] = useState(() => {
+    const saved = localStorage.getItem('pulse_subscription_tier');
+    if (saved) return saved;
+    return user?.raw?.user_metadata?.subscription_tier || 'free';
+  });
+
+  const [founderCode, setFounderCode] = useState(() => {
+    return localStorage.getItem('pulse_founder_code') || user?.raw?.user_metadata?.founder_code || '';
+  });
+
+  const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
+  const openPricingModal = useCallback(() => setIsPricingModalOpen(true), []);
+  const closePricingModal = useCallback(() => setIsPricingModalOpen(false), []);
+
+  const redeemPromoCode = useCallback(async (code) => {
+    const res = validatePromoCode(code);
+    if (!res.valid) {
+      return res;
+    }
+
+    setSubscriptionTier(res.tier);
+    setFounderCode(res.code);
+    localStorage.setItem('pulse_subscription_tier', res.tier);
+    localStorage.setItem('pulse_founder_code', res.code);
+
+    if (user?.id) {
+      try {
+        await supabase.auth.updateUser({
+          data: {
+            subscription_tier: res.tier,
+            founder_code: res.code,
+            founder_redeemed_at: new Date().toISOString()
+          }
+        });
+      } catch (err) {
+        console.warn('Could not sync subscription tier to Supabase metadata:', err);
+      }
+    }
+
+    return res;
+  }, [user]);
+
+  // Sync tier if Supabase user object updates
+  useEffect(() => {
+    if (user?.raw?.user_metadata?.subscription_tier) {
+      const cloudTier = user.raw.user_metadata.subscription_tier;
+      setSubscriptionTier(cloudTier);
+      localStorage.setItem('pulse_subscription_tier', cloudTier);
+    }
+  }, [user]);
 
   // Core Data States
   const [goals, setGoals] = useState([]);
@@ -1389,7 +1442,17 @@ export const DashboardProvider = ({ children }) => {
         journalEntries,
         saveJournalEntry,
         deleteJournalEntry,
-        getJournalEntry
+        getJournalEntry,
+
+        // Subscription, Founder Pass & Pricing
+        subscriptionTier,
+        founderCode,
+        isFounderOrPro: subscriptionTier === 'founder' || subscriptionTier === 'pro',
+        redeemPromoCode,
+        isPricingModalOpen,
+        openPricingModal,
+        closePricingModal,
+        PLAN_TIERS
       }}
     >
       {children}
