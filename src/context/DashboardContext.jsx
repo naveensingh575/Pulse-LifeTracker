@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from './AuthContext';
 import {
@@ -12,6 +12,7 @@ import {
 import { isLivingBudgetExpense } from '../utils/financeUtils';
 import { triggerHaptic } from '../utils/hapticUtils';
 import { validatePromoCode, PLAN_TIERS } from '../utils/pricingUtils';
+import { getQuotaStatus, getCurrentMonthKey, FREE_TIER_LIMITS } from '../utils/featureGating';
 
 export const SUPPORTED_CURRENCIES = [
   { symbol: '$', code: 'USD', name: 'US Dollar ($)' },
@@ -306,6 +307,29 @@ export const DashboardProvider = ({ children }) => {
   const [tasks, setTasks] = useState([]);
   const [journalEntries, setJournalEntries] = useState([]);
   const [isLoadingData, setIsLoadingData] = useState(false);
+
+  // Monthly AI Intelligence Run Tracking & Quota Engine
+  const [aiRunsCount, setAiRunsCount] = useState(() => {
+    const key = `pulse_ai_runs_${getCurrentMonthKey()}`;
+    return Number(localStorage.getItem(key) || '0');
+  });
+
+  const recordAiAnalyticsRun = useCallback(() => {
+    const key = `pulse_ai_runs_${getCurrentMonthKey()}`;
+    const next = aiRunsCount + 1;
+    setAiRunsCount(next);
+    localStorage.setItem(key, String(next));
+    return next;
+  }, [aiRunsCount]);
+
+  const quotaStatus = useMemo(() => {
+    return getQuotaStatus({
+      habitsCount: habits ? habits.length : 0,
+      goalsCount: goals ? goals.length : 0,
+      aiRunsThisMonth: aiRunsCount,
+      subscriptionTier
+    });
+  }, [habits, goals, aiRunsCount, subscriptionTier]);
 
   // Apply dark mode class
   useEffect(() => {
@@ -1530,13 +1554,16 @@ export const DashboardProvider = ({ children }) => {
         deleteJournalEntry,
         getJournalEntry,
 
-        // Subscription, Founder Pass & Pricing
+        // Subscription, Quotas & Pricing
         subscriptionTier,
         founderCode,
         isPremium: subscriptionTier !== 'free',
         isFounderOrPro: subscriptionTier === 'founder' || subscriptionTier === 'lifetime' || subscriptionTier === 'monthly' || subscriptionTier === 'yearly' || subscriptionTier === 'pro',
-        canAddHabit: subscriptionTier !== 'free' || (habits ? habits.length < 5 : true),
-        canAddGoal: subscriptionTier !== 'free' || (goals ? goals.length < 3 : true),
+        canAddHabit: quotaStatus.habits.canAdd,
+        canAddGoal: quotaStatus.goals.canAdd,
+        quotaStatus,
+        recordAiAnalyticsRun,
+        FREE_TIER_LIMITS,
         selectPlan,
         redeemPromoCode,
         isPricingModalOpen,

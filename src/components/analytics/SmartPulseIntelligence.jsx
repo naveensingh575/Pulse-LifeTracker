@@ -67,6 +67,7 @@ export const SmartPulseIntelligence = ({
   currency = '₹'
 }) => {
   const dashboard = useDashboard() || {};
+  const { quotaStatus, openPricingModal, recordAiAnalyticsRun } = dashboard;
   const allActivities = dashboard.activities || scopedActivities || [];
   const allTasks = dashboard.tasks || scopedTasks || [];
   const allTransactions = dashboard.transactions || [];
@@ -298,10 +299,46 @@ export const SmartPulseIntelligence = ({
             <Brain className="w-4 h-4" />
           </div>
           <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-            Smart Pulse Intelligence
+            <span>Smart Pulse Intelligence</span>
+            {quotaStatus && (
+              <button
+                onClick={() => !quotaStatus.isPremium && openPricingModal?.()}
+                className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border transition-all ${
+                  quotaStatus.isPremium
+                    ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/30'
+                    : quotaStatus.aiRuns.isLimitReached
+                      ? 'bg-purple-500/20 text-purple-700 dark:text-purple-300 border-purple-500/40 hover:bg-purple-500/30 cursor-pointer'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+                }`}
+                title={quotaStatus.isPremium ? 'Unlimited Monthly AI Intelligence Runs' : `${quotaStatus.aiRuns.remaining} AI deep-dive runs left this month.`}
+              >
+                {quotaStatus.isPremium ? '✨ Unlimited AI Runs' : `${quotaStatus.aiRuns.current} / ${quotaStatus.aiRuns.max} Monthly AI Runs`}
+              </button>
+            )}
           </h3>
         </div>
       </div>
+
+      {/* Non-Intrusive Free Quota Upgrade Prompt if AI Quota reached */}
+      {quotaStatus && quotaStatus.aiRuns.isLimitReached && (
+        <div className="p-4 rounded-xl bg-gradient-to-r from-purple-500/10 via-indigo-500/10 to-amber-500/10 border border-purple-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="space-y-0.5">
+            <p className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-purple-500" />
+              <span>You've used your 3 free AI Intelligence deep-dives this month</span>
+            </p>
+            <p className="text-[11px] text-slate-600 dark:text-slate-400">
+              Quota resets on the 1st of next month. Upgrade anytime for unlimited live cross-domain behavioral correlations and predictive analysis.
+            </p>
+          </div>
+          <button
+            onClick={() => openPricingModal?.()}
+            className="px-3.5 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold shadow-sm transition shrink-0 cursor-pointer"
+          >
+            Unlock Unlimited
+          </button>
+        </div>
+      )}
 
       {/* 📊 MULTI-PILLAR BALANCE RADAR */}
       <div className="p-3.5 rounded-xl bg-slate-50/70 dark:bg-slate-900/40 border border-slate-200/70 dark:border-slate-800/70 space-y-2">

@@ -35,6 +35,7 @@ export const HabitsPage = () => {
     getDayCompletionStats,
     addHabit,
     canAddHabit,
+    quotaStatus,
     openPricingModal
   } = useDashboard();
 
@@ -147,7 +148,22 @@ export const HabitsPage = () => {
           </div>
           <div>
             <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-              Habits Tracker
+              <span>Habits Tracker</span>
+              {quotaStatus && (
+                <button
+                  onClick={() => !quotaStatus.isPremium && openPricingModal()}
+                  className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border transition-all ${
+                    quotaStatus.isPremium
+                      ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30'
+                      : quotaStatus.habits.isLimitReached
+                        ? 'bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/40 hover:bg-amber-500/30 cursor-pointer'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+                  }`}
+                  title={quotaStatus.isPremium ? 'Unlimited Habits' : `${quotaStatus.habits.remaining} habit slots remaining. Click to upgrade for unlimited.`}
+                >
+                  {quotaStatus.isPremium ? '✨ Unlimited' : `${quotaStatus.habits.current} / ${quotaStatus.habits.max} Habits`}
+                </button>
+              )}
             </h2>
           </div>
         </div>

@@ -41,7 +41,10 @@ export const HabitTracker = ({ activeCategoryProp }) => {
     toggleHabitForDate,
     addHabit,
     updateHabit,
-    deleteHabit
+    deleteHabit,
+    canAddHabit,
+    quotaStatus,
+    openPricingModal
   } = useDashboard();
 
   const [internalCategory, setInternalCategory] = useState('All');
@@ -74,6 +77,10 @@ export const HabitTracker = ({ activeCategoryProp }) => {
     : habits.filter(h => h.category && h.category.toLowerCase() === activeCategory.toLowerCase());
 
   const handleOpenAdd = () => {
+    if (!canAddHabit) {
+      openPricingModal();
+      return;
+    }
     setEditingHabit(null);
     setNewHabitName('');
     setNewHabitCategory('Health');
