@@ -190,6 +190,7 @@ export const DashboardProvider = ({ children }) => {
           data: {
             subscription_tier: res.tier,
             founder_code: res.code,
+            is_premium: res.tier !== 'free',
             founder_redeemed_at: new Date().toISOString()
           }
         });
@@ -207,6 +208,10 @@ export const DashboardProvider = ({ children }) => {
       const cloudTier = user.raw.user_metadata.subscription_tier;
       setSubscriptionTier(cloudTier);
       localStorage.setItem('pulse_subscription_tier', cloudTier);
+      if (user.raw.user_metadata.founder_code) {
+        setFounderCode(user.raw.user_metadata.founder_code);
+        localStorage.setItem('pulse_founder_code', user.raw.user_metadata.founder_code);
+      }
     }
   }, [user]);
 
@@ -1447,7 +1452,8 @@ export const DashboardProvider = ({ children }) => {
         // Subscription, Founder Pass & Pricing
         subscriptionTier,
         founderCode,
-        isFounderOrPro: subscriptionTier === 'founder' || subscriptionTier === 'pro',
+        isPremium: subscriptionTier !== 'free',
+        isFounderOrPro: subscriptionTier === 'founder' || subscriptionTier === 'monthly' || subscriptionTier === 'yearly' || subscriptionTier === 'pro',
         redeemPromoCode,
         isPricingModalOpen,
         openPricingModal,

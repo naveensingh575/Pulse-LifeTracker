@@ -1,42 +1,15 @@
 /**
  * Pricing Tiers & Promo Code Validation Engine for Pulse Life Tracker
+ * Single Active Coupon: FAMILY100 (100% Lifetime Free for first 100 Friends & Family)
  */
 
 export const VALID_PROMO_CODES = {
-  FOUNDER100: {
+  FAMILY100: {
     tier: 'founder',
     discountPct: 100,
-    label: '100% Lifetime Free Founder Pass',
+    label: 'Friends & Family 100% Lifetime Free Founder Pass',
     badge: 'Founder Lifetime',
     icon: '🛡️'
-  },
-  FAMILY_VIP: {
-    tier: 'founder',
-    discountPct: 100,
-    label: 'Friends & Family VIP Founder Pass',
-    badge: 'Founder Lifetime',
-    icon: '🛡️'
-  },
-  EARLYBIRD: {
-    tier: 'founder',
-    discountPct: 100,
-    label: 'Early-Bird Lifetime Founder Pass',
-    badge: 'Founder Lifetime',
-    icon: '🛡️'
-  },
-  LIFETIME2026: {
-    tier: 'founder',
-    discountPct: 100,
-    label: 'Lifetime 2026 Early Access Pass',
-    badge: 'Founder Lifetime',
-    icon: '🛡️'
-  },
-  PULSE50: {
-    tier: 'pro',
-    discountPct: 50,
-    label: '50% Special Pro Discount',
-    badge: 'Pro Member',
-    icon: '⭐'
   }
 };
 
@@ -44,54 +17,82 @@ export const PLAN_TIERS = {
   free: {
     id: 'free',
     name: 'Starter Plan',
-    badge: 'Free',
+    badge: 'Free Forever',
     priceINR: '₹0',
-    priceUSD: '$0',
+    priceUSD: '/bin/zsh',
+    regularINR: '₹0',
+    regularUSD: '/bin/zsh',
     period: 'Forever free',
-    description: 'Essential life and habit tracking for individuals building baseline routines.',
+    discountTag: null,
+    description: 'Essential life & habit tracking for individuals building baseline routines.',
     features: [
-      'Daily Habits & Streak Tracking',
-      'Up to 3 Active Goals',
-      'Basic Task & Action Checklist',
-      'Core Daily Focus & Review Widgets',
-      'Standard Financial Burn-rate Tracker'
+      'Up to 5 Active Habits with Streak Tracking',
+      'Up to 3 Active Long-Term Goals',
+      'Unlimited Action Tasks & Daily Priorities',
+      'Morning Focus & Evening Reflection Widget',
+      'Daily Cash Flow & Burn-Rate Gauge'
     ],
     highlight: false
   },
-  founder: {
-    id: 'founder',
-    name: 'Founder Lifetime Pass',
-    badge: 'Early Access',
-    priceINR: '₹2,499',
-    priceUSD: '$29',
-    period: 'One-time payment · Lifetime Access',
-    description: 'Exclusive lifetime access for early joiners with all current and future intelligence modules.',
+  monthly: {
+    id: 'monthly',
+    name: 'Pro Monthly',
+    badge: '60% OFF Launch',
+    priceINR: '₹99',
+    priceUSD: '.99',
+    regularINR: '₹249',
+    regularUSD: '.99',
+    period: '/ month',
+    discountTag: '60% Launch Special',
+    description: 'High-performance operating system for continuous daily output.',
     features: [
-      'Unlimited Goals & Milestone Sub-goals',
-      'Goal Advisory Engine (Prescribed Action Steps)',
+      'Unlimited Habits & Milestone Sub-goals',
+      'Goal Advisory & AI Action Steps Engine',
       'Cross-Domain Correlation Engine',
-      'Shareable Proof of Work Social Cards',
-      'Full CSV & iCalendar (.ics) Data Exports',
-      'Verified Founder Badge & Profile Tag',
-      'Free Lifetime Updates & Priority Support'
+      'Full CSV & iCalendar (.ics) Routine Sync',
+      'Priority Support & Feature Access'
+    ],
+    highlight: false
+  },
+  yearly: {
+    id: 'yearly',
+    name: 'Pro Yearly',
+    badge: '⭐ Best Value · 2 Months Free',
+    priceINR: '₹799',
+    priceUSD: '.99',
+    regularINR: '₹1,999',
+    regularUSD: '.99',
+    period: '/ year',
+    effectiveMonthly: '₹66/mo (.25/mo)',
+    discountTag: '60% OFF · ₹66/mo',
+    description: 'Save 33% over monthly. Less than the cost of one cup of coffee a month.',
+    features: [
+      'Everything in Pro Monthly',
+      '2 Months Completely Free Included',
+      'Predictive Long-Term Feasibility Radar',
+      'Multi-Pillar Executive Analytics',
+      'Automated Routine Calendar Export'
     ],
     highlight: true,
     isPopular: true
   },
-  pro: {
-    id: 'pro',
-    name: 'Pro Operating Suite',
-    badge: 'Pro Tier',
-    priceINR: '₹149/mo',
-    priceUSD: '$3/mo',
-    period: 'Billed monthly (or ₹1,299/yr)',
-    description: 'High-performance operating system for ambitious professionals and creators.',
+  founder: {
+    id: 'founder',
+    name: 'Founder Lifetime Pass',
+    badge: '👑 One-Time Investment',
+    priceINR: '₹1,499',
+    priceUSD: '',
+    regularINR: '₹4,999',
+    regularUSD: '',
+    period: 'One-time · Own Forever',
+    discountTag: '70% OFF · Zero Subscriptions',
+    description: 'Pay once, own forever. Zero recurring subscription fatigue with all future updates.',
     features: [
-      'Unlimited Goals & Habits',
-      'Advanced Predictive Feasibility Engine',
-      'Multi-Pillar Executive Analytics',
-      'Automated Google Calendar Routine Sync',
-      'Priority Feature Requests'
+      'Lifetime Access to All Intelligence Modules',
+      'Unlimited Habits, Goals & Predictive Analytics',
+      'Cross-Domain Life Synergy Engine',
+      'Verified Founder Golden Badge & Profile Tag',
+      'Free Lifetime Updates & Direct Founder Support'
     ],
     highlight: false
   }
@@ -123,16 +124,15 @@ export function validatePromoCode(rawCode) {
 
   return {
     valid: false,
-    message: 'Invalid or expired invite code. Check spelling and try again.'
+    message: 'Invalid invite code. Only VIP code FAMILY100 is valid for early access.'
   };
 }
 
 /**
- * Computes remaining limited founder seats (out of 200)
+ * Computes remaining limited founder seats (out of 100)
  */
 export function getRemainingFounderSeats() {
-  // Deterministic calculation based on launch month
-  const totalSeats = 200;
-  const claimedSeats = 158;
-  return Math.max(12, totalSeats - claimedSeats);
+  const totalSeats = 100;
+  const claimedSeats = 78;
+  return Math.max(8, totalSeats - claimedSeats);
 }
