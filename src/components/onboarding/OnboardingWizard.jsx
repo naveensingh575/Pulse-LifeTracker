@@ -400,14 +400,14 @@ export const OnboardingWizard = ({ onDismiss }) => {
             </ul>
           </div>
 
-          {/* Promo Code Box */}
+          {/* Secret VIP Promo Code Box */}
           <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-2.5">
             <div className="flex items-center justify-between text-xs font-bold text-slate-800 dark:text-slate-200">
               <span className="flex items-center gap-1.5">
-                <Tag className="w-3.5 h-3.5 text-amber-500" />
-                <span>Friends & Family VIP Invite Code:</span>
+                <Tag className="w-3.5 h-3.5 text-indigo-500" />
+                <span>Have a VIP Invite Code?</span>
               </span>
-              <span className="text-[10px] text-amber-600 dark:text-amber-400 font-semibold">100% Free Lifetime Pass</span>
+              <span className="text-[10px] text-slate-400">Exclusive Early-Access</span>
             </div>
 
             <div className="flex items-center gap-2">
@@ -415,13 +415,14 @@ export const OnboardingWizard = ({ onDismiss }) => {
                 type="text"
                 value={promoCode}
                 onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
-                placeholder="FAMILY100"
-                className="flex-1 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-mono font-bold text-slate-900 dark:text-white uppercase focus:outline-none focus:border-amber-500"
+                placeholder="Enter VIP invite code"
+                className="flex-1 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-mono font-bold text-slate-900 dark:text-white uppercase focus:outline-none focus:border-indigo-500"
               />
               <button
                 type="button"
-                onClick={() => handleApplyPromoCode(promoCode || 'FAMILY100')}
-                className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black transition shadow-sm cursor-pointer shrink-0"
+                onClick={() => handleApplyPromoCode(promoCode)}
+                disabled={!promoCode.trim()}
+                className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-bold transition shadow-sm cursor-pointer shrink-0"
               >
                 Apply Code
               </button>
@@ -431,20 +432,6 @@ export const OnboardingWizard = ({ onDismiss }) => {
               <p className={'text-xs font-semibold ' + (promoApplied ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400')}>
                 {promoMessage}
               </p>
-            )}
-
-            {/* Quick 1-tap code chips */}
-            {!promoApplied && (
-              <div className="flex items-center gap-1.5 pt-1 text-[11px]">
-                <span className="text-slate-400">1-Tap Apply:</span>
-                <button
-                  type="button"
-                  onClick={() => handleApplyPromoCode('FAMILY100')}
-                  className="px-2.5 py-0.5 rounded-lg bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-100 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800/80 font-mono font-bold transition cursor-pointer"
-                >
-                  FAMILY100
-                </button>
-              </div>
             )}
           </div>
 

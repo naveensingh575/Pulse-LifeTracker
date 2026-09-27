@@ -1,109 +1,152 @@
 /**
- * Pricing Tiers & Promo Code Validation Engine for Pulse Life Tracker
- * Single Active Coupon: FAMILY100 (100% Lifetime Free for first 100 Friends & Family)
+ * Universal Multi-Currency Pricing Tiers & VIP Promo Engine for Pulse Life Tracker
  */
 
 export const VALID_PROMO_CODES = {
   FAMILY100: {
-    tier: 'founder',
+    tier: "founder",
     discountPct: 100,
-    label: 'Friends & Family 100% Lifetime Free Founder Pass',
-    badge: 'Founder Lifetime',
-    icon: '🛡️'
+    label: "Friends & Family VIP Founder Pass",
+    badge: "Founder Lifetime",
+    icon: "🛡️"
   }
 };
 
-export const PLAN_TIERS = {
-  free: {
-    id: 'free',
-    name: 'Starter Plan',
-    badge: 'Free Forever',
-    priceINR: '₹0',
-    priceUSD: '/bin/zsh',
-    regularINR: '₹0',
-    regularUSD: '/bin/zsh',
-    period: 'Forever free',
-    discountTag: null,
-    description: 'Essential life & habit tracking for individuals building baseline routines.',
-    features: [
-      'Up to 5 Active Habits with Streak Tracking',
-      'Up to 3 Active Long-Term Goals',
-      'Unlimited Action Tasks & Daily Priorities',
-      'Morning Focus & Evening Reflection Widget',
-      'Daily Cash Flow & Burn-Rate Gauge'
-    ],
-    highlight: false
-  },
+export const PRICING_DATA = {
   monthly: {
-    id: 'monthly',
-    name: 'Pro Monthly',
-    badge: '60% OFF Launch',
-    priceINR: '₹99',
-    priceUSD: '.99',
-    regularINR: '₹249',
-    regularUSD: '.99',
-    period: '/ month',
-    discountTag: '60% Launch Special',
-    description: 'High-performance operating system for continuous daily output.',
+    id: "monthly",
+    name: "Pro Monthly",
+    badge: "60% OFF Launch",
+    discountTag: "60% Launch Special",
+    period: "/ month",
+    description: "High-performance operating system for continuous daily output.",
     features: [
-      'Unlimited Habits & Milestone Sub-goals',
-      'Goal Advisory & AI Action Steps Engine',
-      'Cross-Domain Correlation Engine',
-      'Full CSV & iCalendar (.ics) Routine Sync',
-      'Priority Support & Feature Access'
+      "Unlimited Habits & Milestone Sub-goals",
+      "Goal Advisory & AI Action Steps Engine",
+      "Cross-Domain Correlation Engine",
+      "Full CSV & iCalendar (.ics) Routine Sync",
+      "Priority Support & Continuous Updates"
     ],
-    highlight: false
+    highlight: false,
+    prices: {
+      "₹": { current: "₹99", regular: "₹249", symbol: "₹" },
+      "$": { current: "$1.99", regular: "$4.99", symbol: "$" },
+      "£": { current: "£1.69", regular: "£3.99", symbol: "£" },
+      "€": { current: "€1.89", regular: "€4.49", symbol: "€" },
+      "C$": { current: "C$2.79", regular: "C$6.99", symbol: "C$" },
+      "A$": { current: "A$2.99", regular: "A$7.49", symbol: "A$" }
+    }
   },
   yearly: {
-    id: 'yearly',
-    name: 'Pro Yearly',
-    badge: '⭐ Best Value · 2 Months Free',
-    priceINR: '₹799',
-    priceUSD: '.99',
-    regularINR: '₹1,999',
-    regularUSD: '.99',
-    period: '/ year',
-    effectiveMonthly: '₹66/mo (.25/mo)',
-    discountTag: '60% OFF · ₹66/mo',
-    description: 'Save 33% over monthly. Less than the cost of one cup of coffee a month.',
+    id: "yearly",
+    name: "Pro Yearly",
+    badge: "⭐ Best Value · 2 Mos Free",
+    discountTag: "60% OFF · Best Value",
+    period: "/ year",
+    description: "Save 33% over monthly. Less than the cost of one cup of coffee a month.",
     features: [
-      'Everything in Pro Monthly',
-      '2 Months Completely Free Included',
-      'Predictive Long-Term Feasibility Radar',
-      'Multi-Pillar Executive Analytics',
-      'Automated Routine Calendar Export'
+      "Everything in Pro Monthly",
+      "2 Months Completely Free Included",
+      "Predictive Long-Term Feasibility Radar",
+      "Executive Multi-Pillar Analytics",
+      "Automated Routine Calendar Export"
     ],
     highlight: true,
-    isPopular: true
+    isPopular: true,
+    effectiveMonthly: {
+      "₹": "₹66/mo (Less than ₹2.20/day)",
+      "$": "$1.25/mo (Less than $0.05/day)",
+      "£": "£0.99/mo",
+      "€": "€1.16/mo",
+      "C$": "C$1.66/mo",
+      "A$": "A$1.91/mo"
+    },
+    prices: {
+      "₹": { current: "₹799", regular: "₹1,999", symbol: "₹" },
+      "$": { current: "$14.99", regular: "$39.99", symbol: "$" },
+      "£": { current: "£11.99", regular: "£29.99", symbol: "£" },
+      "€": { current: "€13.99", regular: "€34.99", symbol: "€" },
+      "C$": { current: "C$19.99", regular: "C$49.99", symbol: "C$" },
+      "A$": { current: "A$22.99", regular: "A$59.99", symbol: "A$" }
+    }
   },
-  founder: {
-    id: 'founder',
-    name: 'Founder Lifetime Pass',
-    badge: '👑 One-Time Investment',
-    priceINR: '₹1,499',
-    priceUSD: '',
-    regularINR: '₹4,999',
-    regularUSD: '',
-    period: 'One-time · Own Forever',
-    discountTag: '70% OFF · Zero Subscriptions',
-    description: 'Pay once, own forever. Zero recurring subscription fatigue with all future updates.',
+  lifetime: {
+    id: "lifetime",
+    name: "Founder Lifetime Pass",
+    badge: "👑 One-Time Investment",
+    discountTag: "70% OFF · Pay Once, Own Forever",
+    period: "One-time · Own Forever",
+    description: "Pay once, own forever. Zero recurring subscription fatigue with all future updates.",
     features: [
-      'Lifetime Access to All Intelligence Modules',
-      'Unlimited Habits, Goals & Predictive Analytics',
-      'Cross-Domain Life Synergy Engine',
-      'Verified Founder Golden Badge & Profile Tag',
-      'Free Lifetime Updates & Direct Founder Support'
+      "Lifetime Access to All Intelligence Modules",
+      "Unlimited Habits, Goals & Predictive Analytics",
+      "Cross-Domain Life Synergy Engine",
+      "Verified Founder Golden Badge & Profile Tag",
+      "Free Lifetime Updates & Direct Founder Support"
     ],
-    highlight: false
+    highlight: false,
+    prices: {
+      "₹": { current: "₹1,499", regular: "₹4,999", symbol: "₹" },
+      "$": { current: "$24", regular: "$79", symbol: "$" },
+      "£": { current: "£19", regular: "£59", symbol: "£" },
+      "€": { current: "€22", regular: "€69", symbol: "€" },
+      "C$": { current: "C$32", regular: "C$99", symbol: "C$" },
+      "A$": { current: "A$36", regular: "A$110", symbol: "A$" }
+    }
+  },
+  free: {
+    id: "free",
+    name: "Starter Plan",
+    badge: "Free Forever",
+    period: "Forever free",
+    description: "Essential life & habit tracking for individuals building baseline routines.",
+    features: [
+      "Up to 5 Active Habits with Streak Tracking",
+      "Up to 3 Active Long-Term Goals",
+      "Unlimited Action Tasks & Daily Priorities",
+      "Morning Focus & Evening Reflection Widget",
+      "Daily Cash Flow & Burn-Rate Gauge"
+    ],
+    highlight: false,
+    prices: {
+      "₹": { current: "₹0", regular: "₹0", symbol: "₹" },
+      "$": { current: "$0", regular: "$0", symbol: "$" },
+      "£": { current: "£0", regular: "£0", symbol: "£" },
+      "€": { current: "€0", regular: "€0", symbol: "€" },
+      "C$": { current: "C$0", regular: "C$0", symbol: "C$" },
+      "A$": { current: "A$0", regular: "A$0", symbol: "A$" }
+    }
   }
 };
+
+export const PLAN_TIERS = PRICING_DATA;
+
+/**
+ * Returns localized pricing for a given plan and currency
+ */
+export function getLocalizedPrice(planId, currency = "₹") {
+  const plan = PRICING_DATA[planId] || PRICING_DATA.monthly;
+  const curr = plan.prices[currency] ? currency : (currency === "$" ? "$" : "₹");
+  const priceObj = plan.prices[curr] || plan.prices["$"] || plan.prices["₹"];
+  const effMonthly = plan.effectiveMonthly ? (plan.effectiveMonthly[curr] || plan.effectiveMonthly["$"]) : null;
+
+  return {
+    current: priceObj.current,
+    regular: priceObj.regular,
+    symbol: priceObj.symbol,
+    period: plan.period,
+    effectiveMonthly: effMonthly,
+    discountTag: plan.discountTag
+  };
+}
 
 /**
  * Validates promo code (case-insensitive)
+ * Note: FAMILY100 is secret and only works if entered explicitly by the user
  */
 export function validatePromoCode(rawCode) {
-  if (!rawCode || typeof rawCode !== 'string') {
-    return { valid: false, message: 'Please enter a valid invite code.' };
+  if (!rawCode || typeof rawCode !== "string") {
+    return { valid: false, message: "Please enter a valid invite code." };
   }
 
   const clean = rawCode.trim().toUpperCase();
@@ -118,13 +161,13 @@ export function validatePromoCode(rawCode) {
       label: match.label,
       badge: match.badge,
       icon: match.icon,
-      message: '🎉 ' + match.label + ' successfully applied!'
+      message: "🎉 " + match.label + " successfully applied!"
     };
   }
 
   return {
     valid: false,
-    message: 'Invalid invite code. Only VIP code FAMILY100 is valid for early access.'
+    message: "Invalid or unrecognized invite code. Please check spelling."
   };
 }
 

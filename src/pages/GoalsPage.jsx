@@ -6,8 +6,16 @@ import { useDashboard } from '../context/DashboardContext';
 import { Compass, Plus } from 'lucide-react';
 
 export const GoalsPage = () => {
-  const { addGoal } = useDashboard();
+  const { addGoal, canAddGoal, openPricingModal } = useDashboard();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
+  const handleOpenCreateGoal = () => {
+    if (!canAddGoal) {
+      openPricingModal();
+      return;
+    }
+    setIsAddModalOpen(true);
+  };
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
@@ -26,7 +34,7 @@ export const GoalsPage = () => {
         </div>
 
         <button
-          onClick={() => setIsAddModalOpen(true)}
+          onClick={handleOpenCreateGoal}
           className="flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md shadow-indigo-600/30 transition cursor-pointer"
         >
           <Plus className="w-4 h-4" />

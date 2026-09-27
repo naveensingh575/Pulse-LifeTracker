@@ -33,7 +33,9 @@ export const HabitsPage = () => {
     isHabitDoneOn,
     toggleHabitForDate,
     getDayCompletionStats,
-    addHabit
+    addHabit,
+    canAddHabit,
+    openPricingModal
   } = useDashboard();
 
   const [gridMode, setGridMode] = useState('7day'); // 'day' | '7day' | 'monthly'
@@ -54,6 +56,10 @@ export const HabitsPage = () => {
   const [newHabitStartDate, setNewHabitStartDate] = useState(todayStr);
 
   const handleOpenAdd = () => {
+    if (!canAddHabit) {
+      openPricingModal();
+      return;
+    }
     setNewHabitName('');
     setNewHabitCategory(selectedCategory !== 'All' ? selectedCategory : 'Health');
     setNewHabitStartDate(getISTDateString());

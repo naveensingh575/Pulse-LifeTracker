@@ -173,6 +173,27 @@ export const DashboardProvider = ({ children }) => {
   const openPricingModal = useCallback(() => setIsPricingModalOpen(true), []);
   const closePricingModal = useCallback(() => setIsPricingModalOpen(false), []);
 
+  const selectPlan = useCallback(async (tierId) => {
+    setSubscriptionTier(tierId);
+    localStorage.setItem('pulse_subscription_tier', tierId);
+
+    if (user?.id) {
+      try {
+        await supabase.auth.updateUser({
+          data: {
+            subscription_tier: tierId,
+            is_premium: tierId !== 'free',
+            subscribed_at: new Date().toISOString()
+          }
+        });
+      } catch (err) {
+        console.warn('Could not sync selected plan to Supabase metadata:', err);
+      }
+    }
+
+    return { success: true, tier: tierId };
+  }, [user]);
+
   const redeemPromoCode = useCallback(async (code) => {
     const res = validatePromoCode(code);
     if (!res.valid) {
@@ -1453,7 +1474,10 @@ export const DashboardProvider = ({ children }) => {
         subscriptionTier,
         founderCode,
         isPremium: subscriptionTier !== 'free',
-        isFounderOrPro: subscriptionTier === 'founder' || subscriptionTier === 'monthly' || subscriptionTier === 'yearly' || subscriptionTier === 'pro',
+        isFounderOrPro: subscriptionTier === 'founder' || subscriptionTier === 'lifetime' || subscriptionTier === 'monthly' || subscriptionTier === 'yearly' || subscriptionTier === 'pro',
+        canAddHabit: subscriptionTier !== 'free' || (habits ? habits.length < 5 : true),
+        canAddGoal: subscriptionTier !== 'free' || (goals ? goals.length < 3 : true),
+        selectPlan,
         redeemPromoCode,
         isPricingModalOpen,
         openPricingModal,
