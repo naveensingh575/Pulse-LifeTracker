@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useDashboard } from "../../context/DashboardContext";
+import { useAuth } from "../../context/AuthContext";
 import { getLocalizedPrice, PRICING_DATA, getRemainingFounderSeats } from "../../utils/pricingUtils";
+import { openRazorpayCheckout } from "../../utils/paymentUtils";
 import {
   X,
   Shield,
@@ -24,6 +26,7 @@ export const PricingModal = () => {
     redeemPromoCode,
     currency
   } = useDashboard();
+  const { user } = useAuth();
 
   const [promoInput, setPromoInput] = useState("");
   const [promoStatus, setPromoStatus] = useState(null); // { type: "success"|"error", message }
@@ -64,24 +67,66 @@ export const PricingModal = () => {
     }
   };
 
-  const handleSelectPlan = (planId) => {
+  const handleSelectPlan = async (planId) => {
     const plan = PRICING_DATA[planId];
     const localized = getLocalizedPrice(planId, currency);
-    setCheckoutModalPlan({
-      id: planId,
-      name: plan.name,
-      price: localized.current + " " + localized.period
-    });
+
+    if (currency === "₹") {
+      setIsApplying(true);
+      const opened = await openRazorpayCheckout({
+        planId,
+        user,
+        onSuccess: async (paymentDetails) => {
+          await selectPlan(planId, paymentDetails);
+          setPromoStatus({
+            type: "success",
+            message: "🎉 Payment verified (ID: " + paymentDetails.paymentId + ")! Successfully upgraded to " + plan.name + "."
+          });
+          setIsApplying(false);
+        },
+        onFailure: (error) => {
+          console.warn("Razorpay payment issue:", error);
+          setIsApplying(false);
+          setCheckoutModalPlan({
+            id: planId,
+            name: plan.name,
+            price: localized.current + " " + localized.period
+          });
+        },
+        onDismiss: () => {
+          setIsApplying(false);
+        }
+      });
+
+      if (!opened) {
+        setIsApplying(false);
+        setCheckoutModalPlan({
+          id: planId,
+          name: plan.name,
+          price: localized.current + " " + localized.period
+        });
+      }
+    } else {
+      setCheckoutModalPlan({
+        id: planId,
+        name: plan.name,
+        price: localized.current + " " + localized.period
+      });
+    }
   };
 
   const handleConfirmCheckout = async () => {
     if (!checkoutModalPlan) return;
     setIsProcessingCheckout(true);
     try {
-      await selectPlan(checkoutModalPlan.id);
+      await selectPlan(checkoutModalPlan.id, {
+        gateway: currency === "₹" ? "razorpay_direct" : "stripe_direct",
+        amount: checkoutModalPlan.price,
+        currency: currency === "₹" ? "INR" : "USD"
+      });
       setPromoStatus({
         type: "success",
-        message: "🎉 Successfully upgraded to " + checkoutModalPlan.name + "! All intelligence features unlocked."
+        message: "🎉 Successfully activated " + checkoutModalPlan.name + "! All intelligence features unlocked."
       });
       setCheckoutModalPlan(null);
     } catch (err) {

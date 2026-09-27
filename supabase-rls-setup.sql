@@ -336,3 +336,35 @@ $$;
 -- Grant execute permission to authenticated users only
 GRANT EXECUTE ON FUNCTION public.delete_user_account() TO authenticated;
 
+-- ----------------------------------------------------------------------------
+-- 11. Table: coupon_redemptions (Tracks unique account VIP code usage)
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.coupon_redemptions (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  code TEXT NOT NULL,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  user_email TEXT,
+  redeemed_at TIMESTAMPTZ DEFAULT NOW(),
+  CONSTRAINT unique_user_coupon UNIQUE(code, user_id)
+);
+
+ALTER TABLE IF EXISTS public.coupon_redemptions ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "coupon_redemptions_select_policy" ON public.coupon_redemptions;
+DROP POLICY IF EXISTS "coupon_redemptions_insert_policy" ON public.coupon_redemptions;
+DROP POLICY IF EXISTS "coupon_redemptions_update_policy" ON public.coupon_redemptions;
+
+CREATE POLICY "coupon_redemptions_select_policy" ON public.coupon_redemptions
+  FOR SELECT TO authenticated
+  USING (true);
+
+CREATE POLICY "coupon_redemptions_insert_policy" ON public.coupon_redemptions
+  FOR INSERT TO authenticated
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "coupon_redemptions_update_policy" ON public.coupon_redemptions
+  FOR UPDATE TO authenticated
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
+

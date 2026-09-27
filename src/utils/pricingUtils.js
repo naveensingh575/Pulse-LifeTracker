@@ -3,13 +3,16 @@
  * Aligned 100% with the central dashboard currency selector.
  */
 
+export const MAX_FAMILY100_ACCOUNTS = 100;
+
 export const VALID_PROMO_CODES = {
   FAMILY100: {
     tier: "founder",
     discountPct: 100,
     label: "Friends & Family VIP Founder Pass",
     badge: "Founder Lifetime",
-    icon: "🛡️"
+    icon: "🛡️",
+    maxLimit: MAX_FAMILY100_ACCOUNTS
   }
 };
 
@@ -152,10 +155,9 @@ export function getLocalizedPrice(planId, centralCurrency = "₹") {
 }
 
 /**
- * Validates promo code (case-insensitive)
- * Note: FAMILY100 is secret and only works if entered explicitly by the user
+ * Validates promo code (case-insensitive) with max 100 unique account redemption limit check
  */
-export function validatePromoCode(rawCode) {
+export function validatePromoCode(rawCode, currentRedeemedCount = 0, isAlreadyRedeemedByUser = false) {
   if (!rawCode || typeof rawCode !== "string") {
     return { valid: false, message: "Please enter a valid invite code." };
   }
@@ -164,6 +166,14 @@ export function validatePromoCode(rawCode) {
   const match = VALID_PROMO_CODES[clean];
 
   if (match) {
+    // If limit has been reached (100 unique accounts) and this user has not already claimed it
+    if (currentRedeemedCount >= MAX_FAMILY100_ACCOUNTS && !isAlreadyRedeemedByUser) {
+      return {
+        valid: false,
+        message: "This invite code has reached its 100-user limit and is now expired."
+      };
+    }
+
     return {
       valid: true,
       code: clean,
@@ -185,8 +195,6 @@ export function validatePromoCode(rawCode) {
 /**
  * Computes remaining limited founder seats (out of 100)
  */
-export function getRemainingFounderSeats() {
-  const totalSeats = 100;
-  const claimedSeats = 78;
-  return Math.max(8, totalSeats - claimedSeats);
+export function getRemainingFounderSeats(claimedCount = 78) {
+  return Math.max(0, MAX_FAMILY100_ACCOUNTS - claimedCount);
 }

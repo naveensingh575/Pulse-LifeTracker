@@ -173,18 +173,28 @@ export const DashboardProvider = ({ children }) => {
   const openPricingModal = useCallback(() => setIsPricingModalOpen(true), []);
   const closePricingModal = useCallback(() => setIsPricingModalOpen(false), []);
 
-  const selectPlan = useCallback(async (tierId) => {
+  const selectPlan = useCallback(async (tierId, paymentDetails = null) => {
     setSubscriptionTier(tierId);
     localStorage.setItem('pulse_subscription_tier', tierId);
 
     if (user?.id) {
       try {
+        const updatePayload = {
+          subscription_tier: tierId,
+          is_premium: tierId !== 'free',
+          subscribed_at: new Date().toISOString()
+        };
+
+        if (paymentDetails) {
+          updatePayload.razorpay_payment_id = paymentDetails.paymentId || null;
+          updatePayload.razorpay_order_id = paymentDetails.orderId || null;
+          updatePayload.payment_gateway = paymentDetails.gateway || 'razorpay';
+          updatePayload.payment_amount = paymentDetails.amount || null;
+          updatePayload.payment_currency = paymentDetails.currency || 'INR';
+        }
+
         await supabase.auth.updateUser({
-          data: {
-            subscription_tier: tierId,
-            is_premium: tierId !== 'free',
-            subscribed_at: new Date().toISOString()
-          }
+          data: updatePayload
         });
       } catch (err) {
         console.warn('Could not sync selected plan to Supabase metadata:', err);
@@ -195,7 +205,44 @@ export const DashboardProvider = ({ children }) => {
   }, [user]);
 
   const redeemPromoCode = useCallback(async (code) => {
-    const res = validatePromoCode(code);
+    const clean = (code || '').trim().toUpperCase();
+    let currentCount = 78;
+    let isAlreadyRedeemed = false;
+
+    if (user?.id) {
+      try {
+        // Query coupon redemptions count from Supabase
+        const { count, error } = await supabase
+          .from('coupon_redemptions')
+          .select('*', { count: 'exact', head: true })
+          .eq('code', clean);
+
+        if (!error && typeof count === 'number') {
+          currentCount = count;
+        }
+
+        // Check if current user already redeemed
+        const { data: userRedemption } = await supabase
+          .from('coupon_redemptions')
+          .select('id')
+          .eq('code', clean)
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (userRedemption) {
+          isAlreadyRedeemed = true;
+        }
+      } catch (err) {
+        // Table fallback
+      }
+    } else {
+      const storedCount = Number(localStorage.getItem('pulse_family100_count') || '78');
+      currentCount = storedCount;
+      const myStoredCode = localStorage.getItem('pulse_founder_code');
+      if (myStoredCode === clean) isAlreadyRedeemed = true;
+    }
+
+    const res = validatePromoCode(clean, currentCount, isAlreadyRedeemed);
     if (!res.valid) {
       return res;
     }
@@ -207,17 +254,30 @@ export const DashboardProvider = ({ children }) => {
 
     if (user?.id) {
       try {
+        // Record unique redemption in Supabase
+        await supabase
+          .from('coupon_redemptions')
+          .upsert({
+            code: res.code,
+            user_id: user.id,
+            user_email: user.email || '',
+            redeemed_at: new Date().toISOString()
+          }, { onConflict: 'code,user_id' });
+
         await supabase.auth.updateUser({
           data: {
             subscription_tier: res.tier,
             founder_code: res.code,
-            is_premium: res.tier !== 'free',
+            is_premium: true,
             founder_redeemed_at: new Date().toISOString()
           }
         });
       } catch (err) {
-        console.warn('Could not sync subscription tier to Supabase metadata:', err);
+        console.warn('Could not sync redemption to Supabase:', err);
       }
+    } else {
+      const nextCount = Math.min(100, currentCount + 1);
+      localStorage.setItem('pulse_family100_count', String(nextCount));
     }
 
     return res;
