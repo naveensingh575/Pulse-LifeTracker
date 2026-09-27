@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useDashboard, SUPPORTED_CURRENCIES } from "../../context/DashboardContext";
+import { useDashboard } from "../../context/DashboardContext";
 import { getLocalizedPrice, PRICING_DATA, getRemainingFounderSeats } from "../../utils/pricingUtils";
 import {
   X,
@@ -22,8 +22,7 @@ export const PricingModal = () => {
     subscriptionTier,
     selectPlan,
     redeemPromoCode,
-    currency,
-    setCurrency
+    currency
   } = useDashboard();
 
   const [promoInput, setPromoInput] = useState("");
@@ -105,31 +104,11 @@ export const PricingModal = () => {
           <X className="w-5 h-5" />
         </button>
 
-        {/* Header & Currency Switcher */}
-        <div className="text-center max-w-xl mx-auto space-y-3 pt-1">
-          <div className="flex items-center justify-center gap-2">
-            <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20 text-xs font-bold">
-              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-              <span>Launch Special · Exclusive Early Access</span>
-            </div>
-
-            {/* Dynamic Central Dashboard Currency Switcher */}
-            <div className="relative inline-flex items-center">
-              <select
-                value={currency}
-                onChange={(e) => setCurrency(e.target.value)}
-                className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold py-1 pl-2.5 pr-7 rounded-full border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer transition appearance-none touch-manipulation"
-                title="Change Central Dashboard Currency"
-                aria-label="Change Central Currency"
-              >
-                {SUPPORTED_CURRENCIES.map((c) => (
-                  <option key={c.symbol} value={c.symbol} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
-                    {c.symbol} {c.code}
-                  </option>
-                ))}
-              </select>
-              <span className="text-slate-400 text-[10px] absolute right-2 pointer-events-none">▼</span>
-            </div>
+        {/* Header */}
+        <div className="text-center max-w-xl mx-auto space-y-2 pt-1">
+          <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20 text-xs font-bold">
+            <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+            <span>Launch Special · Exclusive Early Access</span>
           </div>
 
           <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white">
