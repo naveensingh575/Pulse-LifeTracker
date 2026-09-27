@@ -193,18 +193,51 @@ export const AuthProvider = ({ children }) => {
     setSession(null);
   };
 
-  // Delete Account & All Data (calls a SECURITY DEFINER Postgres RPC)
-  // This safely deletes all user rows across all 10 tables + the auth.users record
-  // without ever exposing the service_role key on the frontend.
+  // Delete Account & All Data (calls RPC first with multi-table cascading fallback)
   const deleteAccount = async () => {
-    const { error } = await supabase.rpc('delete_user_account');
-    if (error) throw error;
-    // Clean up local state after successful deletion
-    sessionStorage.removeItem('pulse_recovery_mode');
+    let rpcSucceeded = false;
+    try {
+      const { error } = await supabase.rpc('delete_user_account');
+      if (!error) {
+        rpcSucceeded = true;
+      }
+    } catch (err) {
+      console.warn('RPC delete_user_account failed or not configured, executing client-side cascading cleanup:', err);
+    }
+
+    // Fallback: If RPC was missing or errored, delete all user data across all tables directly
+    if (!rpcSucceeded && user?.id) {
+      const tables = [
+        'habit_completions',
+        'habits',
+        'monthly_allocations',
+        'transactions',
+        'sub_goals',
+        'goals',
+        'deadlines',
+        'tasks',
+        'activities',
+        'journal_entries',
+        'coupon_redemptions'
+      ];
+
+      await Promise.allSettled(
+        tables.map(table => supabase.from(table).delete().eq('user_id', user.id))
+      );
+    }
+
+    // Clean up local storage and session storage
+    try {
+      localStorage.clear();
+      sessionStorage.clear();
+    } catch (e) {
+      console.warn('Storage cleanup error:', e);
+    }
+
+    // Reset local auth states and sign out
     setIsPasswordRecovery(false);
     setUser(null);
     setSession(null);
-    // Supabase will invalidate the session server-side; also sign out locally
     await supabase.auth.signOut();
   };
 

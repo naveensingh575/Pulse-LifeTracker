@@ -22,8 +22,8 @@ export const DeleteAccountModal = ({ onClose }) => {
     setError('');
     try {
       await deleteAccount();
-      // After deletion, AuthContext's logout() is called internally
-      // which clears the user session and redirects to login
+      if (onClose) onClose();
+      window.location.href = '/login';
     } catch (err) {
       setError(err?.message || 'Failed to delete account. Please try again or contact support.');
       setIsDeleting(false);
