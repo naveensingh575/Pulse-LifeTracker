@@ -91,38 +91,6 @@ export const Navbar = ({ onOpenQuickCapture }) => {
             )}
           </button>
 
-          {/* Founder Badge / Upgrade CTA (Hidden on mobile to preserve navbar space) */}
-          <button
-            onClick={openPricingModal}
-            className={`hidden sm:flex items-center space-x-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold transition border min-h-[36px] touch-manipulation cursor-pointer ${
-              subscriptionTier === 'founder'
-                ? 'bg-gradient-to-r from-emerald-500/15 to-cyan-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30 hover:border-emerald-500/50'
-                : subscriptionTier === 'pro'
-                ? 'bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30'
-                : 'bg-gradient-to-r from-indigo-500/10 to-cyan-500/10 hover:from-indigo-500/20 hover:to-cyan-500/20 text-indigo-700 dark:text-indigo-300 border-indigo-500/30 shadow-sm'
-            }`}
-            title="Pulse Membership & Founder Pass"
-          >
-            {subscriptionTier === 'founder' ? (
-              <>
-                <Shield className="w-3.5 h-3.5 text-emerald-500" />
-                <span className="hidden sm:inline">Founder Pass</span>
-                <span className="sm:hidden">Founder</span>
-              </>
-            ) : subscriptionTier === 'pro' ? (
-              <>
-                <Star className="w-3.5 h-3.5 text-purple-500" />
-                <span>Pro</span>
-              </>
-            ) : (
-              <>
-                <Sparkles className="w-3.5 h-3.5 text-amber-500 animate-pulse" />
-                <span className="hidden sm:inline">Founder Pass</span>
-                <span className="sm:hidden">Founder</span>
-              </>
-            )}
-          </button>
-
           {/* User Profile Menu */}
           {user ? (
             <div className="relative">
@@ -145,17 +113,19 @@ export const Navbar = ({ onOpenQuickCapture }) => {
                     <div className="flex items-center justify-between">
                       <p className="text-xs font-bold text-slate-900 dark:text-slate-100">{user.name}</p>
                       <span className={'text-[9px] font-bold px-1.5 py-0.2 rounded-full ' + (
-                        subscriptionTier === 'founder'
+                        subscriptionTier === 'founder' || subscriptionTier === 'lifetime'
                           ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'
+                          : subscriptionTier === 'yearly' || subscriptionTier === 'monthly'
+                          ? 'bg-indigo-500/20 text-indigo-600 dark:text-indigo-400'
                           : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
                       )}>
-                        {subscriptionTier === 'founder' ? 'Founder' : 'Free'}
+                        {subscriptionTier === 'founder' ? 'Founder' : subscriptionTier === 'lifetime' ? 'Lifetime' : subscriptionTier === 'yearly' ? 'Yearly' : subscriptionTier === 'monthly' ? 'Monthly' : 'Free'}
                       </span>
                     </div>
                     <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">{user.email}</p>
                   </div>
 
-                  {/* Membership & Founder Pass */}
+                  {/* Subscription Link */}
                   <button
                     onClick={() => {
                       setShowUserMenu(false);
@@ -164,7 +134,7 @@ export const Navbar = ({ onOpenQuickCapture }) => {
                     className="w-full flex items-center space-x-2 px-3 py-2 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
                   >
                     <Crown className="w-4 h-4 text-amber-500" />
-                    <span>Founder Pass & Plans</span>
+                    <span>Subscription</span>
                   </button>
 
                   {/* Privacy Policy */}

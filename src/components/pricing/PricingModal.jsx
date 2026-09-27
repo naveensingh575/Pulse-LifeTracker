@@ -104,42 +104,27 @@ export const PricingModal = () => {
           <X className="w-5 h-5" />
         </button>
 
-        {/* Header */}
-        <div className="text-center max-w-xl mx-auto space-y-2 pt-1">
-          <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20 text-xs font-bold">
-            <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-            <span>Launch Special · Exclusive Early Access</span>
+        {/* Simple Clean Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3 pt-1">
+          <div>
+            <h2 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white">
+              Subscription Plans
+            </h2>
           </div>
-
-          <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white">
-            Master Your Daily Operating Rhythm
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-            Clean, high-performance intelligence to build unbreakable habits, execute priority goals, and gain financial clarity.
-          </p>
-        </div>
-
-        {/* Active Founder / Paid Plan Banner */}
-        {subscriptionTier !== "free" && (
-          <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 rounded-xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400">
-                <Shield className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-xs font-black text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">
-                  {isFounder ? "Founder Lifetime Active" : subscriptionTier.toUpperCase() + " Pro Plan Active"}
-                </p>
-                <p className="text-xs text-slate-600 dark:text-slate-400">
-                  You have full unlimited access to all intelligence suites, AI routines, and multi-pillar correlations.
-                </p>
-              </div>
-            </div>
-            <span className="hidden sm:inline-flex px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 font-bold text-xs border border-emerald-500/30">
-              ✓ Active Member
+          
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-slate-500 dark:text-slate-400">Current Plan:</span>
+            <span className={'text-xs font-bold px-3 py-1 rounded-full border ' + (
+              isFounder || isLifetime
+                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
+                : isYearly || isMonthly
+                ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/30'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+            )}>
+              {isFounder ? 'Founder Lifetime' : isLifetime ? 'Lifetime Pass' : isYearly ? 'Pro Yearly' : isMonthly ? 'Pro Monthly' : 'Free Starter'}
             </span>
           </div>
-        )}
+        </div>
 
         {/* 3 High-Impact Pricing Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
