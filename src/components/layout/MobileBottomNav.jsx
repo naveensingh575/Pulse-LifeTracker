@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
+import { useDashboard } from '../../context/DashboardContext';
 import {
   LayoutDashboard,
   Flame,
@@ -12,12 +13,16 @@ import {
   BookOpen,
   LineChart,
   Plus,
-  Sparkles
+  Sparkles,
+  Crown,
+  Shield,
+  ArrowRight
 } from 'lucide-react';
 
 export const MobileBottomNav = ({ onOpenQuickCapture }) => {
   const [isMoreOpen, setIsMoreOpen] = useState(false);
   const location = useLocation();
+  const { subscriptionTier, openPricingModal } = useDashboard();
 
   const primaryTabs = [
     { to: '/', label: 'Pulse', icon: LayoutDashboard },
@@ -161,6 +166,53 @@ export const MobileBottomNav = ({ onOpenQuickCapture }) => {
                 );
               })}
             </div>
+
+            {/* Founder Pass & Membership Trigger */}
+            <button
+              onClick={() => {
+                setIsMoreOpen(false);
+                openPricingModal();
+              }}
+              className={'w-full p-3 rounded-2xl border flex items-center justify-between text-left transition cursor-pointer ' + (
+                subscriptionTier === 'founder'
+                  ? 'bg-emerald-500/10 border-emerald-500/30 hover:border-emerald-500/50'
+                  : 'bg-gradient-to-r from-indigo-500/10 via-cyan-500/10 to-purple-500/10 border-indigo-500/30 hover:border-indigo-500/50'
+              )}
+            >
+              <div className="flex items-center space-x-2.5">
+                <div className={'p-2 rounded-xl ' + (
+                  subscriptionTier === 'founder'
+                    ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'
+                    : 'bg-indigo-500/20 text-indigo-600 dark:text-indigo-400'
+                )}>
+                  {subscriptionTier === 'founder' ? (
+                    <Shield className="w-4 h-4" />
+                  ) : (
+                    <Crown className="w-4 h-4 text-amber-500" />
+                  )}
+                </div>
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-xs font-extrabold text-slate-900 dark:text-white">
+                      {subscriptionTier === 'founder' ? 'Founder Lifetime Active' : 'Founder Pass & Membership'}
+                    </p>
+                    <span className={'text-[9px] font-bold px-1.5 py-0.2 rounded ' + (
+                      subscriptionTier === 'founder'
+                        ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'
+                        : 'bg-amber-500/20 text-amber-700 dark:text-amber-400'
+                    )}>
+                      {subscriptionTier === 'founder' ? 'Lifetime' : 'Early Pass'}
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                    {subscriptionTier === 'founder'
+                      ? 'Full unlocked access to all intelligence suites'
+                      : 'Unlock lifetime access with your founder invite code'}
+                  </p>
+                </div>
+              </div>
+              <ArrowRight className="w-4 h-4 text-slate-400 shrink-0" />
+            </button>
           </div>
         </div>
       )}
