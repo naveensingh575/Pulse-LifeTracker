@@ -91,10 +91,10 @@ export const Navbar = ({ onOpenQuickCapture }) => {
             )}
           </button>
 
-          {/* Founder Badge / Upgrade CTA */}
+          {/* Founder Badge / Upgrade CTA (Hidden on mobile to preserve navbar space) */}
           <button
             onClick={openPricingModal}
-            className={`flex items-center space-x-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold transition border min-h-[36px] touch-manipulation cursor-pointer ${
+            className={`hidden sm:flex items-center space-x-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold transition border min-h-[36px] touch-manipulation cursor-pointer ${
               subscriptionTier === 'founder'
                 ? 'bg-gradient-to-r from-emerald-500/15 to-cyan-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30 hover:border-emerald-500/50'
                 : subscriptionTier === 'pro'
