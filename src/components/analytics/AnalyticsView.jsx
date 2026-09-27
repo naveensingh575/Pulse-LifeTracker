@@ -1527,7 +1527,15 @@ export const AnalyticsView = () => {
         topStreak={topStreak}
         totalActiveMins={totalActiveOutputMins}
         tasksCompleted={completedScopedTasks.length}
-        weekBadge={activeWeekBadge}
+        timeframe={timeframe}
+        timeframeLabel={
+          timeframe === 'day'
+            ? (selectedDate === todayStr ? 'Today' : formatISTDisplayDate(selectedDate))
+            : timeframe === 'week'
+            ? activeWeekBadge
+            : `${MONTH_NAMES_FULL[selectedMonth - 1]} ${selectedYear}`
+        }
+        theme={theme}
       />
 
     </div>

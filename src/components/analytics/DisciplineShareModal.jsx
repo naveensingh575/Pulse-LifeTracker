@@ -5,6 +5,8 @@ import {
   Download,
   Copy,
   Check,
+  Sun,
+  Moon,
   Sparkles,
   Flame,
   Activity,
@@ -21,23 +23,40 @@ export const DisciplineShareModal = ({
   topStreak = 7,
   totalActiveMins = 180,
   tasksCompleted = 14,
-  weekBadge = 'W39'
+  timeframe = 'week',
+  timeframeLabel = 'W39',
+  theme = 'dark'
 }) => {
   const [copied, setCopied] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  // Default card export theme matches app theme, but user can toggle
+  const [cardTheme, setCardTheme] = useState(theme);
   const canvasRef = useRef(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      setCardTheme(theme);
+    }
+  }, [isOpen, theme]);
 
   if (!isOpen) return null;
 
+  const timeframeTitle =
+    timeframe === 'day'
+      ? 'Daily Discipline Score'
+      : timeframe === 'month'
+      ? 'Monthly Discipline Score'
+      : 'Weekly Discipline Score';
+
   const shareSummaryText = [
-    '⚡ My PULSE Operating Score (' + weekBadge + '):',
+    '⚡ My PULSE Operating Score (' + timeframeLabel + '):',
     archetypeIcon + ' Archetype: ' + operatingArchetype,
-    '🛡️ Discipline Rating: ' + disciplineScore + '%',
+    '🛡️ ' + (timeframe === 'day' ? 'Daily' : timeframe === 'month' ? 'Monthly' : 'Weekly') + ' Discipline: ' + disciplineScore + '%',
     '🔥 Top Habit Streak: ' + topStreak + ' days',
     '💪 Physical Vitality: ' + totalActiveMins + ' active mins',
     '✅ Executed Tasks: ' + tasksCompleted,
     '',
-    'Tracking life, habits & wealth on Pulse:',
+    'Tracking habits, energy & wealth on Pulse:',
     'https://pulse-life-tracker.vercel.app'
   ].join('\n');
 
@@ -51,7 +70,7 @@ export const DisciplineShareModal = ({
     }
   };
 
-  // Generate crisp 1080x1080 image on HTML5 Canvas
+  // Generate crisp 1080x1080 image on HTML5 Canvas (Light or Dark)
   const generateCanvasImage = () => {
     const canvas = canvasRef.current;
     if (!canvas) return null;
@@ -62,129 +81,259 @@ export const DisciplineShareModal = ({
     canvas.width = width;
     canvas.height = height;
 
-    // 1. Dark Gradient Background
-    const bgGrad = ctx.createLinearGradient(0, 0, width, height);
-    bgGrad.addColorStop(0, '#090d16');
-    bgGrad.addColorStop(0.5, '#0f172a');
-    bgGrad.addColorStop(1, '#05070c');
-    ctx.fillStyle = bgGrad;
-    ctx.fillRect(0, 0, width, height);
+    const isDark = cardTheme === 'dark';
 
-    // 2. Ambient Glow Spheres
-    const glow1 = ctx.createRadialGradient(250, 250, 20, 250, 250, 450);
-    glow1.addColorStop(0, 'rgba(99, 102, 241, 0.22)');
-    glow1.addColorStop(1, 'rgba(99, 102, 241, 0)');
-    ctx.fillStyle = glow1;
-    ctx.fillRect(0, 0, width, height);
+    if (isDark) {
+      // --- DARK THEME CANVAS ---
+      // 1. Dark Gradient Background
+      const bgGrad = ctx.createLinearGradient(0, 0, width, height);
+      bgGrad.addColorStop(0, '#090d16');
+      bgGrad.addColorStop(0.5, '#0f172a');
+      bgGrad.addColorStop(1, '#05070c');
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, width, height);
 
-    const glow2 = ctx.createRadialGradient(850, 800, 20, 850, 800, 400);
-    glow2.addColorStop(0, 'rgba(16, 185, 129, 0.18)');
-    glow2.addColorStop(1, 'rgba(16, 185, 129, 0)');
-    ctx.fillStyle = glow2;
-    ctx.fillRect(0, 0, width, height);
+      // 2. Ambient Glow Spheres
+      const glow1 = ctx.createRadialGradient(250, 250, 20, 250, 250, 450);
+      glow1.addColorStop(0, 'rgba(99, 102, 241, 0.22)');
+      glow1.addColorStop(1, 'rgba(99, 102, 241, 0)');
+      ctx.fillStyle = glow1;
+      ctx.fillRect(0, 0, width, height);
 
-    // 3. Card Container Box
-    ctx.save();
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.roundRect(80, 80, 920, 920, 40);
-    ctx.stroke();
+      const glow2 = ctx.createRadialGradient(850, 800, 20, 850, 800, 400);
+      glow2.addColorStop(0, 'rgba(16, 185, 129, 0.18)');
+      glow2.addColorStop(1, 'rgba(16, 185, 129, 0)');
+      ctx.fillStyle = glow2;
+      ctx.fillRect(0, 0, width, height);
 
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.65)';
-    ctx.fill();
-    ctx.restore();
-
-    // 4. Brand Header
-    ctx.fillStyle = '#6366f1';
-    ctx.font = 'bold 36px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-    ctx.fillText('P U L S E', 140, 175);
-
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = '500 24px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-    ctx.fillText('DAILY OPERATING SYSTEM', 320, 175);
-
-    ctx.fillStyle = 'rgba(99, 102, 241, 0.15)';
-    ctx.beginPath();
-    ctx.roundRect(830, 135, 120, 45, 12);
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(99, 102, 241, 0.4)';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-
-    ctx.fillStyle = '#818cf8';
-    ctx.font = 'bold 20px monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText(weekBadge, 890, 165);
-    ctx.textAlign = 'left';
-
-    // 5. Archetype Badge
-    ctx.fillStyle = '#38bdf8';
-    ctx.font = 'bold 24px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-    ctx.fillText(archetypeIcon + ' ' + operatingArchetype.toUpperCase(), 140, 260);
-
-    ctx.fillStyle = '#f8fafc';
-    ctx.font = '900 68px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-    ctx.fillText('Discipline Score', 140, 345);
-
-    // 6. Huge Radial / Score Display
-    ctx.fillStyle = '#10b981';
-    ctx.font = '900 130px monospace';
-    ctx.fillText(disciplineScore + '%', 140, 490);
-
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = '500 26px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-    ctx.fillText('Consistency & High-Performance Output', 145, 545);
-
-    // 7. Divider Line
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(140, 600);
-    ctx.lineTo(940, 600);
-    ctx.stroke();
-
-    // 8. 3 Stat Pillars
-    const stats = [
-      { label: 'TOP STREAK', val: topStreak + ' Days', sub: 'Habit Consistency' },
-      { label: 'ACTIVE OUTPUT', val: totalActiveMins + ' Mins', sub: 'Physical Vitality' },
-      { label: 'TASKS DONE', val: tasksCompleted + ' Completed', sub: 'Execution Velocity' }
-    ];
-
-    stats.forEach((s, idx) => {
-      const x = 140 + idx * 280;
-      // box
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.04)';
+      // 3. Card Container Box
+      ctx.save();
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+      ctx.lineWidth = 3;
       ctx.beginPath();
-      ctx.roundRect(x, 640, 240, 180, 24);
+      ctx.roundRect(80, 80, 920, 920, 40);
+      ctx.stroke();
+
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.65)';
       ctx.fill();
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+      ctx.restore();
+
+      // 4. Brand Header
+      ctx.fillStyle = '#6366f1';
+      ctx.font = 'bold 36px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      ctx.fillText('P U L S E', 140, 175);
+
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '500 24px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      ctx.fillText('DAILY OPERATING SYSTEM', 320, 175);
+
+      // Timeframe pill
+      ctx.fillStyle = 'rgba(99, 102, 241, 0.15)';
+      ctx.beginPath();
+      ctx.roundRect(760, 135, 190, 45, 12);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(99, 102, 241, 0.4)';
       ctx.lineWidth = 1.5;
       ctx.stroke();
 
-      ctx.fillStyle = '#94a3b8';
+      ctx.fillStyle = '#818cf8';
       ctx.font = 'bold 18px monospace';
-      ctx.fillText(s.label, x + 20, 680);
+      ctx.textAlign = 'center';
+      ctx.fillText(timeframeLabel, 855, 165);
+      ctx.textAlign = 'left';
+
+      // 5. Archetype Badge
+      ctx.fillStyle = '#38bdf8';
+      ctx.font = 'bold 24px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      ctx.fillText(archetypeIcon + ' ' + operatingArchetype.toUpperCase(), 140, 260);
 
       ctx.fillStyle = '#f8fafc';
-      ctx.font = 'bold 34px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-      ctx.fillText(s.val, x + 20, 740);
+      ctx.font = '900 64px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      ctx.fillText(timeframeTitle, 140, 345);
+
+      // 6. Score Display
+      ctx.fillStyle = '#10b981';
+      ctx.font = '900 130px monospace';
+      ctx.fillText(disciplineScore + '%', 140, 490);
+
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '500 26px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      ctx.fillText('Consistency & High-Performance Output', 145, 545);
+
+      // 7. Divider Line
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(140, 600);
+      ctx.lineTo(940, 600);
+      ctx.stroke();
+
+      // 8. 3 Stat Pillars
+      const stats = [
+        { label: 'TOP STREAK', val: topStreak + ' Days', sub: 'Habit Consistency' },
+        { label: 'ACTIVE OUTPUT', val: totalActiveMins + ' Mins', sub: 'Physical Vitality' },
+        { label: 'TASKS DONE', val: tasksCompleted + ' Completed', sub: 'Execution Velocity' }
+      ];
+
+      stats.forEach((s, idx) => {
+        const x = 140 + idx * 280;
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.04)';
+        ctx.beginPath();
+        ctx.roundRect(x, 640, 240, 180, 24);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = 'bold 18px monospace';
+        ctx.fillText(s.label, x + 20, 680);
+
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = 'bold 34px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+        ctx.fillText(s.val, x + 20, 740);
+
+        ctx.fillStyle = '#64748b';
+        ctx.font = '500 18px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+        ctx.fillText(s.sub, x + 20, 785);
+      });
+
+      // 9. Branded Footer
+      ctx.fillStyle = '#64748b';
+      ctx.font = 'bold 22px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      ctx.fillText('PULSE LIFE TRACKER', 140, 920);
+
+      ctx.fillStyle = '#818cf8';
+      ctx.font = '500 20px monospace';
+      ctx.textAlign = 'right';
+      ctx.fillText('pulse-life-tracker.vercel.app', 940, 920);
+      ctx.textAlign = 'left';
+    } else {
+      // --- LIGHT THEME CANVAS ---
+      // 1. Crisp Light Background
+      const bgGrad = ctx.createLinearGradient(0, 0, width, height);
+      bgGrad.addColorStop(0, '#f8fafc');
+      bgGrad.addColorStop(0.5, '#ffffff');
+      bgGrad.addColorStop(1, '#f1f5f9');
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, width, height);
+
+      // 2. Subtle Glow Spheres
+      const glow1 = ctx.createRadialGradient(250, 250, 20, 250, 250, 450);
+      glow1.addColorStop(0, 'rgba(99, 102, 241, 0.09)');
+      glow1.addColorStop(1, 'rgba(99, 102, 241, 0)');
+      ctx.fillStyle = glow1;
+      ctx.fillRect(0, 0, width, height);
+
+      const glow2 = ctx.createRadialGradient(850, 800, 20, 850, 800, 400);
+      glow2.addColorStop(0, 'rgba(16, 185, 129, 0.08)');
+      glow2.addColorStop(1, 'rgba(16, 185, 129, 0)');
+      ctx.fillStyle = glow2;
+      ctx.fillRect(0, 0, width, height);
+
+      // 3. Card Container Box
+      ctx.save();
+      ctx.strokeStyle = 'rgba(15, 23, 42, 0.12)';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.roundRect(80, 80, 920, 920, 40);
+      ctx.stroke();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.fill();
+      ctx.restore();
+
+      // 4. Brand Header
+      ctx.fillStyle = '#4f46e5';
+      ctx.font = 'bold 36px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      ctx.fillText('P U L S E', 140, 175);
 
       ctx.fillStyle = '#64748b';
-      ctx.font = '500 18px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-      ctx.fillText(s.sub, x + 20, 785);
-    });
+      ctx.font = '600 24px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      ctx.fillText('DAILY OPERATING SYSTEM', 320, 175);
 
-    // 9. Branded Footer
-    ctx.fillStyle = '#64748b';
-    ctx.font = 'bold 22px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-    ctx.fillText('PULSE LIFE TRACKER', 140, 920);
+      // Timeframe pill
+      ctx.fillStyle = 'rgba(99, 102, 241, 0.08)';
+      ctx.beginPath();
+      ctx.roundRect(760, 135, 190, 45, 12);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(99, 102, 241, 0.25)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
 
-    ctx.fillStyle = '#818cf8';
-    ctx.font = '500 20px monospace';
-    ctx.textAlign = 'right';
-    ctx.fillText('pulse-life-tracker.vercel.app', 940, 920);
-    ctx.textAlign = 'left';
+      ctx.fillStyle = '#4f46e5';
+      ctx.font = 'bold 18px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(timeframeLabel, 855, 165);
+      ctx.textAlign = 'left';
+
+      // 5. Archetype Badge
+      ctx.fillStyle = '#0284c7';
+      ctx.font = 'bold 24px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      ctx.fillText(archetypeIcon + ' ' + operatingArchetype.toUpperCase(), 140, 260);
+
+      ctx.fillStyle = '#0f172a';
+      ctx.font = '900 64px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      ctx.fillText(timeframeTitle, 140, 345);
+
+      // 6. Score Display
+      ctx.fillStyle = '#059669';
+      ctx.font = '900 130px monospace';
+      ctx.fillText(disciplineScore + '%', 140, 490);
+
+      ctx.fillStyle = '#475569';
+      ctx.font = '600 26px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      ctx.fillText('Consistency & High-Performance Output', 145, 545);
+
+      // 7. Divider Line
+      ctx.strokeStyle = 'rgba(15, 23, 42, 0.08)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(140, 600);
+      ctx.lineTo(940, 600);
+      ctx.stroke();
+
+      // 8. 3 Stat Pillars
+      const stats = [
+        { label: 'TOP STREAK', val: topStreak + ' Days', sub: 'Habit Consistency' },
+        { label: 'ACTIVE OUTPUT', val: totalActiveMins + ' Mins', sub: 'Physical Vitality' },
+        { label: 'TASKS DONE', val: tasksCompleted + ' Completed', sub: 'Execution Velocity' }
+      ];
+
+      stats.forEach((s, idx) => {
+        const x = 140 + idx * 280;
+        ctx.fillStyle = '#f8fafc';
+        ctx.beginPath();
+        ctx.roundRect(x, 640, 240, 180, 24);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(15, 23, 42, 0.08)';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        ctx.fillStyle = '#64748b';
+        ctx.font = 'bold 18px monospace';
+        ctx.fillText(s.label, x + 20, 680);
+
+        ctx.fillStyle = '#0f172a';
+        ctx.font = 'bold 34px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+        ctx.fillText(s.val, x + 20, 740);
+
+        ctx.fillStyle = '#64748b';
+        ctx.font = '500 18px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+        ctx.fillText(s.sub, x + 20, 785);
+      });
+
+      // 9. Branded Footer
+      ctx.fillStyle = '#64748b';
+      ctx.font = 'bold 22px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      ctx.fillText('PULSE LIFE TRACKER', 140, 920);
+
+      ctx.fillStyle = '#4f46e5';
+      ctx.font = '600 20px monospace';
+      ctx.textAlign = 'right';
+      ctx.fillText('pulse-life-tracker.vercel.app', 940, 920);
+      ctx.textAlign = 'left';
+    }
 
     return canvas;
   };
@@ -198,9 +347,10 @@ export const DisciplineShareModal = ({
         return;
       }
       const dataUrl = canvas.toDataURL('image/png');
+      const safeLabel = String(timeframeLabel).replace(/[^a-zA-Z0-9_\-]/g, '_');
       const a = document.createElement('a');
       a.href = dataUrl;
-      a.download = 'pulse-discipline-' + weekBadge + '.png';
+      a.download = 'pulse-discipline-' + timeframe + '-' + safeLabel + '-' + cardTheme + '.png';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -210,14 +360,16 @@ export const DisciplineShareModal = ({
 
   const handleNativeShare = async () => {
     const canvas = generateCanvasImage();
+    const safeLabel = String(timeframeLabel).replace(/[^a-zA-Z0-9_\-]/g, '_');
+    const fileName = 'pulse-discipline-' + timeframe + '-' + safeLabel + '.png';
     if (navigator.share) {
       try {
         if (canvas && canvas.toBlob) {
           canvas.toBlob(async (blob) => {
-            if (blob && navigator.canShare && navigator.canShare({ files: [new File([blob], 'pulse-discipline.png', { type: 'image/png' })] })) {
-              const file = new File([blob], 'pulse-discipline.png', { type: 'image/png' });
+            if (blob && navigator.canShare && navigator.canShare({ files: [new File([blob], fileName, { type: 'image/png' })] })) {
+              const file = new File([blob], fileName, { type: 'image/png' });
               await navigator.share({
-                title: 'My Pulse Discipline Score',
+                title: 'My Pulse ' + (timeframe === 'day' ? 'Daily' : timeframe === 'month' ? 'Monthly' : 'Weekly') + ' Discipline Score',
                 text: shareSummaryText,
                 files: [file]
               });
@@ -246,68 +398,110 @@ export const DisciplineShareModal = ({
     }
   };
 
+  const isLight = cardTheme === 'light';
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="glass-panel-dark max-w-lg w-full rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 space-y-5 shadow-2xl relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 dark:bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white max-w-lg w-full rounded-3xl p-6 space-y-4 shadow-2xl relative">
         
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 p-2 rounded-xl text-slate-400 hover:text-slate-100 hover:bg-slate-800/60 transition"
+          className="absolute top-5 right-5 p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
         >
           <X className="w-5 h-5" />
         </button>
 
-        {/* Modal Title */}
-        <div className="flex items-center space-x-2.5">
-          <div className="p-2.5 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
-            <Share2 className="w-5 h-5" />
+        {/* Modal Header */}
+        <div className="flex items-center justify-between pr-8">
+          <div className="flex items-center space-x-2.5">
+            <div className="p-2.5 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+              <Share2 className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
+                Share Proof of Work
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Verified performance card for {timeframeLabel}
+              </p>
+            </div>
           </div>
-          <div>
-            <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
-              Share Proof of Work
-            </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Celebrate your consistency and share your verified weekly discipline card
-            </p>
+
+          {/* Card Theme Switcher [Light / Dark] */}
+          <div className="flex items-center bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-200 dark:border-slate-800 text-xs">
+            <button
+              type="button"
+              onClick={() => setCardTheme('light')}
+              className={'p-1.5 rounded-lg font-bold transition flex items-center gap-1 ' + (cardTheme === 'light' ? 'bg-white text-indigo-600 shadow-sm border border-slate-200/80' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200')}
+              title="Light Card Theme"
+            >
+              <Sun className="w-3.5 h-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setCardTheme('dark')}
+              className={'p-1.5 rounded-lg font-bold transition flex items-center gap-1 ' + (cardTheme === 'dark' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200')}
+              title="Dark Card Theme"
+            >
+              <Moon className="w-3.5 h-3.5" />
+            </button>
           </div>
         </div>
 
         {/* Preview Card */}
-        <div className="rounded-2xl p-5 bg-gradient-to-br from-slate-900 via-slate-950 to-indigo-950 text-white border border-slate-700/60 shadow-xl space-y-4">
+        <div
+          className={'rounded-2xl p-5 border shadow-xl space-y-4 transition-all duration-200 ' + (
+            isLight
+              ? 'bg-gradient-to-br from-slate-50 via-white to-indigo-50/60 text-slate-900 border-slate-200 shadow-indigo-100/50'
+              : 'bg-gradient-to-br from-slate-900 via-slate-950 to-indigo-950 text-white border-slate-700/60'
+          )}
+        >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-mono font-bold text-indigo-400 tracking-wider">PULSE · {weekBadge}</span>
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-semibold border border-indigo-500/30">
+            <span className={'text-xs font-mono font-bold tracking-wider ' + (isLight ? 'text-indigo-600' : 'text-indigo-400')}>
+              PULSE · {timeframeLabel}
+            </span>
+            <span className={'text-[10px] px-2 py-0.5 rounded-full font-semibold border ' + (
+              isLight
+                ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                : 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30'
+            )}>
               {archetypeIcon} {operatingArchetype}
             </span>
           </div>
 
           <div className="space-y-1">
-            <span className="text-xs text-slate-400 font-medium uppercase tracking-wider">Weekly Discipline Score</span>
+            <span className={'text-xs font-medium uppercase tracking-wider ' + (isLight ? 'text-slate-500' : 'text-slate-400')}>
+              {timeframeTitle}
+            </span>
             <div className="flex items-baseline space-x-2">
-              <span className="text-4xl font-black font-mono text-emerald-400">{disciplineScore}%</span>
-              <span className="text-xs text-emerald-300/80 font-medium">Verified Active Consistency</span>
+              <span className={'text-4xl font-black font-mono ' + (isLight ? 'text-emerald-600' : 'text-emerald-400')}>
+                {disciplineScore}%
+              </span>
+              <span className={'text-xs font-medium ' + (isLight ? 'text-emerald-700/80' : 'text-emerald-300/80')}>
+                Verified Active Consistency
+              </span>
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-800 text-center">
-            <div className="p-2 rounded-xl bg-slate-900/60 border border-slate-800">
-              <p className="text-[10px] text-slate-400 font-mono">Streak</p>
-              <p className="text-sm font-bold text-amber-400">{topStreak}d</p>
+          <div className={'grid grid-cols-3 gap-2 pt-2 border-t text-center ' + (isLight ? 'border-slate-200/80' : 'border-slate-800')}>
+            <div className={'p-2 rounded-xl border ' + (isLight ? 'bg-white/80 border-slate-200/80' : 'bg-slate-900/60 border-slate-800')}>
+              <p className={'text-[10px] font-mono ' + (isLight ? 'text-slate-500' : 'text-slate-400')}>Streak</p>
+              <p className={'text-sm font-bold ' + (isLight ? 'text-amber-600' : 'text-amber-400')}>{topStreak}d</p>
             </div>
-            <div className="p-2 rounded-xl bg-slate-900/60 border border-slate-800">
-              <p className="text-[10px] text-slate-400 font-mono">Activity</p>
-              <p className="text-sm font-bold text-cyan-400">{totalActiveMins}m</p>
+            <div className={'p-2 rounded-xl border ' + (isLight ? 'bg-white/80 border-slate-200/80' : 'bg-slate-900/60 border-slate-800')}>
+              <p className={'text-[10px] font-mono ' + (isLight ? 'text-slate-500' : 'text-slate-400')}>Activity</p>
+              <p className={'text-sm font-bold ' + (isLight ? 'text-cyan-600' : 'text-cyan-400')}>{totalActiveMins}m</p>
             </div>
-            <div className="p-2 rounded-xl bg-slate-900/60 border border-slate-800">
-              <p className="text-[10px] text-slate-400 font-mono">Tasks</p>
-              <p className="text-sm font-bold text-purple-400">{tasksCompleted}</p>
+            <div className={'p-2 rounded-xl border ' + (isLight ? 'bg-white/80 border-slate-200/80' : 'bg-slate-900/60 border-slate-800')}>
+              <p className={'text-[10px] font-mono ' + (isLight ? 'text-slate-500' : 'text-slate-400')}>Tasks</p>
+              <p className={'text-sm font-bold ' + (isLight ? 'text-purple-600' : 'text-purple-400')}>{tasksCompleted}</p>
             </div>
           </div>
 
-          <div className="flex items-center justify-between text-[10px] text-slate-500 pt-1">
+          <div className={'flex items-center justify-between text-[10px] pt-1 ' + (isLight ? 'text-slate-500' : 'text-slate-400')}>
             <span>Pulse Life Tracker</span>
-            <span className="font-mono text-indigo-400">pulse-life-tracker.vercel.app</span>
+            <span className={'font-mono ' + (isLight ? 'text-indigo-600' : 'text-indigo-400')}>pulse-life-tracker.vercel.app</span>
           </div>
         </div>
 
@@ -315,7 +509,7 @@ export const DisciplineShareModal = ({
         <canvas ref={canvasRef} style={{ display: 'none' }} />
 
         {/* Action Buttons */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
           <button
             onClick={handleDownload}
             disabled={downloading}
@@ -327,9 +521,13 @@ export const DisciplineShareModal = ({
 
           <button
             onClick={handleNativeShare}
-            className="flex items-center justify-center space-x-1.5 px-3 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-100 font-bold text-xs border border-slate-700 transition cursor-pointer"
+            className={'flex items-center justify-center space-x-1.5 px-3 py-2.5 rounded-xl font-bold text-xs border transition cursor-pointer ' + (
+              cardTheme === 'dark'
+                ? 'bg-slate-800 hover:bg-slate-700 text-slate-100 border-slate-700'
+                : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300'
+            )}
           >
-            <Share2 className="w-4 h-4 text-cyan-400" />
+            <Share2 className="w-4 h-4 text-cyan-500" />
             <span>Share Card</span>
           </button>
 
