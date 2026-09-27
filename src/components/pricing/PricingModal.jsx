@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useDashboard } from "../../context/DashboardContext";
+import { useDashboard, SUPPORTED_CURRENCIES } from "../../context/DashboardContext";
 import { getLocalizedPrice, PRICING_DATA, getRemainingFounderSeats } from "../../utils/pricingUtils";
 import {
   X,
@@ -113,27 +113,22 @@ export const PricingModal = () => {
               <span>Launch Special · Exclusive Early Access</span>
             </div>
 
-            {/* Currency Switcher */}
-            <div className="inline-flex items-center bg-slate-100 dark:bg-slate-800 rounded-full p-0.5 border border-slate-200 dark:border-slate-700 text-[11px] font-bold">
-              {[
-                { symbol: "₹", label: "INR (₹)" },
-                { symbol: "$", label: "USD ($)" },
-                { symbol: "£", label: "GBP (£)" },
-                { symbol: "€", label: "EUR (€)" }
-              ].map((c) => (
-                <button
-                  key={c.symbol}
-                  onClick={() => setCurrency(c.symbol)}
-                  className={"px-2.5 py-0.5 rounded-full transition cursor-pointer " + (
-                    currency === c.symbol
-                      ? "bg-indigo-600 text-white shadow-sm"
-                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
-                  )}
-                  title={"Switch to " + c.label}
-                >
-                  {c.symbol}
-                </button>
-              ))}
+            {/* Dynamic Central Dashboard Currency Switcher */}
+            <div className="relative inline-flex items-center">
+              <select
+                value={currency}
+                onChange={(e) => setCurrency(e.target.value)}
+                className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold py-1 pl-2.5 pr-7 rounded-full border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer transition appearance-none touch-manipulation"
+                title="Change Central Dashboard Currency"
+                aria-label="Change Central Currency"
+              >
+                {SUPPORTED_CURRENCIES.map((c) => (
+                  <option key={c.symbol} value={c.symbol} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
+                    {c.symbol} {c.code}
+                  </option>
+                ))}
+              </select>
+              <span className="text-slate-400 text-[10px] absolute right-2 pointer-events-none">▼</span>
             </div>
           </div>
 

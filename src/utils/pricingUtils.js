@@ -1,5 +1,6 @@
 /**
- * Universal Multi-Currency Pricing Tiers & VIP Promo Engine for Pulse Life Tracker
+ * Universal Central-Currency Pricing Tiers & VIP Promo Engine for Pulse Life Tracker
+ * Aligned 100% with the central dashboard currency selector.
  */
 
 export const VALID_PROMO_CODES = {
@@ -31,10 +32,12 @@ export const PRICING_DATA = {
     prices: {
       "₹": { current: "₹99", regular: "₹249", symbol: "₹" },
       "$": { current: "$1.99", regular: "$4.99", symbol: "$" },
-      "£": { current: "£1.69", regular: "£3.99", symbol: "£" },
       "€": { current: "€1.89", regular: "€4.49", symbol: "€" },
+      "£": { current: "£1.69", regular: "£3.99", symbol: "£" },
+      "¥": { current: "¥299", regular: "¥750", symbol: "¥" },
       "C$": { current: "C$2.79", regular: "C$6.99", symbol: "C$" },
-      "A$": { current: "A$2.99", regular: "A$7.49", symbol: "A$" }
+      "A$": { current: "A$2.99", regular: "A$7.49", symbol: "A$" },
+      "AED": { current: "AED 7.99", regular: "AED 19.99", symbol: "AED" }
     }
   },
   yearly: {
@@ -56,18 +59,22 @@ export const PRICING_DATA = {
     effectiveMonthly: {
       "₹": "₹66/mo (Less than ₹2.20/day)",
       "$": "$1.25/mo (Less than $0.05/day)",
-      "£": "£0.99/mo",
       "€": "€1.16/mo",
+      "£": "£0.99/mo",
+      "¥": "¥191/mo",
       "C$": "C$1.66/mo",
-      "A$": "A$1.91/mo"
+      "A$": "A$1.91/mo",
+      "AED": "AED 4.9/mo"
     },
     prices: {
       "₹": { current: "₹799", regular: "₹1,999", symbol: "₹" },
       "$": { current: "$14.99", regular: "$39.99", symbol: "$" },
-      "£": { current: "£11.99", regular: "£29.99", symbol: "£" },
       "€": { current: "€13.99", regular: "€34.99", symbol: "€" },
+      "£": { current: "£11.99", regular: "£29.99", symbol: "£" },
+      "¥": { current: "¥2,299", regular: "¥5,999", symbol: "¥" },
       "C$": { current: "C$19.99", regular: "C$49.99", symbol: "C$" },
-      "A$": { current: "A$22.99", regular: "A$59.99", symbol: "A$" }
+      "A$": { current: "A$22.99", regular: "A$59.99", symbol: "A$" },
+      "AED": { current: "AED 59", regular: "AED 149", symbol: "AED" }
     }
   },
   lifetime: {
@@ -88,10 +95,12 @@ export const PRICING_DATA = {
     prices: {
       "₹": { current: "₹1,499", regular: "₹4,999", symbol: "₹" },
       "$": { current: "$24", regular: "$79", symbol: "$" },
-      "£": { current: "£19", regular: "£59", symbol: "£" },
       "€": { current: "€22", regular: "€69", symbol: "€" },
+      "£": { current: "£19", regular: "£59", symbol: "£" },
+      "¥": { current: "¥3,699", regular: "¥11,999", symbol: "¥" },
       "C$": { current: "C$32", regular: "C$99", symbol: "C$" },
-      "A$": { current: "A$36", regular: "A$110", symbol: "A$" }
+      "A$": { current: "A$36", regular: "A$110", symbol: "A$" },
+      "AED": { current: "AED 99", regular: "AED 299", symbol: "AED" }
     }
   },
   free: {
@@ -111,10 +120,12 @@ export const PRICING_DATA = {
     prices: {
       "₹": { current: "₹0", regular: "₹0", symbol: "₹" },
       "$": { current: "$0", regular: "$0", symbol: "$" },
-      "£": { current: "£0", regular: "£0", symbol: "£" },
       "€": { current: "€0", regular: "€0", symbol: "€" },
+      "£": { current: "£0", regular: "£0", symbol: "£" },
+      "¥": { current: "¥0", regular: "¥0", symbol: "¥" },
       "C$": { current: "C$0", regular: "C$0", symbol: "C$" },
-      "A$": { current: "A$0", regular: "A$0", symbol: "A$" }
+      "A$": { current: "A$0", regular: "A$0", symbol: "A$" },
+      "AED": { current: "AED 0", regular: "AED 0", symbol: "AED" }
     }
   }
 };
@@ -122,11 +133,11 @@ export const PRICING_DATA = {
 export const PLAN_TIERS = PRICING_DATA;
 
 /**
- * Returns localized pricing for a given plan and currency
+ * Returns localized pricing for a given plan based strictly on the selected central dashboard currency
  */
-export function getLocalizedPrice(planId, currency = "₹") {
+export function getLocalizedPrice(planId, centralCurrency = "₹") {
   const plan = PRICING_DATA[planId] || PRICING_DATA.monthly;
-  const curr = plan.prices[currency] ? currency : (currency === "$" ? "$" : "₹");
+  const curr = plan.prices[centralCurrency] ? centralCurrency : (centralCurrency === "$" ? "$" : "₹");
   const priceObj = plan.prices[curr] || plan.prices["$"] || plan.prices["₹"];
   const effMonthly = plan.effectiveMonthly ? (plan.effectiveMonthly[curr] || plan.effectiveMonthly["$"]) : null;
 
