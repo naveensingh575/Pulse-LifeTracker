@@ -380,7 +380,7 @@ export const PolicyPage = ({ defaultTab }) => {
           <PolicySection icon={<RefreshCw className="w-4 h-4" />} title="2. Cancel Anytime (Monthly & Yearly Plans)" color="emerald">
             <div className="space-y-2">
               <p>
-                We believe in complete freedom of choice without lock-in tricks:
+                We believe in complete transparency and straightforward account management:
               </p>
               <ul className="list-disc list-inside space-y-1.5 text-xs pl-1 text-slate-600 dark:text-slate-400">
                 <li>

@@ -3,7 +3,7 @@
  * Core utilities for exporting, validating, encrypting, and restoring
  * complete Pulse Life Tracker data snapshots.
  * 
- * Provides 100% data sovereignty and zero vendor lock-in.
+ * Provides secure and portable data backups.
  */
 
 export const BACKUP_SCHEMA_VERSION = '1.0';

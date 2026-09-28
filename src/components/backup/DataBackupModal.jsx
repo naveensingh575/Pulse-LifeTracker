@@ -24,13 +24,18 @@ import {
   RefreshCw,
   Sparkles,
   Layers,
-  ArrowRight
+  ArrowRight,
+  Crown
 } from 'lucide-react';
 
 export const DataBackupModal = ({ isOpen, onClose }) => {
   const {
     getBackupData,
     restoreBackupData,
+    subscriptionTier,
+    canExportData,
+    trialInfo,
+    openPricingModal,
     habits = [],
     goals = [],
     tasks = [],
@@ -39,6 +44,8 @@ export const DataBackupModal = ({ isOpen, onClose }) => {
     journalEntries = [],
     deadlines = []
   } = useDashboard();
+
+  const hasProAccess = subscriptionTier !== 'free' || Boolean(trialInfo?.isTrialActive) || Boolean(canExportData);
 
   const [activeTab, setActiveTab] = useState('export'); // 'export' | 'import'
 
@@ -67,6 +74,12 @@ export const DataBackupModal = ({ isOpen, onClose }) => {
   const handleExport = async () => {
     setExportError('');
     setExportSuccess(false);
+
+    if (!hasProAccess) {
+      onClose();
+      openPricingModal();
+      return;
+    }
 
     if (encryptExport) {
       if (!passphrase || passphrase.length < 6) {
@@ -202,13 +215,20 @@ export const DataBackupModal = ({ isOpen, onClose }) => {
           </div>
           <div>
             <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-slate-100 flex items-center gap-2">
-              <span>Data Sovereignty & Backup</span>
-              <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[10px] font-bold">
-                100% Private
-              </span>
+              <span>Data Backup & Restore</span>
+              {hasProAccess ? (
+                <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[10px] font-bold">
+                  Pro Active
+                </span>
+              ) : (
+                <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 text-[10px] font-bold flex items-center gap-1">
+                  <Crown className="w-3 h-3 text-amber-500" />
+                  <span>Pro Feature</span>
+                </span>
+              )}
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Download your full OS snapshot or restore anytime. Zero vendor lock-in.
+              Export or restore your personal data snapshot safely at any time.
             </p>
           </div>
         </div>
@@ -251,6 +271,33 @@ export const DataBackupModal = ({ isOpen, onClose }) => {
         {/* TAB 1: EXPORT / BACKUP */}
         {activeTab === 'export' && (
           <div className="space-y-4 animate-in fade-in duration-150">
+            {/* Pro Upgrade Banner for Free Users */}
+            {!hasProAccess && (
+              <div className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/10 via-indigo-500/10 to-amber-500/10 border border-amber-500/20 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 shrink-0">
+                    <Crown className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                      Pro Feature
+                    </div>
+                    <div className="text-[11px] text-slate-500 dark:text-slate-400">
+                      Downloading complete JSON backups requires an active Pro plan.
+                    </div>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    onClose();
+                    openPricingModal();
+                  }}
+                  className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:brightness-110 text-white text-xs font-bold shrink-0 transition shadow-sm cursor-pointer"
+                >
+                  Upgrade
+                </button>
+              </div>
+            )}
             {/* Live Data Summary Pills */}
             <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 space-y-2.5">
               <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
@@ -343,14 +390,27 @@ export const DataBackupModal = ({ isOpen, onClose }) => {
             )}
 
             {/* Download Button */}
-            <button
-              onClick={handleExport}
-              disabled={isExporting}
-              className="w-full py-3 rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-indigo-600 hover:brightness-110 text-white text-xs font-black transition shadow-lg shadow-indigo-600/25 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-            >
-              <Download className="w-4 h-4" />
-              <span>{isExporting ? 'Generating Snapshot...' : 'Download Pulse Backup (.json)'}</span>
-            </button>
+            {hasProAccess ? (
+              <button
+                onClick={handleExport}
+                disabled={isExporting}
+                className="w-full py-3 rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-indigo-600 hover:brightness-110 text-white text-xs font-black transition shadow-lg shadow-indigo-600/25 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              >
+                <Download className="w-4 h-4" />
+                <span>{isExporting ? 'Generating Snapshot...' : 'Download Pulse Backup (.json)'}</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => {
+                  onClose();
+                  openPricingModal();
+                }}
+                className="w-full py-3 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-600 to-indigo-600 hover:brightness-110 text-white text-xs font-black transition shadow-lg shadow-amber-600/25 flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <Crown className="w-4 h-4 text-amber-200" />
+                <span>Upgrade to Pro to Download Backup (.json)</span>
+              </button>
+            )}
           </div>
         )}
 
