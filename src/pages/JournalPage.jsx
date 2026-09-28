@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 
 export const JournalPage = () => {
-  const { journalEntries, saveJournalEntry, deleteJournalEntry, getJournalEntry } = useDashboard();
+  const { journalEntries, saveJournalEntry, deleteJournalEntry, getJournalEntry, quotaStatus, openPricingModal } = useDashboard();
   
   // Date state (default today: 2026-08-26)
   const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split('T')[0]);
@@ -120,6 +120,10 @@ ${gratitude || '*No entries recorded.*'}
   };
 
   const handleDownloadMarkdown = () => {
+    if (!quotaStatus?.isPremium) {
+      openPricingModal();
+      return;
+    }
     const text = generateMarkdown();
     const blob = new Blob([text], { type: 'text/markdown;charset=utf-8' });
     const url = URL.createObjectURL(blob);
@@ -181,7 +185,7 @@ ${gratitude || '*No entries recorded.*'}
           <button
             onClick={handleDownloadMarkdown}
             className="flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-lg shadow-indigo-600/20 transition cursor-pointer shrink-0 active:scale-95"
-            title="Download .md File"
+            title={quotaStatus?.isPremium ? "Download .md File" : "👑 Upgrade to Export .md"}
           >
             <Download className="w-3.5 h-3.5" />
             <span>Export .md</span>

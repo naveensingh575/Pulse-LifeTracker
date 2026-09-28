@@ -338,29 +338,65 @@ export const DashboardProvider = ({ children }) => {
     return next;
   }, [aiRunsCount]);
 
-  // Monthly Calendar View Tracking & Quota Engine (Max 3/mo for free tier)
-  const [monthViewsCount, setMonthViewsCount] = useState(() => {
-    const key = `pulse_month_views_${getCurrentMonthKey()}`;
+  // Analytics Page View Tracking (Max 3/mo for free tier)
+  const [analyticsViewsCount, setAnalyticsViewsCount] = useState(() => {
+    const key = `pulse_analytics_views_${getCurrentMonthKey()}`;
     return Number(localStorage.getItem(key) || '0');
   });
 
-  const recordMonthlyCalendarView = useCallback(() => {
-    const key = `pulse_month_views_${getCurrentMonthKey()}`;
-    const next = monthViewsCount + 1;
-    setMonthViewsCount(next);
+  const recordAnalyticsView = useCallback(() => {
+    const key = `pulse_analytics_views_${getCurrentMonthKey()}`;
+    const current = Number(localStorage.getItem(key) || '0');
+    const next = current + 1;
+    setAnalyticsViewsCount(next);
     localStorage.setItem(key, String(next));
     return next;
-  }, [monthViewsCount]);
+  }, []);
+
+  // Per-page Month View Tracking (Max 3/mo per page for free tier: habits, activity, finance)
+  const [monthViewsByPage, setMonthViewsByPage] = useState(() => {
+    const currentMonth = getCurrentMonthKey();
+    return {
+      habits: Number(localStorage.getItem(`pulse_month_views_habits_${currentMonth}`) || localStorage.getItem(`pulse_month_views_${currentMonth}`) || '0'),
+      activity: Number(localStorage.getItem(`pulse_month_views_activity_${currentMonth}`) || '0'),
+      finance: Number(localStorage.getItem(`pulse_month_views_finance_${currentMonth}`) || '0')
+    };
+  });
+
+  const recordMonthlyView = useCallback((page = 'habits') => {
+    const currentMonth = getCurrentMonthKey();
+    const key = `pulse_month_views_${page}_${currentMonth}`;
+    const current = Number(localStorage.getItem(key) || (page === 'habits' ? localStorage.getItem(`pulse_month_views_${currentMonth}`) : null) || '0');
+    const next = current + 1;
+    localStorage.setItem(key, String(next));
+    if (page === 'habits') {
+      localStorage.setItem(`pulse_month_views_${currentMonth}`, String(next));
+    }
+    setMonthViewsByPage(prev => ({ ...prev, [page]: next }));
+    return next;
+  }, []);
+
+  const recordMonthlyCalendarView = useCallback(() => {
+    return recordMonthlyView('habits');
+  }, [recordMonthlyView]);
+
+  const canViewMonthOnPage = useCallback((page = 'habits') => {
+    if (subscriptionTier !== 'free') return true;
+    const current = monthViewsByPage[page] || 0;
+    return current < FREE_TIER_LIMITS.MAX_MONTHLY_MONTH_VIEWS;
+  }, [subscriptionTier, monthViewsByPage]);
 
   const quotaStatus = useMemo(() => {
     return getQuotaStatus({
       habitsCount: habits ? habits.length : 0,
       goalsCount: goals ? goals.length : 0,
       aiRunsThisMonth: aiRunsCount,
-      monthViewsThisMonth: monthViewsCount,
+      monthViews: monthViewsByPage,
+      monthViewsThisMonth: monthViewsByPage.habits,
+      analyticsViewsThisMonth: analyticsViewsCount,
       subscriptionTier
     });
-  }, [habits, goals, aiRunsCount, monthViewsCount, subscriptionTier]);
+  }, [habits, goals, aiRunsCount, monthViewsByPage, analyticsViewsCount, subscriptionTier]);
 
   // Apply dark mode class
   useEffect(() => {
@@ -1590,13 +1626,18 @@ export const DashboardProvider = ({ children }) => {
         founderCode,
         isPremium: subscriptionTier !== 'free',
         isFounderOrPro: subscriptionTier === 'founder' || subscriptionTier === 'lifetime' || subscriptionTier === 'monthly' || subscriptionTier === 'yearly' || subscriptionTier === 'pro',
-        canAddHabit: quotaStatus.habits.canAdd,
-        canAddGoal: quotaStatus.goals.canAdd,
+        canAddHabit: true,
+        canAddGoal: true,
         canViewMonthlyCalendar: quotaStatus.monthViews.canView,
+        canViewMonthOnPage,
+        recordMonthlyView,
+        recordMonthlyCalendarView,
+        analyticsViewsCount,
+        recordAnalyticsView,
+        canViewAnalytics: quotaStatus.analyticsViews.canView,
         canExportData: quotaStatus.exports.canExport,
         quotaStatus,
         recordAiAnalyticsRun,
-        recordMonthlyCalendarView,
         FREE_TIER_LIMITS,
         selectPlan,
         redeemPromoCode,

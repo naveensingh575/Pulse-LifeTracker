@@ -34,8 +34,9 @@ export const HabitsPage = () => {
     toggleHabitForDate,
     getDayCompletionStats,
     addHabit,
-    canAddHabit,
     quotaStatus,
+    canViewMonthOnPage,
+    recordMonthlyView,
     recordMonthlyCalendarView,
     openPricingModal
   } = useDashboard();
@@ -58,10 +59,6 @@ export const HabitsPage = () => {
   const [newHabitStartDate, setNewHabitStartDate] = useState(todayStr);
 
   const handleOpenAdd = () => {
-    if (!canAddHabit) {
-      openPricingModal();
-      return;
-    }
     setNewHabitName('');
     setNewHabitCategory(selectedCategory !== 'All' ? selectedCategory : 'Health');
     setNewHabitStartDate(getISTDateString());
@@ -150,21 +147,9 @@ export const HabitsPage = () => {
           <div>
             <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
               <span>Habits Tracker</span>
-              {quotaStatus && (
-                <button
-                  onClick={() => !quotaStatus.isPremium && openPricingModal()}
-                  className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border transition-all ${
-                    quotaStatus.isPremium
-                      ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30'
-                      : quotaStatus.habits.isLimitReached
-                        ? 'bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/40 hover:bg-amber-500/30 cursor-pointer'
-                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'
-                  }`}
-                  title={quotaStatus.isPremium ? 'Unlimited Habits' : `${quotaStatus.habits.remaining} habit slots remaining. Click to upgrade for unlimited.`}
-                >
-                  {quotaStatus.isPremium ? '✨ Unlimited' : `${quotaStatus.habits.current} / ${quotaStatus.habits.max} Habits`}
-                </button>
-              )}
+              <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full border bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30">
+                {habits.length} Habits
+              </span>
             </h2>
           </div>
         </div>
@@ -199,12 +184,13 @@ export const HabitsPage = () => {
             <button
               onClick={() => {
                 if (!quotaStatus?.isPremium) {
-                  if (!quotaStatus?.monthViews?.canView) {
+                  if (canViewMonthOnPage && !canViewMonthOnPage('habits')) {
                     openPricingModal();
                     return;
                   }
                   if (gridMode !== 'monthly') {
-                    recordMonthlyCalendarView();
+                    if (recordMonthlyView) recordMonthlyView('habits');
+                    else recordMonthlyCalendarView();
                   }
                 }
                 setGridMode('monthly');
@@ -456,13 +442,13 @@ export const HabitsPage = () => {
                       className={`text-[10px] font-bold px-2 py-0.5 rounded-full border transition-all ${
                         quotaStatus.isPremium
                           ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30'
-                          : quotaStatus.monthViews.isLimitReached
+                          : (quotaStatus.monthViews.byPage?.habits?.isLimitReached || quotaStatus.monthViews.isLimitReached)
                             ? 'bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/40 hover:bg-amber-500/30 cursor-pointer'
                             : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'
                       }`}
-                      title={quotaStatus.isPremium ? 'Unlimited Monthly History Views' : `${quotaStatus.monthViews.remaining} monthly calendar views remaining this month.`}
+                      title={quotaStatus.isPremium ? 'Unlimited Monthly History Views' : `${quotaStatus.monthViews.byPage?.habits?.remaining ?? quotaStatus.monthViews.remaining} monthly calendar views remaining this month.`}
                     >
-                      {quotaStatus.isPremium ? '✨ Unlimited Views' : `${quotaStatus.monthViews.remaining} / ${quotaStatus.monthViews.max} Monthly Views Left`}
+                      {quotaStatus.isPremium ? '✨ Unlimited Views' : `${quotaStatus.monthViews.byPage?.habits?.remaining ?? quotaStatus.monthViews.remaining} / ${quotaStatus.monthViews.max} Monthly Views Left`}
                     </button>
                   )}
                 </h3>
@@ -525,7 +511,7 @@ export const HabitsPage = () => {
           </div>
 
           {/* Frosted Glass Lock if 3/3 views reached on free tier */}
-          {!quotaStatus?.isPremium && quotaStatus?.monthViews?.isLimitReached ? (
+          {!quotaStatus?.isPremium && ((canViewMonthOnPage && !canViewMonthOnPage('habits')) || quotaStatus?.monthViews?.byPage?.habits?.isLimitReached || quotaStatus?.monthViews?.isLimitReached) ? (
             <div className="relative rounded-2xl p-8 border border-amber-500/30 bg-gradient-to-b from-amber-500/5 via-slate-900/40 to-slate-950 text-center space-y-4 my-2">
               <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-500 mx-auto flex items-center justify-center shadow-lg shadow-amber-500/10">
                 <Sparkles className="w-6 h-6" />

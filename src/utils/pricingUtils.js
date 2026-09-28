@@ -64,10 +64,10 @@ export const PRICING_DATA = {
     description: "High-performance operating system for continuous daily output.",
     features: [
       "Unlimited Habits & Milestone Sub-goals",
-      "Goal Advisory & AI Action Steps Engine",
-      "Cross-Domain Correlation Engine",
-      "Full CSV & iCalendar (.ics) Routine Sync",
-      "Priority Support & Continuous Updates"
+      "Unlimited Monthly History & Heatmaps",
+      "Unlimited Executive Analytics Suite",
+      "Full CSV & Markdown (.md) Data Export",
+      "Goal Advisory & AI Action Steps Engine"
     ],
     highlight: false,
     prices: {
@@ -91,8 +91,8 @@ export const PRICING_DATA = {
     features: [
       "Everything in Pro Monthly",
       "Predictive Long-Term Feasibility Radar",
-      "Executive Multi-Pillar Analytics",
-      "Automated Routine Calendar Export",
+      "Executive Multi-Pillar Analytics Suite",
+      "Unlimited CSV & Markdown (.md) Sync",
       "Priority Support & System Updates"
     ],
     highlight: true,
@@ -151,11 +151,11 @@ export const PRICING_DATA = {
     period: "Free",
     description: "Essential life & habit tracking for individuals building baseline routines.",
     features: [
-      "Up to 5 Active Habits with Streak Tracking",
-      "Up to 3 Active Long-Term Goals",
-      "Unlimited Action Tasks & Daily Priorities",
-      "Morning Focus & Evening Reflection Widget",
-      "Daily Cash Flow & Burn-Rate Gauge"
+      "Unlimited Habits & Long-Term Goals",
+      "Day & Week Planning & Tracker Views",
+      "3 Free Monthly Views per Module / Month",
+      "3 Free Analytics Suite Visits / Month",
+      "Morning Focus & Evening Reflection Widget"
     ],
     highlight: false,
     prices: {

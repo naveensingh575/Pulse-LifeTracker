@@ -52,11 +52,13 @@ export const MoneyTracker = ({ openAddModalTrigger }) => {
     currency = '₹',
     formatCurrency = (val) => `${currency}${Number(val || 0).toLocaleString()}`,
     quotaStatus,
+    canViewMonthOnPage,
+    recordMonthlyView,
     openPricingModal
   } = dashboard;
 
-  // Time-Horizon state: 'day' | 'week' | 'month'
-  const [timeframe, setTimeframe] = useState('month');
+  // Time-Horizon state: 'day' | 'week' | 'month' (defaults to 'week')
+  const [timeframe, setTimeframe] = useState('week');
   const [filterCategory, setFilterCategory] = useState('All');
   
   // IST Date & Period Selectors
@@ -238,7 +240,18 @@ export const MoneyTracker = ({ openAddModalTrigger }) => {
               return (
                 <button
                   key={tab.id}
-                  onClick={() => setTimeframe(tab.id)}
+                  onClick={() => {
+                    if (tab.id === 'month' && !quotaStatus?.isPremium) {
+                      if (canViewMonthOnPage && !canViewMonthOnPage('finance')) {
+                        openPricingModal();
+                        return;
+                      }
+                      if (timeframe !== 'month') {
+                        if (recordMonthlyView) recordMonthlyView('finance');
+                      }
+                    }
+                    setTimeframe(tab.id);
+                  }}
                   className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
                     timeframe === tab.id
                       ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30'

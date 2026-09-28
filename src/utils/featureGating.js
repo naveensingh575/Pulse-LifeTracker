@@ -3,10 +3,11 @@
  */
 
 export const FREE_TIER_LIMITS = {
-  MAX_HABITS: 5,
-  MAX_GOALS: 3,
+  MAX_HABITS: Infinity, // Unlimited for all users
+  MAX_GOALS: Infinity, // Unlimited for all users
   MAX_MONTHLY_AI_RUNS: 3,
-  MAX_MONTHLY_MONTH_VIEWS: 3
+  MAX_MONTHLY_MONTH_VIEWS: 3, // 3 monthly views per page/module per month
+  MAX_MONTHLY_ANALYTICS_VIEWS: 3 // 3 analytics suite views per month
 };
 
 /**
@@ -20,21 +21,29 @@ export function getCurrentMonthKey() {
 }
 
 /**
- * Computes full quota status across habits, goals, AI intelligence runs, and month views
+ * Computes full quota status across habits, goals, AI intelligence runs, month views per page, and analytics views
  */
 export function getQuotaStatus({
   habitsCount = 0,
   goalsCount = 0,
   aiRunsThisMonth = 0,
-  monthViewsThisMonth = 0,
+  monthViews = { habits: 0, activity: 0, finance: 0 },
+  monthViewsThisMonth = 0, // backwards compatibility
+  analyticsViewsThisMonth = 0,
   subscriptionTier = "free"
 }) {
   const isPremium = subscriptionTier !== "free";
 
-  const habitsMax = isPremium ? Infinity : FREE_TIER_LIMITS.MAX_HABITS;
-  const goalsMax = isPremium ? Infinity : FREE_TIER_LIMITS.MAX_GOALS;
+  const habitsMax = Infinity;
+  const goalsMax = Infinity;
   const aiRunsMax = isPremium ? Infinity : FREE_TIER_LIMITS.MAX_MONTHLY_AI_RUNS;
   const monthViewsMax = isPremium ? Infinity : FREE_TIER_LIMITS.MAX_MONTHLY_MONTH_VIEWS;
+  const analyticsViewsMax = isPremium ? Infinity : FREE_TIER_LIMITS.MAX_MONTHLY_ANALYTICS_VIEWS;
+
+  // Resolve per-page month views
+  const habitsMonthViews = typeof monthViews?.habits === 'number' ? monthViews.habits : monthViewsThisMonth;
+  const activityMonthViews = typeof monthViews?.activity === 'number' ? monthViews.activity : 0;
+  const financeMonthViews = typeof monthViews?.finance === 'number' ? monthViews.finance : 0;
 
   return {
     isPremium,
@@ -42,16 +51,16 @@ export function getQuotaStatus({
     habits: {
       current: habitsCount,
       max: habitsMax,
-      canAdd: isPremium || habitsCount < habitsMax,
-      remaining: isPremium ? Infinity : Math.max(0, habitsMax - habitsCount),
-      isLimitReached: !isPremium && habitsCount >= habitsMax
+      canAdd: true, // Unlimited habits
+      remaining: Infinity,
+      isLimitReached: false
     },
     goals: {
       current: goalsCount,
       max: goalsMax,
-      canAdd: isPremium || goalsCount < goalsMax,
-      remaining: isPremium ? Infinity : Math.max(0, goalsMax - goalsCount),
-      isLimitReached: !isPremium && goalsCount >= goalsMax
+      canAdd: true, // Unlimited goals
+      remaining: Infinity,
+      isLimitReached: false
     },
     aiRuns: {
       current: aiRunsThisMonth,
@@ -60,12 +69,40 @@ export function getQuotaStatus({
       remaining: isPremium ? Infinity : Math.max(0, aiRunsMax - aiRunsThisMonth),
       isLimitReached: !isPremium && aiRunsThisMonth >= aiRunsMax
     },
+    // Backwards-compatible monthViews object (maps to habits) + per-page breakdown
     monthViews: {
-      current: monthViewsThisMonth,
+      current: habitsMonthViews,
       max: monthViewsMax,
-      canView: isPremium || monthViewsThisMonth < monthViewsMax,
-      remaining: isPremium ? Infinity : Math.max(0, monthViewsMax - monthViewsThisMonth),
-      isLimitReached: !isPremium && monthViewsThisMonth >= monthViewsMax
+      canView: isPremium || habitsMonthViews < monthViewsMax,
+      remaining: isPremium ? Infinity : Math.max(0, monthViewsMax - habitsMonthViews),
+      isLimitReached: !isPremium && habitsMonthViews >= monthViewsMax,
+      byPage: {
+        habits: {
+          current: habitsMonthViews,
+          canView: isPremium || habitsMonthViews < monthViewsMax,
+          remaining: isPremium ? Infinity : Math.max(0, monthViewsMax - habitsMonthViews),
+          isLimitReached: !isPremium && habitsMonthViews >= monthViewsMax
+        },
+        activity: {
+          current: activityMonthViews,
+          canView: isPremium || activityMonthViews < monthViewsMax,
+          remaining: isPremium ? Infinity : Math.max(0, monthViewsMax - activityMonthViews),
+          isLimitReached: !isPremium && activityMonthViews >= monthViewsMax
+        },
+        finance: {
+          current: financeMonthViews,
+          canView: isPremium || financeMonthViews < monthViewsMax,
+          remaining: isPremium ? Infinity : Math.max(0, monthViewsMax - financeMonthViews),
+          isLimitReached: !isPremium && financeMonthViews >= monthViewsMax
+        }
+      }
+    },
+    analyticsViews: {
+      current: analyticsViewsThisMonth,
+      max: analyticsViewsMax,
+      canView: isPremium || analyticsViewsThisMonth < analyticsViewsMax,
+      remaining: isPremium ? Infinity : Math.max(0, analyticsViewsMax - analyticsViewsThisMonth),
+      isLimitReached: !isPremium && analyticsViewsThisMonth >= analyticsViewsMax
     },
     exports: {
       canExport: isPremium
@@ -74,7 +111,7 @@ export function getQuotaStatus({
 }
 
 /**
- * Checks if user can export data (CSV, .ics)
+ * Checks if user can export data (CSV, .md)
  */
 export function canExportData(subscriptionTier = "free") {
   return subscriptionTier !== "free";

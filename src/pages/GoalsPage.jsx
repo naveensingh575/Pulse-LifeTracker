@@ -6,14 +6,10 @@ import { useDashboard } from '../context/DashboardContext';
 import { Compass, Plus } from 'lucide-react';
 
 export const GoalsPage = () => {
-  const { addGoal, canAddGoal, quotaStatus, openPricingModal } = useDashboard();
+  const { addGoal, goals = [], quotaStatus, openPricingModal } = useDashboard();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   const handleOpenCreateGoal = () => {
-    if (!canAddGoal) {
-      openPricingModal();
-      return;
-    }
     setIsAddModalOpen(true);
   };
 
@@ -29,21 +25,9 @@ export const GoalsPage = () => {
           <div>
             <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
               <span>Goals & Viability</span>
-              {quotaStatus && (
-                <button
-                  onClick={() => !quotaStatus.isPremium && openPricingModal()}
-                  className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border transition-all ${
-                    quotaStatus.isPremium
-                      ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/30'
-                      : quotaStatus.goals.isLimitReached
-                        ? 'bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 border-indigo-500/40 hover:bg-indigo-500/30 cursor-pointer'
-                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'
-                  }`}
-                  title={quotaStatus.isPremium ? 'Unlimited Goals' : `${quotaStatus.goals.remaining} goal slots remaining. Click to upgrade for unlimited.`}
-                >
-                  {quotaStatus.isPremium ? '✨ Unlimited' : `${quotaStatus.goals.current} / ${quotaStatus.goals.max} Goals`}
-                </button>
-              )}
+              <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full border bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/30">
+                {goals.length} Goals
+              </span>
             </h2>
           </div>
         </div>

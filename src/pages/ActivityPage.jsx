@@ -50,12 +50,12 @@ const CATEGORY_COLORS = {
 };
 
 export const ActivityPage = () => {
-  const { activities, addActivity, updateActivity, deleteActivity, theme, quotaStatus, openPricingModal } = useDashboard();
+  const { activities, addActivity, updateActivity, deleteActivity, theme, quotaStatus, canViewMonthOnPage, recordMonthlyView, openPricingModal } = useDashboard();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingActivity, setEditingActivity] = useState(null);
 
-  // Timeframe states: strictly 'day' | 'week' | 'month'
-  const [timeframe, setTimeframe] = useState('month'); // 'day' | 'week' | 'month'
+  // Timeframe states: strictly 'day' | 'week' | 'month' (defaults to 'week')
+  const [timeframe, setTimeframe] = useState('week');
   
   // IST Date & Time Selector state
   const currentISTYM = getISTYearMonth();
@@ -296,7 +296,18 @@ export const ActivityPage = () => {
                 return (
                   <button
                     key={tab.id}
-                    onClick={() => setTimeframe(tab.id)}
+                    onClick={() => {
+                      if (tab.id === 'month' && !quotaStatus?.isPremium) {
+                        if (canViewMonthOnPage && !canViewMonthOnPage('activity')) {
+                          openPricingModal();
+                          return;
+                        }
+                        if (timeframe !== 'month') {
+                          if (recordMonthlyView) recordMonthlyView('activity');
+                        }
+                      }
+                      setTimeframe(tab.id);
+                    }}
                     className={`px-3 py-1.5 sm:px-3.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
                       timeframe === tab.id
                         ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
