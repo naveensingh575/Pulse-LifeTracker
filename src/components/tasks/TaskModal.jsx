@@ -11,7 +11,8 @@ import {
   FileText,
   Plus,
   AlertCircle,
-  Edit2
+  Edit2,
+  ChevronDown
 } from 'lucide-react';
 
 export const TaskModal = ({ isOpen, onClose, initialCategory = 'Work', initialTask = null, onSave = null }) => {
@@ -75,10 +76,13 @@ export const TaskModal = ({ isOpen, onClose, initialCategory = 'Work', initialTa
   };
 
   const categories = [
-    { key: 'Work', label: 'Work / Office', icon: Briefcase, color: 'text-indigo-500 bg-indigo-500/10 border-indigo-500/30' },
-    { key: 'Shopping', label: 'Shopping & Errands', icon: ShoppingBag, color: 'text-emerald-500 bg-emerald-500/10 border-emerald-500/30' },
-    { key: 'Personal', label: 'Personal', icon: User, color: 'text-cyan-500 bg-cyan-500/10 border-cyan-500/30' },
-    { key: 'Urgent', label: 'Urgent / Focus', icon: Zap, color: 'text-rose-500 bg-rose-500/10 border-rose-500/30' },
+    { key: 'Work', label: 'Work / Office', emoji: '💼' },
+    { key: 'Shopping', label: 'Shopping & Errands', emoji: '🛒' },
+    { key: 'Personal', label: 'Personal', emoji: '👤' },
+    { key: 'Urgent', label: 'Urgent / Focus', emoji: '⚡' },
+    { key: 'Finance', label: 'Finance & Money', emoji: '💰' },
+    { key: 'Health', label: 'Health & Fitness', emoji: '🏃' },
+    { key: 'Tech', label: 'Tech & Projects', emoji: '💻' }
   ];
 
   const priorities = [
@@ -144,26 +148,29 @@ export const TaskModal = ({ isOpen, onClose, initialCategory = 'Work', initialTa
             <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
               Context Board / Tag:
             </label>
-            <div className="grid grid-cols-2 gap-2">
-              {categories.map((cat) => {
-                const IconC = cat.icon;
-                const isSelected = category === cat.key;
-                return (
-                  <button
-                    key={cat.key}
-                    type="button"
-                    onClick={() => setCategory(cat.key)}
-                    className={`flex items-center space-x-2 p-2.5 rounded-xl border text-xs font-semibold transition cursor-pointer ${
-                      isSelected
-                        ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 shadow-sm'
-                        : 'border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50 text-slate-600 dark:text-slate-400 hover:border-slate-300'
-                    }`}
-                  >
-                    <IconC className="w-4 h-4 shrink-0 text-indigo-500" />
-                    <span className="truncate">{cat.label}</span>
-                  </button>
-                );
-              })}
+            <div className="relative flex items-center">
+              <div className="absolute left-3 pointer-events-none text-sm">
+                {categories.find(c => c.key === category)?.emoji || '📌'}
+              </div>
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="w-full pl-9 pr-8 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs font-medium focus:outline-none focus:border-indigo-500 transition cursor-pointer appearance-none"
+              >
+                {categories.map((cat) => (
+                  <option key={cat.key} value={cat.key} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
+                    {cat.emoji} {cat.label}
+                  </option>
+                ))}
+                {!categories.some(c => c.key === category) && category && (
+                  <option value={category} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
+                    📌 {category}
+                  </option>
+                )}
+              </select>
+              <div className="pointer-events-none absolute right-3 flex items-center text-slate-400">
+                <ChevronDown className="w-4 h-4" />
+              </div>
             </div>
           </div>
 

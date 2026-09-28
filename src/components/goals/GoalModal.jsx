@@ -18,7 +18,8 @@ import {
   CheckCircle2,
   CheckSquare,
   Square,
-  Calendar
+  Calendar,
+  ChevronDown
 } from 'lucide-react';
 import { getISTDateString } from '../../utils/dateUtils';
 
@@ -237,31 +238,29 @@ export const GoalModal = ({ isOpen, onClose, onSave, onDelete, initialData }) =>
             />
           </div>
 
-          {/* 3. Icon / Logo Picker */}
+          {/* 3. Icon / Logo Picker Dropdown */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
               Goal Icon / Logo
             </label>
-            <div className="grid grid-cols-5 gap-2">
-              {GOAL_ICONS.map((item) => {
-                const IconComp = item.icon;
-                const isSelected = formData.icon === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => setFormData({ ...formData, icon: item.id })}
-                    className={`flex flex-col items-center justify-center p-2 rounded-xl border transition cursor-pointer ${
-                      isSelected
-                        ? 'bg-indigo-500/20 text-indigo-600 dark:text-indigo-300 border-indigo-500/50 shadow-sm'
-                        : 'bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:border-slate-300'
-                    }`}
-                  >
-                    <span className="text-base">{item.emoji}</span>
-                    <span className="text-[10px] font-semibold mt-0.5">{item.label}</span>
-                  </button>
-                );
-              })}
+            <div className="relative flex items-center">
+              <div className="absolute left-3 pointer-events-none text-base">
+                {GOAL_ICONS.find(i => i.id === formData.icon)?.emoji || '🎯'}
+              </div>
+              <select
+                value={formData.icon}
+                onChange={e => setFormData({ ...formData, icon: e.target.value })}
+                className="w-full pl-9 pr-8 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500 cursor-pointer appearance-none font-medium"
+              >
+                {GOAL_ICONS.map((item) => (
+                  <option key={item.id} value={item.id} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
+                    {item.emoji} {item.label}
+                  </option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute right-3 flex items-center text-slate-400">
+                <ChevronDown className="w-4 h-4" />
+              </div>
             </div>
           </div>
 
