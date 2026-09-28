@@ -25,6 +25,30 @@ import {
 } from 'lucide-react';
 import { AppInstallModal } from '../common/AppInstallModal';
 
+// Feature & usability highlights for hero column (non-technical, user-friendly benefits)
+const BASE_FEATURES = [
+  'Daily, weekly & monthly habit streak tracking',
+  'Action task boards to prioritize your day',
+  'Income & expense budgeting with peace of mind',
+  'Workouts, running & reading activity logs',
+  'Personal goal planning with clear milestones'
+];
+
+// Extra highlights on laptop/desktop to balance vertical height with sign-in form
+const LAPTOP_SIGNIN_FEATURES = [
+  'Evening reflection & private daily journal',
+  'Works offline and syncs across all your devices'
+];
+
+// Additional highlights on laptop/desktop to balance vertical height with taller create account form
+const LAPTOP_SIGNUP_FEATURES = [
+  'Evening reflection & private daily journal',
+  'Works offline and syncs across all your devices',
+  'Instant 14-day free Pro preview on signup',
+  'Visual calendar heatmaps to track consistency',
+  'Weekly Sunday review to start every week focused'
+];
+
 export const AuthPage = ({ initialMode }) => {
   const {
     signInWithEmail,
@@ -349,15 +373,15 @@ export const AuthPage = ({ initialMode }) => {
               </div>
             </div>
 
-            <div className="space-y-3 pt-2">
-              {[
-                'Securely Sync across Platforms & Devices',
-                'Encrypted Personal Privacy & Data Sovereignty',
-                'Daily, Weekly & Monthly Habit Rhythm Engine',
-                'Income-First Cashflow & Monthly Budget Allocation',
-                'Multi-Activity Vitality (Gym PRs, Running, Reading)'
-              ].map((feat, idx) => (
-                <div key={idx} className="flex items-center space-x-2.5 text-xs font-medium text-slate-700 dark:text-slate-300">
+            <div className="flex flex-col gap-2.5 pt-2">
+              {BASE_FEATURES.map((feat, idx) => (
+                <div key={`base-${idx}`} className="flex items-center space-x-2.5 text-xs font-medium text-slate-700 dark:text-slate-300">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                  <span>{feat}</span>
+                </div>
+              ))}
+              {(mode === 'signup' ? LAPTOP_SIGNUP_FEATURES : LAPTOP_SIGNIN_FEATURES).map((feat, idx) => (
+                <div key={`laptop-${idx}`} className="hidden md:flex items-center space-x-2.5 text-xs font-medium text-slate-700 dark:text-slate-300 animate-in fade-in duration-200">
                   <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
                   <span>{feat}</span>
                 </div>
@@ -366,7 +390,7 @@ export const AuthPage = ({ initialMode }) => {
           </div>
 
           {/* Mobile App Download Card */}
-          <div className="p-4 bg-slate-100/80 dark:bg-slate-900/80 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3 shadow-sm mt-6 md:mt-0">
+          <div className="p-4 bg-slate-100/80 dark:bg-slate-900/80 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3 shadow-sm mt-6 md:mt-4">
             <div className="flex items-center gap-2">
               <div className="p-1.5 rounded-lg bg-indigo-500/15 text-indigo-600 dark:text-cyan-400">
                 <Smartphone className="w-4 h-4" />
