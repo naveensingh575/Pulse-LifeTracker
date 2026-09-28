@@ -227,9 +227,6 @@ export const DataBackupModal = ({ isOpen, onClose }) => {
                 </span>
               )}
             </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Export or restore your personal data snapshot safely at any time.
-            </p>
           </div>
         </div>
 

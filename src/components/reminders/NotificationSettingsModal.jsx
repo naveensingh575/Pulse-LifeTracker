@@ -4,7 +4,6 @@ import {
   X,
   CheckCircle2,
   Clock,
-  Sparkles,
   Sun,
   Moon,
   Volume2,
@@ -116,24 +115,18 @@ export const NotificationSettingsModal = ({ isOpen, onClose }) => {
           </div>
           <div>
             <h2 className="text-base font-bold text-slate-900 dark:text-white">Daily Retention Reminders</h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">External habit cues to maintain consistency</p>
           </div>
         </div>
 
         {/* Main Enable / Disable Toggle Card */}
         <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
-          <div className="space-y-0.5">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-slate-900 dark:text-white">Enable Push Reminders</span>
-              {enabled && (
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                  Active
-                </span>
-              )}
-            </div>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400">
-              Receive morning planning & evening check-in pings
-            </p>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-slate-900 dark:text-white">Enable Push Reminders</span>
+            {enabled && (
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                Active
+              </span>
+            )}
           </div>
 
           <button
@@ -171,10 +164,7 @@ export const NotificationSettingsModal = ({ isOpen, onClose }) => {
               <div className="p-2 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400">
                 <Sun className="w-4 h-4" />
               </div>
-              <div>
-                <p className="text-xs font-bold text-slate-900 dark:text-white">Morning Focus</p>
-                <p className="text-[10px] text-slate-400">Priorities & morning habits</p>
-              </div>
+              <p className="text-xs font-bold text-slate-900 dark:text-white">Morning Focus</p>
             </div>
             <input
               type="time"
@@ -190,10 +180,7 @@ export const NotificationSettingsModal = ({ isOpen, onClose }) => {
               <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
                 <Moon className="w-4 h-4" />
               </div>
-              <div>
-                <p className="text-xs font-bold text-slate-900 dark:text-white">Evening Review</p>
-                <p className="text-[10px] text-slate-400">Habit check-in & journal</p>
-              </div>
+              <p className="text-xs font-bold text-slate-900 dark:text-white">Evening Review</p>
             </div>
             <input
               type="time"
@@ -220,12 +207,6 @@ export const NotificationSettingsModal = ({ isOpen, onClose }) => {
           >
             Save & Done
           </button>
-        </div>
-
-        {/* Psychological Insight Tip */}
-        <div className="p-3 rounded-xl bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-200/50 dark:border-indigo-800/30 text-[11px] text-indigo-900/80 dark:text-indigo-300/80 leading-relaxed flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-indigo-500 shrink-0" />
-          <span>Consistent morning & evening triggers increase 30-day tracking adherence by over 74%.</span>
         </div>
 
       </div>
