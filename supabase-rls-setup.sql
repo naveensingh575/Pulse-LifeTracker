@@ -293,58 +293,6 @@ CREATE POLICY "journal_entries_delete_policy" ON public.journal_entries
 -- SELECT tablename, rowsecurity FROM pg_tables WHERE schemaname = 'public' 
 -- AND tablename IN ('habits', 'habit_completions', 'monthly_allocations', 'transactions', 'goals', 'sub_goals', 'tasks', 'deadlines', 'activities', 'journal_entries');
 
--- ============================================================================
--- DELETE ACCOUNT RPC FUNCTION
--- ============================================================================
--- This function is called by the client with: supabase.rpc('delete_user_account')
--- SECURITY DEFINER allows it to delete from auth.users without exposing the
--- service_role key on the frontend. It runs as the DB owner, but only
--- deletes the row for the currently authenticated user (auth.uid()).
--- ============================================================================
-
-DROP FUNCTION IF EXISTS public.delete_user_account();
-
-CREATE OR REPLACE FUNCTION public.delete_user_account()
-RETURNS void
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public, auth, extensions
-AS $$
-DECLARE
-  current_user_id uuid := auth.uid();
-BEGIN
-  -- Guard: only run if user is authenticated
-  IF current_user_id IS NULL THEN
-    RAISE EXCEPTION 'Not authenticated';
-  END IF;
-
-  -- 1. Delete all user data across all public application tables
-  DELETE FROM public.habit_completions   WHERE user_id = current_user_id;
-  DELETE FROM public.habits              WHERE user_id = current_user_id;
-  DELETE FROM public.monthly_allocations WHERE user_id = current_user_id;
-  DELETE FROM public.transactions        WHERE user_id = current_user_id;
-  DELETE FROM public.sub_goals           WHERE user_id = current_user_id;
-  DELETE FROM public.goals               WHERE user_id = current_user_id;
-  DELETE FROM public.deadlines           WHERE user_id = current_user_id;
-  DELETE FROM public.tasks               WHERE user_id = current_user_id;
-  DELETE FROM public.activities          WHERE user_id = current_user_id;
-  DELETE FROM public.journal_entries     WHERE user_id = current_user_id;
-  DELETE FROM public.coupon_redemptions  WHERE user_id = current_user_id;
-
-  -- 2. Explicitly delete from auth identities and sessions to prevent any locks
-  DELETE FROM auth.identities            WHERE user_id = current_user_id;
-  DELETE FROM auth.sessions              WHERE user_id = current_user_id;
-
-  -- 3. Delete the auth user record itself permanently
-  DELETE FROM auth.users                 WHERE id = current_user_id;
-END;
-$$;
-
--- Grant execute permission to authenticated users and service_role
-GRANT EXECUTE ON FUNCTION public.delete_user_account() TO authenticated;
-GRANT EXECUTE ON FUNCTION public.delete_user_account() TO service_role;
-REVOKE EXECUTE ON FUNCTION public.delete_user_account() FROM anon, public;
-
 -- ----------------------------------------------------------------------------
 -- 11. Table: coupon_redemptions (Tracks unique account VIP code usage)
 -- ----------------------------------------------------------------------------
@@ -375,5 +323,69 @@ CREATE POLICY "coupon_redemptions_update_policy" ON public.coupon_redemptions
   FOR UPDATE TO authenticated
   USING (auth.uid() = user_id)
   WITH CHECK (auth.uid() = user_id);
+
+-- ============================================================================
+-- DELETE ACCOUNT RPC FUNCTION (Fail-Proof Dynamic Table Resolution)
+-- ============================================================================
+-- This function is called by the client with: supabase.rpc('delete_user_account')
+-- SECURITY DEFINER allows it to delete from auth.users without exposing the
+-- service_role key on the frontend.
+-- ============================================================================
+
+DROP FUNCTION IF EXISTS public.delete_user_account();
+
+CREATE OR REPLACE FUNCTION public.delete_user_account()
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, auth, extensions
+AS $$
+DECLARE
+  current_user_id uuid := auth.uid();
+  tbl text;
+  public_tables text[] := ARRAY[
+    'habit_completions',
+    'habits',
+    'monthly_allocations',
+    'transactions',
+    'sub_goals',
+    'goals',
+    'deadlines',
+    'tasks',
+    'activities',
+    'journal_entries',
+    'coupon_redemptions'
+  ];
+BEGIN
+  -- Guard: only run if user is authenticated
+  IF current_user_id IS NULL THEN
+    RAISE EXCEPTION 'Not authenticated';
+  END IF;
+
+  -- 1. Safely delete all user data across all existing public tables
+  FOREACH tbl IN ARRAY public_tables LOOP
+    IF to_regclass('public.' || tbl) IS NOT NULL THEN
+      EXECUTE format('DELETE FROM public.%I WHERE user_id = $1', tbl) USING current_user_id;
+    END IF;
+  END LOOP;
+
+  -- 2. Explicitly delete from auth identities and sessions to prevent locks
+  IF to_regclass('auth.identities') IS NOT NULL THEN
+    DELETE FROM auth.identities WHERE user_id = current_user_id;
+  END IF;
+
+  IF to_regclass('auth.sessions') IS NOT NULL THEN
+    DELETE FROM auth.sessions WHERE user_id = current_user_id;
+  END IF;
+
+  -- 3. Delete the auth user record itself permanently
+  DELETE FROM auth.users WHERE id = current_user_id;
+END;
+$$;
+
+-- Grant execute permission to authenticated users and service_role
+GRANT EXECUTE ON FUNCTION public.delete_user_account() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.delete_user_account() TO service_role;
+REVOKE EXECUTE ON FUNCTION public.delete_user_account() FROM anon, public;
 
 
