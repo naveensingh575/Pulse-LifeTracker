@@ -306,13 +306,13 @@ export const SmartPulseIntelligence = ({
                 className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border transition-all ${
                   quotaStatus.isPremium
                     ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/30'
-                    : quotaStatus.aiRuns.isLimitReached
+                    : quotaStatus.aiRuns?.isLimitReached
                       ? 'bg-purple-500/20 text-purple-700 dark:text-purple-300 border-purple-500/40 hover:bg-purple-500/30 cursor-pointer'
                       : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'
                 }`}
-                title={quotaStatus.isPremium ? 'Unlimited Monthly AI Intelligence Runs' : `${quotaStatus.aiRuns.remaining} AI deep-dive runs left this month.`}
+                title={quotaStatus.isPremium ? 'Unlimited Monthly AI Intelligence Runs' : `${quotaStatus.aiRuns?.remaining ?? 3} AI deep-dive runs left this month.`}
               >
-                {quotaStatus.isPremium ? '✨ Unlimited AI Runs' : `${quotaStatus.aiRuns.current} / ${quotaStatus.aiRuns.max} Monthly AI Runs`}
+                {quotaStatus.isPremium ? '✨ Unlimited AI Runs' : `${quotaStatus.aiRuns?.current ?? 0} / ${quotaStatus.aiRuns?.max ?? 3} Monthly AI Runs`}
               </button>
             )}
           </h3>
@@ -320,7 +320,7 @@ export const SmartPulseIntelligence = ({
       </div>
 
       {/* Non-Intrusive Free Quota Upgrade Prompt if AI Quota reached */}
-      {quotaStatus && quotaStatus.aiRuns.isLimitReached && (
+      {quotaStatus && quotaStatus.aiRuns?.isLimitReached && (
         <div className="p-4 rounded-xl bg-gradient-to-r from-purple-500/10 via-indigo-500/10 to-amber-500/10 border border-purple-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="space-y-0.5">
             <p className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
@@ -418,7 +418,7 @@ export const SmartPulseIntelligence = ({
           </div>
         <div className="flex items-center space-x-2">
           <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold border border-indigo-500/20">
-            Synergy Index: {correlationData.synergyIndex}/100
+            Synergy Index: {correlationData?.synergyIndex ?? 70}/100
           </span>
         </div>
       </div>
@@ -448,7 +448,7 @@ export const SmartPulseIntelligence = ({
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          {correlationData.insights.map((insight) => (
+          {(correlationData?.insights || []).map((insight) => (
             <div
               key={insight.id}
               className="p-3 rounded-xl bg-white/80 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 space-y-2 text-xs backdrop-blur-sm shadow-sm"
