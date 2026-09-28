@@ -6,7 +6,8 @@ import { PulseLogo } from '../common/PulseLogo';
 import { DeleteAccountModal } from '../auth/DeleteAccountModal';
 import { getLocalDateString, formatDisplayDate } from '../../utils/dateUtils';
 import { NotificationSettingsModal } from '../reminders/NotificationSettingsModal';
-import { Sun, Moon, Calendar, LogOut, ChevronDown, LogIn, Globe, Search, Trash2, Shield, Crown, Sparkles, Star, FileText, Bell } from 'lucide-react';
+import { DataBackupModal } from '../backup/DataBackupModal';
+import { Sun, Moon, Calendar, LogOut, ChevronDown, LogIn, Globe, Search, Trash2, Shield, Crown, Sparkles, Star, FileText, Bell, HardDrive } from 'lucide-react';
 
 export const Navbar = ({ onOpenQuickCapture }) => {
   const { theme, toggleTheme, currency, setCurrency, subscriptionTier, openPricingModal, trialInfo } = useDashboard();
@@ -14,6 +15,7 @@ export const Navbar = ({ onOpenQuickCapture }) => {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showNotifSettings, setShowNotifSettings] = useState(false);
+  const [showBackupModal, setShowBackupModal] = useState(false);
   const isRemindersActive = typeof window !== 'undefined' && localStorage.getItem('pulse_reminders_enabled') === 'true';
 
   const currentDateStr = formatDisplayDate(getLocalDateString());
@@ -177,6 +179,18 @@ export const Navbar = ({ onOpenQuickCapture }) => {
                     <span>Daily Reminders</span>
                   </button>
 
+                  {/* Backup & Restore */}
+                  <button
+                    onClick={() => {
+                      setShowUserMenu(false);
+                      setShowBackupModal(true);
+                    }}
+                    className="w-full flex items-center space-x-2 px-3 py-2 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+                  >
+                    <HardDrive className="w-4 h-4 text-indigo-500" />
+                    <span>Backup & Restore</span>
+                  </button>
+
                   {/* Policies & Legal */}
                   <Link
                     to="/policy"
@@ -240,6 +254,12 @@ export const Navbar = ({ onOpenQuickCapture }) => {
     <NotificationSettingsModal
       isOpen={showNotifSettings}
       onClose={() => setShowNotifSettings(false)}
+    />
+
+    {/* Data Sovereignty: Backup & Restore Modal */}
+    <DataBackupModal
+      isOpen={showBackupModal}
+      onClose={() => setShowBackupModal(false)}
     />
   </>
   );

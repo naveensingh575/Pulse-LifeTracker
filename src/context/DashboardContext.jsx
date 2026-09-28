@@ -1613,6 +1613,243 @@ export const DashboardProvider = ({ children }) => {
     return { completed, total, percentage };
   }, [habits]);
 
+  // Data Sovereignty: 1-Click Complete Backup & Restore Engine
+  const getBackupData = useCallback(() => {
+    return {
+      habits,
+      goals,
+      tasks,
+      transactions,
+      activities,
+      journalEntries,
+      deadlines,
+      monthlyAllocations,
+      preferences: {
+        theme,
+        currency
+      }
+    };
+  }, [habits, goals, tasks, transactions, activities, journalEntries, deadlines, monthlyAllocations, theme, currency]);
+
+  const restoreBackupData = useCallback(async (incomingData, mode = 'merge') => {
+    if (!incomingData || typeof incomingData !== 'object') {
+      throw new Error('Invalid backup data structure.');
+    }
+
+    const incHabits = Array.isArray(incomingData.habits) ? incomingData.habits : [];
+    const incGoals = Array.isArray(incomingData.goals) ? incomingData.goals : [];
+    const incTasks = Array.isArray(incomingData.tasks) ? incomingData.tasks : [];
+    const incTx = Array.isArray(incomingData.transactions) ? incomingData.transactions : [];
+    const incActs = Array.isArray(incomingData.activities) ? incomingData.activities : [];
+    const incJournal = Array.isArray(incomingData.journalEntries) ? incomingData.journalEntries : [];
+    const incDeadlines = Array.isArray(incomingData.deadlines) ? incomingData.deadlines : [];
+    const incAllocs = incomingData.monthlyAllocations || {};
+
+    let finalHabits = [];
+    let finalGoals = [];
+    let finalTasks = [];
+    let finalTx = [];
+    let finalActs = [];
+    let finalJournal = [];
+    let finalDeadlines = [];
+    let finalAllocs = {};
+
+    if (mode === 'replace') {
+      finalHabits = incHabits.map(h => normalizeHabit(h));
+      finalGoals = incGoals.map(g => normalizeGoal(g));
+      finalTasks = incTasks;
+      finalTx = incTx;
+      finalActs = incActs;
+      finalJournal = incJournal;
+      finalDeadlines = incDeadlines;
+      finalAllocs = incAllocs;
+    } else {
+      // Merge mode: deduplicate and preserve non-conflicting records
+      const habitMap = new Map();
+      habits.forEach(h => habitMap.set(h.name.toLowerCase().trim(), h));
+      incHabits.forEach(h => {
+        const key = (h.name || '').toLowerCase().trim();
+        if (habitMap.has(key)) {
+          const existing = habitMap.get(key);
+          habitMap.set(key, {
+            ...existing,
+            ...h,
+            id: existing.id,
+            completions: { ...(existing.completions || {}), ...(h.completions || {}) },
+            streak: Math.max(existing.streak || 0, h.streak || 0)
+          });
+        } else {
+          habitMap.set(key, normalizeHabit(h));
+        }
+      });
+      finalHabits = Array.from(habitMap.values());
+
+      const goalMap = new Map();
+      goals.forEach(g => goalMap.set(g.title.toLowerCase().trim(), g));
+      incGoals.forEach(g => {
+        const key = (g.title || '').toLowerCase().trim();
+        if (goalMap.has(key)) {
+          const existing = goalMap.get(key);
+          goalMap.set(key, { ...existing, ...g, id: existing.id });
+        } else {
+          goalMap.set(key, normalizeGoal(g));
+        }
+      });
+      finalGoals = Array.from(goalMap.values());
+
+      const taskMap = new Map();
+      tasks.forEach(t => taskMap.set(t.id || `${t.title}_${t.dueDate}`, t));
+      incTasks.forEach(t => {
+        const key = t.id || `${t.title}_${t.dueDate}`;
+        taskMap.set(key, { ...(taskMap.get(key) || {}), ...t });
+      });
+      finalTasks = Array.from(taskMap.values());
+
+      const txMap = new Map();
+      transactions.forEach(t => txMap.set(t.id || `${t.date}_${t.amount}_${t.description}`, t));
+      incTx.forEach(t => {
+        const key = t.id || `${t.date}_${t.amount}_${t.description}`;
+        txMap.set(key, { ...(txMap.get(key) || {}), ...t });
+      });
+      finalTx = Array.from(txMap.values());
+
+      const actMap = new Map();
+      activities.forEach(a => actMap.set(a.id || `${a.date}_${a.title}`, a));
+      incActs.forEach(a => {
+        const key = a.id || `${a.date}_${a.title}`;
+        actMap.set(key, { ...(actMap.get(key) || {}), ...a });
+      });
+      finalActs = Array.from(actMap.values());
+
+      const journalMap = new Map();
+      journalEntries.forEach(j => journalMap.set(j.date, j));
+      incJournal.forEach(j => {
+        journalMap.set(j.date, { ...(journalMap.get(j.date) || {}), ...j });
+      });
+      finalJournal = Array.from(journalMap.values());
+
+      const deadlineMap = new Map();
+      deadlines.forEach(d => deadlineMap.set(d.id || `${d.date}_${d.title}`, d));
+      incDeadlines.forEach(d => {
+        const key = d.id || `${d.date}_${d.title}`;
+        deadlineMap.set(key, { ...(deadlineMap.get(key) || {}), ...d });
+      });
+      finalDeadlines = Array.from(deadlineMap.values());
+
+      finalAllocs = { ...monthlyAllocations, ...incAllocs };
+    }
+
+    // Set React States immediately
+    setHabits(finalHabits);
+    setGoals(finalGoals);
+    setTasks(finalTasks);
+    setTransactions(finalTx);
+    setActivities(finalActs);
+    setJournalEntries(finalJournal);
+    setDeadlines(finalDeadlines);
+    setMonthlyAllocations(finalAllocs);
+
+    if (incomingData.preferences) {
+      if (incomingData.preferences.theme) setTheme(incomingData.preferences.theme);
+      if (incomingData.preferences.currency) setCurrency(incomingData.preferences.currency);
+    }
+
+    // If authenticated, sync with Supabase in background
+    if (userId) {
+      try {
+        for (const h of finalHabits) {
+          const habitPayload = {
+            user_id: userId,
+            name: h.name,
+            category: h.category || 'Health',
+            icon: h.icon || 'Smile',
+            frequency: h.frequency || 'daily',
+            streak: h.streak || 0,
+            created_at: h.createdAt || getISTDateString()
+          };
+          if (h.id && !h.id.startsWith('h-')) {
+            habitPayload.id = h.id;
+          }
+          await supabase.from('habits').upsert(habitPayload);
+
+          if (h.completions && typeof h.completions === 'object') {
+            const compRows = Object.keys(h.completions)
+              .filter(date => h.completions[date])
+              .map(completed_date => ({
+                user_id: userId,
+                habit_id: h.id,
+                completed_date
+              }));
+            if (compRows.length > 0) {
+              await supabase.from('habit_completions').upsert(compRows).catch(() => {});
+            }
+          }
+        }
+
+        for (const t of finalTasks) {
+          const taskPayload = {
+            user_id: userId,
+            title: t.title,
+            priority: t.priority || 'medium',
+            category: t.category || 'Work',
+            due_date: t.dueDate,
+            completed: Boolean(t.completed),
+            completed_at: t.completedAt,
+            linked_goal_title: t.linkedGoalTitle,
+            notes: t.notes || ''
+          };
+          if (t.id && !t.id.startsWith('task-')) {
+            taskPayload.id = t.id;
+          }
+          await supabase.from('tasks').upsert(taskPayload);
+        }
+
+        for (const tx of finalTx) {
+          const txPayload = {
+            user_id: userId,
+            type: tx.type,
+            amount: Number(tx.amount) || 0,
+            category: tx.category,
+            description: tx.description,
+            asset_name: tx.assetName || '',
+            transaction_date: tx.date,
+            notes: tx.notes || ''
+          };
+          if (tx.id && !tx.id.startsWith('tx-')) {
+            txPayload.id = tx.id;
+          }
+          await supabase.from('transactions').upsert(txPayload);
+        }
+
+        for (const j of finalJournal) {
+          await supabase.from('journal_entries').upsert({
+            user_id: userId,
+            entry_date: j.date,
+            accomplished: j.accomplished || '',
+            notes: j.notes || '',
+            gratitude: j.gratitude || '',
+            mood: j.mood || 'productive'
+          });
+        }
+      } catch (syncErr) {
+        console.warn('[PULSE Restore Sync Warning]:', syncErr);
+      }
+    }
+
+    return {
+      success: true,
+      counts: {
+        habits: finalHabits.length,
+        goals: finalGoals.length,
+        tasks: finalTasks.length,
+        transactions: finalTx.length,
+        activities: finalActs.length,
+        journalEntries: finalJournal.length,
+        deadlines: finalDeadlines.length
+      }
+    };
+  }, [userId, habits, goals, tasks, transactions, activities, journalEntries, deadlines, monthlyAllocations, setCurrency]);
+
   return (
     <DashboardContext.Provider
       value={{
@@ -1724,8 +1961,10 @@ export const DashboardProvider = ({ children }) => {
         selectPlan,
         redeemPromoCode,
         isPricingModalOpen,
-        openPricingModal,
-        closePricingModal,
+        // Data Sovereignty & Backup
+        getBackupData,
+        restoreBackupData,
+
         PLAN_TIERS
       }}
     >

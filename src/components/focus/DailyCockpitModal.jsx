@@ -15,6 +15,9 @@ import {
   Moon,
   Clock
 } from 'lucide-react';
+import { playNotificationChime } from '../../utils/notificationUtils';
+import { triggerConfetti } from '../../utils/celebrationUtils';
+import { triggerHaptic } from '../../utils/hapticUtils';
 
 export const DailyCockpitModal = ({ isOpen, onClose }) => {
   const {
@@ -58,7 +61,31 @@ export const DailyCockpitModal = ({ isOpen, onClose }) => {
 
   const handleLaunch = () => {
     localStorage.setItem('pulse_last_cockpit_date', todayStr);
-    onClose();
+    try {
+      triggerConfetti(0.4);
+      playNotificationChime();
+      triggerHaptic('heavy');
+    } catch (e) {
+      console.warn('Launch celebration error', e);
+    }
+    setTimeout(() => {
+      onClose();
+    }, 300);
+  };
+
+  const handleToggleHabit = (habitId) => {
+    if (!toggleHabitForDate) return;
+    const isDone = isHabitDoneOn(habitId, todayStr);
+    toggleHabitForDate(habitId, todayStr);
+    if (!isDone) {
+      if (pendingHabits.length === 1 && pendingHabits[0].id === habitId) {
+        triggerConfetti(0.3);
+        playNotificationChime();
+        triggerHaptic('heavy');
+      } else {
+        triggerHaptic('medium');
+      }
+    }
   };
 
   const handleAutoOpenToggle = (e) => {
@@ -130,7 +157,7 @@ export const DailyCockpitModal = ({ isOpen, onClose }) => {
                 return (
                   <div
                     key={habit.id}
-                    onClick={() => toggleHabitForDate && toggleHabitForDate(habit.id, todayStr)}
+                    onClick={() => handleToggleHabit(habit.id)}
                     className={`flex items-center justify-between p-2 rounded-xl border text-xs font-semibold cursor-pointer transition ${
                       isDone
                         ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-800 dark:text-emerald-300'
@@ -143,7 +170,7 @@ export const DailyCockpitModal = ({ isOpen, onClose }) => {
                       ) : (
                         <Circle className="w-4 h-4 text-slate-400 shrink-0" />
                       )}
-                      <span className={isDone ? 'line-through opacity-80' : ''}>{habit.title}</span>
+                      <span className={isDone ? 'line-through opacity-80' : ''}>{habit.name || habit.title}</span>
                     </div>
                     {habit.streak > 0 && (
                       <span className="text-[10px] font-mono font-bold flex items-center gap-0.5 text-amber-600 dark:text-amber-400">

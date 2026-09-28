@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useDashboard } from '../../context/DashboardContext';
 import { getISTDateString } from '../../utils/dateUtils';
@@ -8,13 +8,18 @@ import {
   Circle,
   ArrowRight,
   Sparkles,
-  Award
+  Award,
+  Share2
 } from 'lucide-react';
 import { checkAndCelebrateHabits } from '../../utils/celebrationUtils';
+import { playNotificationChime } from '../../utils/notificationUtils';
+import { triggerHaptic } from '../../utils/hapticUtils';
+import { DisciplineShareModal } from '../analytics/DisciplineShareModal';
 
 export const HabitSnapshot = () => {
-  const { habits, isHabitDoneOn, toggleHabitForDate } = useDashboard();
+  const { habits, isHabitDoneOn, toggleHabitForDate, theme } = useDashboard();
   const todayStr = getISTDateString();
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   // Active habits for today
   const activeHabits = habits.filter(h => !h.createdAt || h.createdAt <= todayStr);
@@ -27,6 +32,10 @@ export const HabitSnapshot = () => {
     toggleHabitForDate(habitId, todayStr);
     if (pendingHabits.length === 1 && pendingHabits[0].id === habitId) {
       checkAndCelebrateHabits(todayStr, true);
+      playNotificationChime();
+      triggerHaptic('heavy');
+    } else {
+      triggerHaptic('light');
     }
   };
 
@@ -78,9 +87,17 @@ export const HabitSnapshot = () => {
           </div>
 
           {topStreakHabit && maxStreak > 0 && (
-            <div className="flex items-center space-x-1 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20 text-[10px] font-bold">
+            <button
+              onClick={() => {
+                triggerHaptic('light');
+                setIsShareModalOpen(true);
+              }}
+              title={`Share ${maxStreak}-day streak milestone!`}
+              className="flex items-center space-x-1 px-2.5 py-0.5 rounded-full bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/20 hover:border-amber-500/40 text-[10px] font-bold cursor-pointer transition shadow-xs group"
+            >
               <span>🔥 {maxStreak}-day streak on '{topStreakHabit.name}'</span>
-            </div>
+              <Share2 className="w-2.5 h-2.5 opacity-60 group-hover:opacity-100 transition-opacity" />
+            </button>
           )}
         </div>
 
@@ -139,6 +156,21 @@ export const HabitSnapshot = () => {
           </div>
         )}
       </div>
+
+      {/* 🚀 DISCIPLINE SHARE MODAL FOR STREAK */}
+      <DisciplineShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        disciplineScore={percent}
+        operatingArchetype={topStreakHabit ? `Master of ${topStreakHabit.name}` : 'The Habitual Titan'}
+        archetypeIcon="🔥"
+        topStreak={maxStreak}
+        totalActiveMins={habits.length * 20}
+        tasksCompleted={completedCount}
+        timeframe="day"
+        timeframeLabel={`Today • ${maxStreak}d Streak`}
+        theme={theme}
+      />
 
     </div>
   );

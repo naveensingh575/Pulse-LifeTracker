@@ -23,8 +23,11 @@ import {
   ChevronRight,
   Lock,
   Calendar,
-  Edit2
+  Edit2,
+  Share2
 } from 'lucide-react';
+import { triggerHaptic } from '../../utils/hapticUtils';
+import { DisciplineShareModal } from '../analytics/DisciplineShareModal';
 
 const habitIconMap = {
   Droplets: Droplets,
@@ -44,8 +47,12 @@ export const HabitTracker = ({ activeCategoryProp }) => {
     deleteHabit,
     canAddHabit,
     quotaStatus,
-    openPricingModal
+    openPricingModal,
+    theme
   } = useDashboard();
+
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [selectedStreakHabit, setSelectedStreakHabit] = useState(null);
 
   const [internalCategory, setInternalCategory] = useState('All');
   const activeCategory = activeCategoryProp !== undefined ? activeCategoryProp : internalCategory;
@@ -287,10 +294,21 @@ export const HabitTracker = ({ activeCategoryProp }) => {
                       <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                         {habit.name}
                         {habit.streak > 0 && (
-                          <span className="flex items-center space-x-0.5 px-1.5 py-0.2 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 text-[10px] font-bold">
-                            <Flame className="w-2.5 h-2.5 fill-amber-500" />
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              triggerHaptic('light');
+                              setSelectedStreakHabit(habit);
+                              setIsShareModalOpen(true);
+                            }}
+                            title={`Share ${habit.streak}-day streak milestone!`}
+                            className="flex items-center space-x-1 px-2 py-0.5 rounded-full bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/20 hover:border-amber-500/40 text-[10px] font-bold cursor-pointer transition shadow-xs group"
+                          >
+                            <Flame className="w-2.5 h-2.5 fill-amber-500 group-hover:scale-110 transition-transform" />
                             <span>{habit.streak}d</span>
-                          </span>
+                            <Share2 className="w-2 h-2 ml-0.5 opacity-60 group-hover:opacity-100 transition-opacity" />
+                          </button>
                         )}
                       </h4>
                       <div className="flex items-center gap-1.5">
@@ -529,6 +547,24 @@ export const HabitTracker = ({ activeCategoryProp }) => {
           </div>
         </>
       )}
+
+      {/* 🚀 HABIT STREAK MILESTONE SHARE MODAL */}
+      <DisciplineShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => {
+          setIsShareModalOpen(false);
+          setSelectedStreakHabit(null);
+        }}
+        disciplineScore={Math.min(100, Math.round(((selectedStreakHabit?.streak || 1) / 30) * 100))}
+        operatingArchetype={selectedStreakHabit ? `Master of ${selectedStreakHabit.name}` : 'The Habitual Titan'}
+        archetypeIcon="🔥"
+        topStreak={selectedStreakHabit?.streak || 1}
+        totalActiveMins={habits.length * 20}
+        tasksCompleted={selectedStreakHabit?.streak || 1}
+        timeframe="week"
+        timeframeLabel={`${selectedStreakHabit?.streak || 1}-Day Streak`}
+        theme={theme}
+      />
 
     </div>
   );
