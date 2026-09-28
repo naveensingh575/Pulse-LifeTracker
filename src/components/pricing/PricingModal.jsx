@@ -77,7 +77,7 @@ export const PricingModal = () => {
     setIsApplying(true);
     setPromoStatus(null);
 
-    const opened = await openRazorpayCheckout({
+    const result = await openRazorpayCheckout({
       planId,
       user,
       onSuccess: async (paymentDetails) => {
@@ -100,7 +100,7 @@ export const PricingModal = () => {
         setIsApplying(false);
         setPromoStatus({
           type: "error",
-          message: error?.description || "Payment was not completed. Please try again to upgrade."
+          message: error?.description || error?.reason || error?.message || "Payment was not completed. Please try again to upgrade."
         });
       },
       onDismiss: () => {
@@ -108,11 +108,11 @@ export const PricingModal = () => {
       }
     });
 
-    if (!opened) {
+    if (!result?.opened) {
       setIsApplying(false);
       setPromoStatus({
         type: "error",
-        message: "Could not open Razorpay checkout. Please check your internet connection or disable adblockers."
+        message: result?.error || "Could not open Razorpay checkout. Please check your internet connection or disable adblockers."
       });
     }
   };

@@ -17,12 +17,29 @@ export function loadRazorpayScript() {
       return;
     }
 
+    // Check if script tag is already in DOM
+    const existingScript = document.querySelector('script[src*="checkout.razorpay.com"]');
+    if (existingScript) {
+      let attempts = 0;
+      const interval = setInterval(() => {
+        attempts++;
+        if (window.Razorpay) {
+          clearInterval(interval);
+          resolve(true);
+        } else if (attempts >= 25) {
+          clearInterval(interval);
+          resolve(Boolean(window.Razorpay));
+        }
+      }, 100);
+      return;
+    }
+
     const script = document.createElement("script");
     script.src = RAZORPAY_SCRIPT_URL;
     script.async = true;
     script.onload = () => resolve(true);
-    script.onerror = () => {
-      console.warn("Could not load Razorpay script directly from CDN");
+    script.onerror = (err) => {
+      console.warn("Could not load Razorpay script directly from CDN", err);
       resolve(false);
     };
     document.body.appendChild(script);
@@ -82,10 +99,10 @@ export async function openRazorpayCheckout({
       currency: "INR",
       name: "Pulse Life Tracker",
       description: planInfo.description,
-      image: "https://pulse-life-tracker.vercel.app/favicon.ico",
+      image: "https://pulse-life-tracker.vercel.app/pwa-512x512.png",
       prefill: {
-        name: user?.name || "Pulse Member",
-        email: user?.email || "member@pulsetracker.com",
+        name: user?.user_metadata?.full_name || user?.name || "Pulse Member",
+        email: user?.email || "",
         contact: ""
       },
       notes: {
@@ -123,14 +140,14 @@ export async function openRazorpayCheckout({
         }
       });
       rzp.open();
-      return true;
+      return { opened: true };
     } catch (err) {
       console.error("Error opening Razorpay checkout:", err);
       if (onFailure) onFailure(err);
-      return false;
+      return { opened: false, error: err?.message || "Failed to initialize checkout modal." };
     }
   }
 
-  // Fallback: If SDK failed to load (e.g. adblocker), trigger fallback simulated flow
-  return false;
+  // Fallback: If SDK failed to load (e.g. adblocker)
+  return { opened: false, error: "Razorpay SDK could not be loaded. Please ensure you are connected to the internet and disable adblockers." };
 }
