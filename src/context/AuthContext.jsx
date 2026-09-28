@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import { recordReferralSignup } from '../utils/referralUtils';
 
 const AuthContext = createContext();
 
@@ -157,22 +158,39 @@ export const AuthProvider = ({ children }) => {
     return data;
   };
 
-  // Sign up with Email, Password & Name
-  const signUpWithEmail = async (email, password, name) => {
+  // Sign up with Email, Password, Name & Referral Code
+  const signUpWithEmail = async (email, password, name, referralCode = '') => {
     const cleanEmail = email.trim().toLowerCase();
     const cleanName = name ? name.trim() : cleanEmail.split('@')[0];
+    const cleanRef = (referralCode || '').trim();
+
+    const signUpMetadata = {
+      full_name: cleanName
+    };
+    if (cleanRef) {
+      signUpMetadata.referred_by = cleanRef;
+    }
 
     const { data, error } = await supabase.auth.signUp({
       email: cleanEmail,
       password,
       options: {
-        data: {
-          full_name: cleanName
-        },
+        data: signUpMetadata,
         emailRedirectTo: getAppBaseUrl()
       }
     });
     if (error) throw error;
+
+    // If referral code was provided, grant 14-day Pro exploration & record attribution
+    if (cleanRef) {
+      try {
+        localStorage.setItem('pulse_referral_pro_boost', 'true');
+        await recordReferralSignup(cleanRef, data?.user?.id, cleanEmail);
+      } catch (err) {
+        console.warn('Could not record referral attribution:', err);
+      }
+    }
+
     return data;
   };
 

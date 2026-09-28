@@ -20,6 +20,7 @@ import { triggerHaptic } from '../utils/hapticUtils';
 import { validatePromoCode, PLAN_TIERS } from '../utils/pricingUtils';
 import { getQuotaStatus, getCurrentMonthKey, FREE_TIER_LIMITS } from '../utils/featureGating';
 import { getGuestDemoData } from '../utils/demoData';
+import { getUserReferralCode, getReferralRewardTier, fetchReferralStats } from '../utils/referralUtils';
 
 export const SUPPORTED_CURRENCIES = [
   { symbol: '$', code: 'USD', name: 'US Dollar ($)' },
@@ -477,7 +478,32 @@ export const DashboardProvider = ({ children }) => {
     return recordMonthlyView('habits');
   }, [recordMonthlyView]);
 
-  // 7-Day Pro Preview Trial for New Users (Boosted to 14 Days if arriving via referral)
+  // 🎁 Tiered Viral Referral Stats & Milestone Rewards
+  const [referralStats, setReferralStats] = useState(() => {
+    const code = getUserReferralCode(user);
+    const localCount = typeof window !== 'undefined' ? Number(localStorage.getItem(`pulse_referral_count_${code}`) || '0') : 0;
+    return {
+      code,
+      referralCount: localCount,
+      tier: getReferralRewardTier(localCount)
+    };
+  });
+
+  const refreshReferralStats = useCallback(async () => {
+    try {
+      const stats = await fetchReferralStats(user);
+      if (stats) setReferralStats(stats);
+      return stats;
+    } catch (e) {
+      console.warn('Error refreshing referral stats:', e);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    refreshReferralStats();
+  }, [refreshReferralStats]);
+
+  // Pro Preview Trial for New Users (Boosted to 14 Days if arriving via referral, plus bonus days earned as referrer)
   const trialInfo = useMemo(() => {
     let firstSeen = localStorage.getItem('pulse_first_seen_at');
     if (!firstSeen) {
@@ -485,18 +511,44 @@ export const DashboardProvider = ({ children }) => {
       localStorage.setItem('pulse_first_seen_at', firstSeen);
     }
     const hasReferralBonus = localStorage.getItem('pulse_referral_pro_boost') === 'true';
-    const maxDays = hasReferralBonus ? 14 : 7;
+    const baseDays = hasReferralBonus ? 14 : 7;
     const diffMs = Date.now() - new Date(firstSeen).getTime();
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-    const isTrialActive = diffDays < maxDays;
-    const trialDaysRemaining = Math.max(0, maxDays - diffDays);
+    const baseTrialActive = diffDays < baseDays;
+    const baseDaysRemaining = Math.max(0, baseDays - diffDays);
+
+    // Referrer earned bonus rewards: 1 ref = 14d, 3 ref = 30d, 10 ref = 60d
+    const referrerBonusDays = referralStats?.tier?.bonusDays || 0;
+    let referrerRewardActive = false;
+    let referrerDaysRemaining = 0;
+
+    if (referrerBonusDays > 0) {
+      let rewardEarnedAt = localStorage.getItem('pulse_referral_reward_at');
+      if (!rewardEarnedAt) {
+        rewardEarnedAt = new Date().toISOString();
+        localStorage.setItem('pulse_referral_reward_at', rewardEarnedAt);
+      }
+      const rewardDiffMs = Date.now() - new Date(rewardEarnedAt).getTime();
+      const rewardDiffDays = Math.floor(rewardDiffMs / (1000 * 60 * 60 * 24));
+      if (rewardDiffDays < referrerBonusDays) {
+        referrerRewardActive = true;
+        referrerDaysRemaining = Math.max(0, referrerBonusDays - rewardDiffDays);
+      }
+    }
+
+    const isTrialActive = baseTrialActive || referrerRewardActive;
+    const trialDaysRemaining = Math.max(baseDaysRemaining, referrerDaysRemaining);
+
     return {
       isTrialActive,
       trialDaysRemaining,
       firstSeenAt: firstSeen,
-      hasReferralBonus
+      hasReferralBonus,
+      referrerBonusDays,
+      referrerRewardActive,
+      referrerDaysRemaining
     };
-  }, []);
+  }, [referralStats]);
 
   const canViewMonthOnPage = useCallback((page = 'habits') => {
     if (subscriptionTier !== 'free' || trialInfo.isTrialActive) return true;
@@ -2037,6 +2089,10 @@ export const DashboardProvider = ({ children }) => {
         // Data Sovereignty & Backup
         getBackupData,
         restoreBackupData,
+
+        // Viral Referral Engine
+        referralStats,
+        refreshReferralStats,
 
         PLAN_TIERS
       }}

@@ -20,7 +20,8 @@ import {
   Shield,
   Smartphone,
   Apple,
-  Download
+  Download,
+  Gift
 } from 'lucide-react';
 import { AppInstallModal } from '../common/AppInstallModal';
 
@@ -54,6 +55,16 @@ export const AuthPage = ({ initialMode }) => {
     ) {
       return 'update-password';
     }
+    // Auto-direct to signup when arriving via referral or explicit mode=signup
+    if (
+      hash.includes('mode=signup') ||
+      href.includes('mode=signup') ||
+      hash.includes('ref=') ||
+      href.includes('ref=') ||
+      (typeof localStorage !== 'undefined' && localStorage.getItem('pulse_incoming_referral'))
+    ) {
+      return 'signup';
+    }
     return 'signin';
   });
 
@@ -61,6 +72,28 @@ export const AuthPage = ({ initialMode }) => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [name, setName] = useState('');
+  
+  // Referral code state: extracted from URL or local storage
+  const [referralCode, setReferralCode] = useState(() => {
+    if (typeof window === 'undefined') return '';
+    try {
+      const fullHref = window.location.href;
+      const url = new URL(fullHref);
+      let ref = url.searchParams.get('ref');
+      if (!ref && window.location.hash.includes('?')) {
+        const hashQuery = window.location.hash.split('?')[1];
+        const params = new URLSearchParams(hashQuery);
+        ref = params.get('ref');
+      }
+      if (ref) return ref.trim();
+      const stored = localStorage.getItem('pulse_incoming_referral');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed?.code) return parsed.code.trim();
+      }
+    } catch {}
+    return '';
+  });
   
   const [authError, setAuthError] = useState('');
   const [authSuccess, setAuthSuccess] = useState('');
@@ -174,7 +207,7 @@ export const AuthPage = ({ initialMode }) => {
 
     try {
       if (mode === 'signup') {
-        const result = await signUpWithEmail(cleanEmail, password, name);
+        const result = await signUpWithEmail(cleanEmail, password, name, referralCode);
         
         // If Supabase has email confirmations enabled and session is not yet active
         if (result?.user && !result.session) {
@@ -539,6 +572,50 @@ export const AuthPage = ({ initialMode }) => {
                   />
                 </div>
               </div>
+
+              {mode === 'signup' && (
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                      Referral / Invite Code (Optional)
+                    </label>
+                    {referralCode.trim() && (
+                      <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                        <Sparkles className="w-3 h-3 text-amber-500 fill-amber-500" />
+                        14-Day Pro Free
+                      </span>
+                    )}
+                  </div>
+                  <div className="relative">
+                    <Gift className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                    <input
+                      type="text"
+                      placeholder="e.g. pulse-sam89"
+                      value={referralCode}
+                      onChange={e => {
+                        const val = e.target.value;
+                        setReferralCode(val);
+                        if (val.trim()) {
+                          try {
+                            localStorage.setItem('pulse_referral_pro_boost', 'true');
+                            localStorage.setItem('pulse_incoming_referral', JSON.stringify({
+                              code: val.trim(),
+                              capturedAt: new Date().toISOString()
+                            }));
+                          } catch {}
+                        }
+                      }}
+                      className="w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs font-mono text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500"
+                    />
+                  </div>
+                  {referralCode.trim() && (
+                    <p className="text-[10px] text-emerald-600 dark:text-emerald-400 mt-1 flex items-center gap-1">
+                      <Check className="w-3 h-3" />
+                      <span>Referral code active! You will unlock 14 days of free Pro preview upon signup.</span>
+                    </p>
+                  )}
+                </div>
+              )}
 
               <button
                 type="submit"
