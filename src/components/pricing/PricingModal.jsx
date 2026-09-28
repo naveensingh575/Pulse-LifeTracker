@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useDashboard } from "../../context/DashboardContext";
 import { useAuth } from "../../context/AuthContext";
-import { getLocalizedPrice, PRICING_DATA, getRemainingFounderSeats, isPaymentSupported, CURRENCY_LABELS } from "../../utils/pricingUtils";
+import { getLocalizedPrice, PRICING_DATA, getRemainingFounderSeats } from "../../utils/pricingUtils";
 import { openRazorpayCheckout } from "../../utils/paymentUtils";
 import {
   X,
@@ -73,22 +73,13 @@ export const PricingModal = () => {
       return;
     }
 
-    // Block non-INR currencies — international payment gateway not yet integrated
-    if (!isPaymentSupported(currency)) {
-      setPromoStatus({
-        type: "intl",
-        currency: currency,
-        label: CURRENCY_LABELS[currency] || currency
-      });
-      return;
-    }
-
     const plan = PRICING_DATA[planId];
     setIsApplying(true);
     setPromoStatus(null);
 
     const result = await openRazorpayCheckout({
       planId,
+      currency,          // pass active dashboard currency symbol
       user,
       onSuccess: async (paymentDetails) => {
         const upgradeRes = await selectPlan(planId, paymentDetails);
@@ -128,6 +119,7 @@ export const PricingModal = () => {
   };
 
 
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 dark:bg-slate-950/85 backdrop-blur-md animate-in fade-in duration-150 overflow-y-auto">
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white max-w-4xl w-full rounded-3xl p-5 sm:p-8 shadow-2xl relative my-6 max-h-[92vh] overflow-y-auto space-y-6">
@@ -163,22 +155,9 @@ export const PricingModal = () => {
           </div>
         </div>
 
-        {/* International Currency Notice — shown passively when non-INR currency is active */}
-        {!isPaymentSupported(currency) && (
-          <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/25 border border-amber-200 dark:border-amber-700/40">
-            <span className="text-lg shrink-0 mt-0.5">🌍</span>
-            <div className="text-xs leading-relaxed space-y-0.5">
-              <p className="font-bold text-amber-800 dark:text-amber-300">
-                Payments in {CURRENCY_LABELS[currency] || currency} — Coming Soon
-              </p>
-              <p className="text-amber-700 dark:text-amber-400">
-                We currently process payments in <strong>₹ INR</strong> only. Switch your currency to <strong>₹</strong> in the top nav bar to subscribe now.
-              </p>
-            </div>
-          </div>
-        )}
 
         {/* 3 High-Impact Pricing Cards */}
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5 items-stretch">
           
           {/* Card 1: Monthly Pro */}
@@ -421,25 +400,7 @@ export const PricingModal = () => {
             </button>
           </form>
 
-          {promoStatus && promoStatus.type === "intl" && (
-            <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-700/50 flex flex-col sm:flex-row sm:items-start gap-3">
-              <div className="text-2xl shrink-0">🌍</div>
-              <div className="flex-1 space-y-1.5">
-                <p className="text-sm font-bold text-amber-800 dark:text-amber-300">
-                  International Payments — Coming Soon
-                </p>
-                <p className="text-xs text-amber-700 dark:text-amber-400 leading-relaxed">
-                  We currently process payments in <strong>Indian Rupees (INR)</strong> via Razorpay. 
-                  Support for <strong>{promoStatus.label}</strong> and other international currencies is actively being set up.
-                </p>
-                <p className="text-xs text-amber-600 dark:text-amber-500">
-                  To subscribe now, switch your currency to <strong>₹ (INR)</strong> using the selector in the top navigation bar, then choose your plan.
-                </p>
-              </div>
-            </div>
-          )}
-
-          {promoStatus && promoStatus.type !== "intl" && (
+          {promoStatus && (
             <div className={"p-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 " + (
               promoStatus.type === "success"
                 ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20"

@@ -6,14 +6,27 @@
 export const MAX_FAMILY100_ACCOUNTS = 100;
 
 /**
- * Currencies that go through Razorpay (INR only for now).
- * All others show a "coming soon" notice.
+ * All currencies now supported via Razorpay International.
  */
-export const PAYMENT_SUPPORTED_CURRENCIES = ["₹"];
+export const PAYMENT_SUPPORTED_CURRENCIES = ["₹", "$", "€", "£", "¥", "C$", "A$", "AED"];
 
 export function isPaymentSupported(currency) {
   return PAYMENT_SUPPORTED_CURRENCIES.includes(currency);
 }
+
+/**
+ * Currency symbol → Razorpay ISO 4217 code
+ */
+export const CURRENCY_ISO_MAP = {
+  "₹": "INR",
+  "$": "USD",
+  "€": "EUR",
+  "£": "GBP",
+  "¥": "JPY",
+  "C$": "CAD",
+  "A$": "AUD",
+  "AED": "AED"
+};
 
 /**
  * Human-readable labels for each currency symbol
@@ -58,14 +71,14 @@ export const PRICING_DATA = {
     ],
     highlight: false,
     prices: {
-      "₹": { current: "₹99", regular: "₹249", symbol: "₹" },
-      "$": { current: "$1.99", regular: "$4.99", symbol: "$" },
-      "€": { current: "€1.89", regular: "€4.49", symbol: "€" },
-      "£": { current: "£1.69", regular: "£3.99", symbol: "£" },
-      "¥": { current: "¥299", regular: "¥750", symbol: "¥" },
-      "C$": { current: "C$2.79", regular: "C$6.99", symbol: "C$" },
-      "A$": { current: "A$2.99", regular: "A$7.49", symbol: "A$" },
-      "AED": { current: "AED 7.99", regular: "AED 19.99", symbol: "AED" }
+      "₹":   { current: "₹99",      regular: "₹249",      symbol: "₹",   amount: 99 },
+      "$":   { current: "$1.99",    regular: "$4.99",    symbol: "$",   amount: 1.99 },
+      "€":   { current: "€1.89",    regular: "€4.49",    symbol: "€",   amount: 1.89 },
+      "£":   { current: "£1.69",    regular: "£3.99",    symbol: "£",   amount: 1.69 },
+      "¥":   { current: "¥299",     regular: "¥750",     symbol: "¥",   amount: 299 },
+      "C$":  { current: "C$2.79",   regular: "C$6.99",   symbol: "C$",  amount: 2.79 },
+      "A$":  { current: "A$2.99",   regular: "A$7.49",   symbol: "A$",  amount: 2.99 },
+      "AED": { current: "AED 7.99", regular: "AED 19.99", symbol: "AED", amount: 7.99 }
     }
   },
   yearly: {
@@ -85,24 +98,24 @@ export const PRICING_DATA = {
     highlight: true,
     isPopular: true,
     effectiveMonthly: {
-      "₹": "₹66/mo (Less than ₹2.20/day)",
-      "$": "$1.25/mo (Less than $0.05/day)",
-      "€": "€1.16/mo",
-      "£": "£0.99/mo",
-      "¥": "¥191/mo",
-      "C$": "C$1.66/mo",
-      "A$": "A$1.91/mo",
+      "₹":   "₹66/mo (Less than ₹2.20/day)",
+      "$":   "$1.25/mo (Less than $0.05/day)",
+      "€":   "€1.16/mo",
+      "£":   "£0.99/mo",
+      "¥":   "¥191/mo",
+      "C$":  "C$1.66/mo",
+      "A$":  "A$1.91/mo",
       "AED": "AED 4.9/mo"
     },
     prices: {
-      "₹": { current: "₹799", regular: "₹1,999", symbol: "₹" },
-      "$": { current: "$14.99", regular: "$39.99", symbol: "$" },
-      "€": { current: "€13.99", regular: "€34.99", symbol: "€" },
-      "£": { current: "£11.99", regular: "£29.99", symbol: "£" },
-      "¥": { current: "¥2,299", regular: "¥5,999", symbol: "¥" },
-      "C$": { current: "C$19.99", regular: "C$49.99", symbol: "C$" },
-      "A$": { current: "A$22.99", regular: "A$59.99", symbol: "A$" },
-      "AED": { current: "AED 59", regular: "AED 149", symbol: "AED" }
+      "₹":   { current: "₹799",    regular: "₹1,999",   symbol: "₹",   amount: 799 },
+      "$":   { current: "$14.99",  regular: "$39.99",  symbol: "$",   amount: 14.99 },
+      "€":   { current: "€13.99",  regular: "€34.99",  symbol: "€",   amount: 13.99 },
+      "£":   { current: "£11.99",  regular: "£29.99",  symbol: "£",   amount: 11.99 },
+      "¥":   { current: "¥2,299",  regular: "¥5,999",  symbol: "¥",   amount: 2299 },
+      "C$":  { current: "C$19.99", regular: "C$49.99", symbol: "C$",  amount: 19.99 },
+      "A$":  { current: "A$22.99", regular: "A$59.99", symbol: "A$",  amount: 22.99 },
+      "AED": { current: "AED 59",  regular: "AED 149", symbol: "AED", amount: 59 }
     }
   },
   lifetime: {
@@ -121,14 +134,14 @@ export const PRICING_DATA = {
     ],
     highlight: false,
     prices: {
-      "₹": { current: "₹1,499", regular: "₹4,999", symbol: "₹" },
-      "$": { current: "$24", regular: "$79", symbol: "$" },
-      "€": { current: "€22", regular: "€69", symbol: "€" },
-      "£": { current: "£19", regular: "£59", symbol: "£" },
-      "¥": { current: "¥3,699", regular: "¥11,999", symbol: "¥" },
-      "C$": { current: "C$32", regular: "C$99", symbol: "C$" },
-      "A$": { current: "A$36", regular: "A$110", symbol: "A$" },
-      "AED": { current: "AED 99", regular: "AED 299", symbol: "AED" }
+      "₹":   { current: "₹1,499", regular: "₹4,999",   symbol: "₹",   amount: 1499 },
+      "$":   { current: "$24",    regular: "$79",      symbol: "$",   amount: 24 },
+      "€":   { current: "€22",    regular: "€69",      symbol: "€",   amount: 22 },
+      "£":   { current: "£19",    regular: "£59",      symbol: "£",   amount: 19 },
+      "¥":   { current: "¥3,699", regular: "¥11,999",  symbol: "¥",   amount: 3699 },
+      "C$":  { current: "C$32",   regular: "C$99",     symbol: "C$",  amount: 32 },
+      "A$":  { current: "A$36",   regular: "A$110",    symbol: "A$",  amount: 36 },
+      "AED": { current: "AED 99", regular: "AED 299",  symbol: "AED", amount: 99 }
     }
   },
   free: {
@@ -146,17 +159,18 @@ export const PRICING_DATA = {
     ],
     highlight: false,
     prices: {
-      "₹": { current: "₹0", regular: "₹0", symbol: "₹" },
-      "$": { current: "$0", regular: "$0", symbol: "$" },
-      "€": { current: "€0", regular: "€0", symbol: "€" },
-      "£": { current: "£0", regular: "£0", symbol: "£" },
-      "¥": { current: "¥0", regular: "¥0", symbol: "¥" },
-      "C$": { current: "C$0", regular: "C$0", symbol: "C$" },
-      "A$": { current: "A$0", regular: "A$0", symbol: "A$" },
-      "AED": { current: "AED 0", regular: "AED 0", symbol: "AED" }
+      "₹":   { current: "₹0",   regular: "₹0",   symbol: "₹",   amount: 0 },
+      "$":   { current: "$0",   regular: "$0",   symbol: "$",   amount: 0 },
+      "€":   { current: "€0",   regular: "€0",   symbol: "€",   amount: 0 },
+      "£":   { current: "£0",   regular: "£0",   symbol: "£",   amount: 0 },
+      "¥":   { current: "¥0",   regular: "¥0",   symbol: "¥",   amount: 0 },
+      "C$":  { current: "C$0",  regular: "C$0",  symbol: "C$",  amount: 0 },
+      "A$":  { current: "A$0",  regular: "A$0",  symbol: "A$",  amount: 0 },
+      "AED": { current: "AED 0", regular: "AED 0", symbol: "AED", amount: 0 }
     }
   }
 };
+
 
 export const PLAN_TIERS = PRICING_DATA;
 

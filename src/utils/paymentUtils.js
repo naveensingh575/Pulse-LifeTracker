@@ -1,8 +1,38 @@
 /**
  * Razorpay Payment Gateway Integration Engine for Pulse Life Tracker
+ * Supports INR (domestic) and all international currencies via Razorpay International.
  */
 
+import { PRICING_DATA, CURRENCY_ISO_MAP } from "./pricingUtils";
+
 const RAZORPAY_SCRIPT_URL = "https://checkout.razorpay.com/v1/checkout.js";
+
+/**
+ * JPY and other zero-decimal currencies — amount is NOT multiplied by 100.
+ * All others use smallest unit (paise, cents, pence, fils, etc.)
+ */
+const ZERO_DECIMAL_CURRENCIES = new Set(["JPY"]);
+
+/**
+ * Convert a decimal amount to Razorpay's expected smallest-unit integer.
+ * e.g. 14.99 USD → 1499 cents | 799 INR → 79900 paise | 2299 JPY → 2299 yen
+ */
+function toSmallestUnit(amount, isoCode) {
+  if (ZERO_DECIMAL_CURRENCIES.has(isoCode)) {
+    return Math.round(amount);
+  }
+  return Math.round(amount * 100);
+}
+
+/**
+ * Plan metadata (name / description) used in the checkout modal header
+ */
+const PLAN_META = {
+  monthly:  { name: "Pro Monthly Subscription",  description: "Pulse Pro Monthly Operating Suite" },
+  yearly:   { name: "Pro Yearly Subscription",    description: "Pulse Pro Yearly Operating Suite" },
+  lifetime: { name: "Founder Lifetime Pass",      description: "Pulse Founder Lifetime Access (Pay Once)" },
+  founder:  { name: "Founder Lifetime Pass",      description: "Pulse Founder Lifetime Access (Pay Once)" }
+};
 
 // Loads Razorpay standard checkout script dynamically into DOM
 export function loadRazorpayScript() {
@@ -47,58 +77,45 @@ export function loadRazorpayScript() {
 }
 
 /**
- * Plan amount mapping in INR paise (1 INR = 100 paise)
- */
-export const RAZORPAY_PLAN_AMOUNTS = {
-  monthly: {
-    amountInPaise: 9900, // ₹99
-    amountINR: 99,
-    name: "Pro Monthly Subscription",
-    description: "Pulse Pro Monthly Operating Suite"
-  },
-  yearly: {
-    amountInPaise: 79900, // ₹799
-    amountINR: 799,
-    name: "Pro Yearly Subscription",
-    description: "Pulse Pro Yearly Operating Suite"
-  },
-  lifetime: {
-    amountInPaise: 149900, // ₹1,499
-    amountINR: 1499,
-    name: "Founder Lifetime Pass",
-    description: "Pulse Founder Lifetime Access (Pay Once)"
-  },
-  founder: {
-    amountInPaise: 149900, // ₹1,499
-    amountINR: 1499,
-    name: "Founder Lifetime Pass",
-    description: "Pulse Founder Lifetime Access (Pay Once)"
-  }
-};
-
-/**
- * Opens Razorpay payment modal with standard configuration
+ * Opens Razorpay payment modal — currency-aware for Razorpay International.
+ *
+ * @param {string}   planId      - "monthly" | "yearly" | "lifetime"
+ * @param {string}   currency    - Symbol from dashboard selector: "₹" | "$" | "€" | "£" | "¥" | "C$" | "A$" | "AED"
+ * @param {object}   user        - Supabase auth user object
+ * @param {function} onSuccess   - Called with payment details on success
+ * @param {function} onFailure   - Called with error on failure
+ * @param {function} onDismiss   - Called when user closes modal
  */
 export async function openRazorpayCheckout({
   planId = "yearly",
+  currency = "₹",
   user = null,
   onSuccess,
   onFailure,
   onDismiss
 }) {
-  const planInfo = RAZORPAY_PLAN_AMOUNTS[planId] || RAZORPAY_PLAN_AMOUNTS.yearly;
+  // Resolve ISO code — default to INR if unknown
+  const isoCode = CURRENCY_ISO_MAP[currency] || "INR";
+
+  // Look up localized price from PRICING_DATA
+  const planData = PRICING_DATA[planId] || PRICING_DATA.yearly;
+  const priceObj = planData.prices[currency] || planData.prices["₹"];
+  const numericAmount = priceObj?.amount ?? 0;
+  const amountInSmallestUnit = toSmallestUnit(numericAmount, isoCode);
+
+  const planMeta = PLAN_META[planId] || PLAN_META.yearly;
+
   const isLoaded = await loadRazorpayScript();
 
-  // If Razorpay SDK is available on window
   if (isLoaded && typeof window !== "undefined" && window.Razorpay) {
     const keyId = import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_live_ThLQKI8oeYBlEN";
 
     const options = {
       key: keyId,
-      amount: planInfo.amountInPaise,
-      currency: "INR",
+      amount: amountInSmallestUnit,
+      currency: isoCode,
       name: "Pulse Life Tracker",
-      description: planInfo.description,
+      description: planMeta.description,
       image: "https://pulse-life-tracker.vercel.app/pwa-512x512.png",
       prefill: {
         name: user?.user_metadata?.full_name || user?.name || "Pulse Member",
@@ -108,7 +125,8 @@ export async function openRazorpayCheckout({
       notes: {
         plan_id: planId,
         app: "Pulse Life Tracker",
-        user_id: user?.id || "guest"
+        user_id: user?.id || "guest",
+        currency_symbol: currency
       },
       theme: {
         color: "#4f46e5"
@@ -125,8 +143,9 @@ export async function openRazorpayCheckout({
             orderId: response.razorpay_order_id,
             signature: response.razorpay_signature,
             planId,
-            amount: planInfo.amountINR,
-            currency: "INR"
+            amount: numericAmount,
+            currency: isoCode,
+            currencySymbol: currency
           });
         }
       }
@@ -148,6 +167,6 @@ export async function openRazorpayCheckout({
     }
   }
 
-  // Fallback: If SDK failed to load (e.g. adblocker)
+  // Fallback: SDK failed to load (e.g. adblocker)
   return { opened: false, error: "Razorpay SDK could not be loaded. Please ensure you are connected to the internet and disable adblockers." };
 }
