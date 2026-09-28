@@ -1,0 +1,22 @@
+{
+  "appId": "com.pulse.lifetracker",
+  "appName": "Pulse Life Tracker",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 1500,
+      "backgroundColor": "#0f172a",
+      "showSpinner": false,
+      "androidSplashResourceName": "splash",
+      "androidScaleType": "CENTER_CROP"
+    },
+    "StatusBar": {
+      "style": "DARK",
+      "backgroundColor": "#0f172a"
+    }
+  },
+  "server": {
+    "cleartext": true
+  }
+}

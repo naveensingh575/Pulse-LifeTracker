@@ -17,8 +17,12 @@ import {
   KeyRound,
   ArrowLeft,
   Key,
-  Shield
+  Shield,
+  Smartphone,
+  Apple,
+  Download
 } from 'lucide-react';
+import { AppInstallModal } from '../common/AppInstallModal';
 
 export const AuthPage = ({ initialMode }) => {
   const {
@@ -63,6 +67,15 @@ export const AuthPage = ({ initialMode }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isResending, setIsResending] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
+
+  // Mobile App Install Modal State
+  const [showInstallModal, setShowInstallModal] = useState(false);
+  const [installPlatform, setInstallPlatform] = useState('android');
+
+  const openInstallGuide = (plat) => {
+    setInstallPlatform(plat);
+    setShowInstallModal(true);
+  };
 
   // Check URL hash / auth recovery event on mount
   useEffect(() => {
@@ -319,6 +332,48 @@ export const AuthPage = ({ initialMode }) => {
           <div className="p-3.5 bg-indigo-50/50 dark:bg-indigo-950/30 rounded-2xl border border-indigo-200/60 dark:border-indigo-500/20 text-xs flex items-center space-x-3 text-indigo-900 dark:text-indigo-200">
             <ShieldCheck className="w-5 h-5 text-indigo-500 shrink-0" />
             <span>Encrypted storage. Your data remains strictly private to your verified account.</span>
+          </div>
+
+          {/* Mobile App Download Card */}
+          <div className="p-4 bg-slate-100/80 dark:bg-slate-900/80 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-lg bg-indigo-500/15 text-indigo-600 dark:text-cyan-400">
+                  <Smartphone className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100">Get Pulse Mobile App</h4>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">Standalone offline-first experience</p>
+                </div>
+              </div>
+              <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                PWA Ready
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => openInstallGuide('android')}
+                className="flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/30 text-xs font-bold transition cursor-pointer active:scale-95 shadow-sm"
+              >
+                <Download className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                <span>Android App</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => openInstallGuide('ios')}
+                className="flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-indigo-50 dark:bg-slate-800 hover:bg-indigo-100 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-indigo-200 dark:border-slate-700 text-xs font-bold transition cursor-pointer active:scale-95 shadow-sm"
+              >
+                <Apple className="w-3.5 h-3.5 text-slate-900 dark:text-white" />
+                <span>iPhone / iOS</span>
+              </button>
+            </div>
+
+            <p className="text-[10px] text-slate-500 dark:text-slate-400 text-center italic">
+              Google Play & Apple App Store editions coming soon
+            </p>
           </div>
         </div>
 
@@ -674,6 +729,13 @@ export const AuthPage = ({ initialMode }) => {
         </div>
 
       </div>
+
+      {/* Mobile App Install Modal */}
+      <AppInstallModal
+        isOpen={showInstallModal}
+        onClose={() => setShowInstallModal(false)}
+        initialPlatform={installPlatform}
+      />
 
     </div>
   );
