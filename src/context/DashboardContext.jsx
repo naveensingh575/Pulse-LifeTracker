@@ -13,6 +13,7 @@ import { isLivingBudgetExpense } from '../utils/financeUtils';
 import { triggerHaptic } from '../utils/hapticUtils';
 import { validatePromoCode, PLAN_TIERS } from '../utils/pricingUtils';
 import { getQuotaStatus, getCurrentMonthKey, FREE_TIER_LIMITS } from '../utils/featureGating';
+import { getGuestDemoData } from '../utils/demoData';
 
 export const SUPPORTED_CURRENCIES = [
   { symbol: '$', code: 'USD', name: 'US Dollar ($)' },
@@ -27,10 +28,11 @@ export const SUPPORTED_CURRENCIES = [
 
 const DashboardContext = createContext();
 
-// Helper to calculate active streak from date-keyed completions
-export const calculateHabitStreak = (completions = {}, createdAt) => {
+// Helper to calculate active streak from date-keyed completions with Smart Streak Shield
+export const calculateHabitStreakWithShield = (completions = {}, createdAt) => {
   const today = getISTDate();
   let streak = 0;
+  let shieldActive = false;
   let checkDate = new Date(today);
 
   const todayStr = getISTDateString(checkDate);
@@ -40,25 +42,47 @@ export const calculateHabitStreak = (completions = {}, createdAt) => {
     streak = 1;
     checkDate.setDate(checkDate.getDate() - 1);
   } else {
+    // Today not logged yet — inspect yesterday
     checkDate.setDate(checkDate.getDate() - 1);
     const yesterdayStr = getISTDateString(checkDate);
     if (!completions[yesterdayStr]) {
-      return 0;
+      return { streak: 0, shieldActive: false };
     }
   }
 
+  // Iterate backwards through past days
+  let usedGraceDay = false;
   while (true) {
     const dateStr = getISTDateString(checkDate);
     if (createdAt && dateStr < createdAt) break;
+
     if (completions[dateStr]) {
       streak += 1;
       checkDate.setDate(checkDate.getDate() - 1);
+    } else if (!usedGraceDay) {
+      // 🛡️ Smart Streak Shield: allow 1 missed gap day if the day before it was completed!
+      const priorDate = new Date(checkDate);
+      priorDate.setDate(priorDate.getDate() - 1);
+      const priorDateStr = getISTDateString(priorDate);
+
+      if (completions[priorDateStr]) {
+        usedGraceDay = true;
+        shieldActive = true;
+        checkDate.setDate(checkDate.getDate() - 1); // skip the missed day
+      } else {
+        break; // 2 consecutive missed days breaks the streak
+      }
     } else {
       break;
     }
   }
 
-  return streak;
+  return { streak, shieldActive };
+};
+
+export const calculateHabitStreak = (completions = {}, createdAt) => {
+  const res = calculateHabitStreakWithShield(completions, createdAt);
+  return res.streak;
 };
 
 // Normalize habit object
@@ -67,7 +91,7 @@ const normalizeHabit = (h) => {
   const currentWeek = getISTWeekDays();
   const completedDays = currentWeek.map(w => Boolean(completions[w.dateStr]));
   const createdAt = h.created_at || h.createdAt || getISTDateString();
-  const streak = calculateHabitStreak(completions, createdAt);
+  const { streak, shieldActive } = calculateHabitStreakWithShield(completions, createdAt);
 
   return {
     ...h,
@@ -78,7 +102,8 @@ const normalizeHabit = (h) => {
     createdAt,
     completions,
     completedDays,
-    streak
+    streak,
+    shieldActive: Boolean(shieldActive)
   };
 };
 
@@ -488,8 +513,23 @@ export const DashboardProvider = ({ children }) => {
     localStorage.setItem('pulse_theme', theme);
   }, [theme]);
 
-  // --- Fetch All User Data from Supabase ---
+  // --- Fetch All User Data from Supabase or Guest Demo Sandbox ---
   const fetchUserData = useCallback(async () => {
+    if (user?.isGuest) {
+      setIsLoadingData(true);
+      const demo = getGuestDemoData();
+      setHabits(demo.habits.map(normalizeHabit));
+      setGoals(demo.goals.map(normalizeGoal));
+      setTasks(demo.tasks);
+      setTransactions(demo.transactions);
+      setActivities(demo.activities);
+      setJournalEntries(demo.journalEntries);
+      setDeadlines(demo.deadlines);
+      setMonthlyAllocations(demo.monthlyAllocations);
+      setIsLoadingData(false);
+      return;
+    }
+
     if (!userId) return;
     setIsLoadingData(true);
 
@@ -639,32 +679,34 @@ export const DashboardProvider = ({ children }) => {
     } finally {
       setIsLoadingData(false);
     }
-  }, [userId]);
+  }, [userId, user]);
 
   useEffect(() => {
-    if (userId) {
+    if (userId || user?.isGuest) {
       fetchUserData();
 
-      // Real-time synchronization across devices & browsers with debouncing
-      let debounceTimeout = null;
-      const channel = supabase
-        .channel(`pulse-realtime-sync-${userId}`)
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public' },
-          () => {
-            if (debounceTimeout) clearTimeout(debounceTimeout);
-            debounceTimeout = setTimeout(() => {
-              fetchUserData();
-            }, 1000);
-          }
-        )
-        .subscribe();
+      if (userId && !user?.isGuest) {
+        // Real-time synchronization across devices & browsers with debouncing
+        let debounceTimeout = null;
+        const channel = supabase
+          .channel(`pulse-realtime-sync-${userId}`)
+          .on(
+            'postgres_changes',
+            { event: '*', schema: 'public' },
+            () => {
+              if (debounceTimeout) clearTimeout(debounceTimeout);
+              debounceTimeout = setTimeout(() => {
+                fetchUserData();
+              }, 1000);
+            }
+          )
+          .subscribe();
 
-      return () => {
-        if (debounceTimeout) clearTimeout(debounceTimeout);
-        supabase.removeChannel(channel);
-      };
+        return () => {
+          if (debounceTimeout) clearTimeout(debounceTimeout);
+          supabase.removeChannel(channel);
+        };
+      }
     } else {
       // Clear data on logout
       setGoals([]);

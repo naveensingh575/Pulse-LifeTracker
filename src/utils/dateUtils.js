@@ -321,3 +321,74 @@ export const formatDisplayDate = (dateStr) => {
 };
 
 export const formatISTDisplayDate = formatDisplayDate;
+
+/**
+ * Calculate habit streak with Smart Streak Shield (1-day grace recovery)
+ * @param {Record<string, boolean>|Array<{completed_at: string}>} completionsMap 
+ * @param {string} [createdAt]
+ */
+export const calculateHabitStreakWithShield = (completionsMap = {}, createdAt) => {
+  // Normalize completions into an object map { "YYYY-MM-DD": true } if passed as array
+  let completions = {};
+  if (Array.isArray(completionsMap)) {
+    completionsMap.forEach(item => {
+      const d = typeof item === 'string' ? item : item.completed_at;
+      if (d) completions[d] = true;
+    });
+  } else if (completionsMap && typeof completionsMap === 'object') {
+    completions = completionsMap;
+  }
+
+  const today = getISTDate();
+  let streak = 0;
+  let shieldActive = false;
+  let checkDate = new Date(today);
+
+  const todayStr = getISTDateString(checkDate);
+  const isDoneToday = Boolean(completions[todayStr]);
+
+  if (isDoneToday) {
+    streak = 1;
+    checkDate.setDate(checkDate.getDate() - 1);
+  } else {
+    // Today not logged yet — inspect yesterday
+    checkDate.setDate(checkDate.getDate() - 1);
+    const yesterdayStr = getISTDateString(checkDate);
+    if (!completions[yesterdayStr]) {
+      return { streak: 0, shieldActive: false };
+    }
+  }
+
+  // Iterate backwards through past days
+  let usedGraceDay = false;
+  while (true) {
+    const dateStr = getISTDateString(checkDate);
+    if (createdAt && dateStr < createdAt) break;
+
+    if (completions[dateStr]) {
+      streak += 1;
+      checkDate.setDate(checkDate.getDate() - 1);
+    } else if (!usedGraceDay) {
+      // 🛡️ Smart Streak Shield: allow 1 missed gap day if the day before it was completed!
+      const priorDate = new Date(checkDate);
+      priorDate.setDate(priorDate.getDate() - 1);
+      const priorDateStr = getISTDateString(priorDate);
+
+      if (completions[priorDateStr]) {
+        usedGraceDay = true;
+        shieldActive = true;
+        checkDate.setDate(checkDate.getDate() - 1); // skip the missed day
+      } else {
+        break; // 2 consecutive missed days breaks the streak
+      }
+    } else {
+      break;
+    }
+  }
+
+  return { streak, shieldActive };
+};
+
+export const calculateHabitStreak = (completionsMap = {}, createdAt) => {
+  return calculateHabitStreakWithShield(completionsMap, createdAt).streak;
+};

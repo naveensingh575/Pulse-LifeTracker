@@ -34,7 +34,8 @@ export const AuthPage = ({ initialMode }) => {
     isPasswordRecovery,
     emailVerified,
     setEmailVerified,
-    logout
+    logout,
+    loginAsGuest
   } = useAuth();
 
   
@@ -556,6 +557,24 @@ export const AuthPage = ({ initialMode }) => {
                   </>
                 )}
               </button>
+
+              {/* Live Interactive Demo Button */}
+              <div className="pt-3 border-t border-slate-100 dark:border-slate-800 text-center space-y-2">
+                <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                  Want to preview without signing up first?
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    loginAsGuest();
+                    navigate('/');
+                  }}
+                  className="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 hover:bg-indigo-500/10 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-indigo-400 dark:hover:border-indigo-500 text-indigo-600 dark:text-indigo-400 text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer group active:scale-95 shadow-xs"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-amber-500 fill-amber-500 group-hover:scale-110 transition-transform" />
+                  <span>Explore Live Interactive Demo</span>
+                </button>
+              </div>
             </form>
           )}
 

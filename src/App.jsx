@@ -20,9 +20,11 @@ import { JournalPage } from './pages/JournalPage';
 import { ActivityPage } from './pages/ActivityPage';
 import { PolicyPage } from './pages/PolicyPage';
 import { PricingModal } from './components/pricing/PricingModal';
+import { AppInstallModal } from './components/common/AppInstallModal';
+import { PwaInstallBanner } from './components/common/PwaInstallBanner';
 import { checkAndTriggerScheduledReminders } from './utils/notificationUtils';
 
-import { ShieldCheck, Loader2, WifiOff } from 'lucide-react';
+import { ShieldCheck, Loader2, WifiOff, Sparkles, ArrowRight, X } from 'lucide-react';
 
 // ── Global Email Verified Success Overlay ────────────────────────────────────
 // Renders on top of all routing when the user clicks their verification link.
@@ -93,8 +95,12 @@ const EmailVerifiedOverlay = () => {
 };
 
 const AppLayout = () => {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isOnline, setIsOnline] = useState(() => typeof navigator !== 'undefined' ? navigator.onLine : true);
+  const [showInstallModal, setShowInstallModal] = useState(false);
+  const [installPlatform, setInstallPlatform] = useState('android');
 
   // Global Cmd+K / Ctrl+K listener
   useEffect(() => {
@@ -129,8 +135,37 @@ const AppLayout = () => {
     return () => clearInterval(interval);
   }, []);
 
+  const handleExitGuestMode = async () => {
+    await logout();
+    navigate('/login');
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 selection:bg-indigo-500 selection:text-white transition-colors">
+      {/* 🚀 Guest Mode Interactive Sandbox Banner */}
+      {user?.isGuest && (
+        <div className="sticky top-0 z-50 w-full bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 text-white px-3 sm:px-4 py-2 sm:py-2.5 flex items-center justify-between text-xs sm:text-sm font-medium shadow-md">
+          <div className="flex items-center space-x-2 truncate">
+            <span className="flex h-2 w-2 relative">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-300 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
+            </span>
+            <span className="truncate">
+              <strong className="font-bold">Guest Demo Sandbox:</strong> You are exploring full Pulse features. Changes persist in this session.
+            </span>
+          </div>
+          <div className="flex items-center space-x-2 shrink-0 ml-2">
+            <button
+              onClick={handleExitGuestMode}
+              className="px-2.5 py-1 rounded-lg bg-white text-indigo-700 hover:bg-indigo-50 font-bold text-xs shadow-sm transition flex items-center gap-1 cursor-pointer"
+            >
+              <span>Create Free Account</span>
+              <ArrowRight className="w-3 h-3" />
+            </button>
+          </div>
+        </div>
+      )}
+
       <Navbar onOpenQuickCapture={() => setIsCommandPaletteOpen(true)} />
 
       {/* Offline Banner — shown only when network is unavailable */}
@@ -172,6 +207,21 @@ const AppLayout = () => {
       <CommandPalette
         isOpen={isCommandPaletteOpen}
         onClose={() => setIsCommandPaletteOpen(false)}
+      />
+
+      {/* 📲 PWA Smart Mobile Install Prompter Banner */}
+      <PwaInstallBanner
+        onOpenInstallGuide={(platform) => {
+          setInstallPlatform(platform);
+          setShowInstallModal(true);
+        }}
+      />
+
+      {/* 📲 PWA Step-by-Step Install Instructions Modal */}
+      <AppInstallModal
+        isOpen={showInstallModal}
+        onClose={() => setShowInstallModal(false)}
+        initialPlatform={installPlatform}
       />
 
       {/* 👑 Pulse Membership & Founder Pass Modal */}

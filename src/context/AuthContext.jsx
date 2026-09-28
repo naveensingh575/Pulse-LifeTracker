@@ -63,6 +63,25 @@ export const AuthProvider = ({ children }) => {
     };
   };
 
+  const createGuestUser = () => ({
+    id: 'guest-user',
+    email: 'guest@pulselife.app',
+    name: 'Guest Explorer',
+    avatar: `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><rect width="64" height="64" rx="32" fill="%236366f1"/><text x="50%" y="54%" text-anchor="middle" dominant-baseline="middle" fill="%23ffffff" font-family="system-ui,-apple-system,sans-serif" font-size="28" font-weight="600">G</text></svg>`,
+    provider: 'guest',
+    emailConfirmed: true,
+    isGuest: true,
+    raw: null
+  });
+
+  const loginAsGuest = () => {
+    try {
+      sessionStorage.setItem('pulse_guest_mode', 'true');
+    } catch {}
+    setUser(createGuestUser());
+    setLoading(false);
+  };
+
   useEffect(() => {
     // Check if recovery in URL and persist to sessionStorage immediately
     if (checkIsRecoveryUrl()) {
@@ -73,12 +92,21 @@ export const AuthProvider = ({ children }) => {
     // 1. Initial Session Check
     supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
       setSession(currentSession);
-      setUser(currentSession ? formatUser(currentSession.user) : null);
+      if (currentSession) {
+        setUser(formatUser(currentSession.user));
+      } else if (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('pulse_guest_mode') === 'true') {
+        setUser(createGuestUser());
+      } else {
+        setUser(null);
+      }
       if (checkIsRecoveryUrl()) {
         setIsPasswordRecovery(true);
       }
       setLoading(false);
     }).catch(() => {
+      if (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('pulse_guest_mode') === 'true') {
+        setUser(createGuestUser());
+      }
       setLoading(false);
     });
 
@@ -186,11 +214,16 @@ export const AuthProvider = ({ children }) => {
 
   // Sign Out
   const logout = async () => {
-    sessionStorage.removeItem('pulse_recovery_mode');
+    try {
+      sessionStorage.removeItem('pulse_recovery_mode');
+      sessionStorage.removeItem('pulse_guest_mode');
+    } catch {}
     setIsPasswordRecovery(false);
-    await supabase.auth.signOut();
     setUser(null);
     setSession(null);
+    try {
+      await supabase.auth.signOut();
+    } catch {}
   };
 
   // Delete Account & All Data (triggers PostgreSQL SECURITY DEFINER RPC)
@@ -231,6 +264,8 @@ export const AuthProvider = ({ children }) => {
         user,
         session,
         loading,
+        isGuest: Boolean(user?.isGuest),
+        loginAsGuest,
         isPasswordRecovery,
         setIsPasswordRecovery,
         emailVerified,

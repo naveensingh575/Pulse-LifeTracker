@@ -24,7 +24,8 @@ import {
   Lock,
   Calendar,
   Edit2,
-  Share2
+  Share2,
+  Shield
 } from 'lucide-react';
 import { triggerHaptic } from '../../utils/hapticUtils';
 import { DisciplineShareModal } from '../analytics/DisciplineShareModal';
@@ -294,21 +295,32 @@ export const HabitTracker = ({ activeCategoryProp }) => {
                       <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                         {habit.name}
                         {habit.streak > 0 && (
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              triggerHaptic('light');
-                              setSelectedStreakHabit(habit);
-                              setIsShareModalOpen(true);
-                            }}
-                            title={`Share ${habit.streak}-day streak milestone!`}
-                            className="flex items-center space-x-1 px-2 py-0.5 rounded-full bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/20 hover:border-amber-500/40 text-[10px] font-bold cursor-pointer transition shadow-xs group"
-                          >
-                            <Flame className="w-2.5 h-2.5 fill-amber-500 group-hover:scale-110 transition-transform" />
-                            <span>{habit.streak}d</span>
-                            <Share2 className="w-2 h-2 ml-0.5 opacity-60 group-hover:opacity-100 transition-opacity" />
-                          </button>
+                          <div className="flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                triggerHaptic('light');
+                                setSelectedStreakHabit(habit);
+                                setIsShareModalOpen(true);
+                              }}
+                              title={`Share ${habit.streak}-day streak milestone!`}
+                              className="flex items-center space-x-1 px-2 py-0.5 rounded-full bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/20 hover:border-amber-500/40 text-[10px] font-bold cursor-pointer transition shadow-xs group"
+                            >
+                              <Flame className="w-2.5 h-2.5 fill-amber-500 group-hover:scale-110 transition-transform" />
+                              <span>{habit.streak}d</span>
+                              <Share2 className="w-2 h-2 ml-0.5 opacity-60 group-hover:opacity-100 transition-opacity" />
+                            </button>
+                            {habit.shieldActive && (
+                              <span
+                                title="Streak Shield active: 1-day grace applied to preserve your momentum"
+                                className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 text-[9px] font-bold"
+                              >
+                                <Shield className="w-2.5 h-2.5 fill-indigo-500/20" />
+                                <span>Shield</span>
+                              </span>
+                            )}
+                          </div>
                         )}
                       </h4>
                       <div className="flex items-center gap-1.5">

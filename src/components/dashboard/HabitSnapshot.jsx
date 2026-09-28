@@ -9,7 +9,8 @@ import {
   ArrowRight,
   Sparkles,
   Award,
-  Share2
+  Share2,
+  Shield
 } from 'lucide-react';
 import { checkAndCelebrateHabits } from '../../utils/celebrationUtils';
 import { playNotificationChime } from '../../utils/notificationUtils';
@@ -87,17 +88,28 @@ export const HabitSnapshot = () => {
           </div>
 
           {topStreakHabit && maxStreak > 0 && (
-            <button
-              onClick={() => {
-                triggerHaptic('light');
-                setIsShareModalOpen(true);
-              }}
-              title={`Share ${maxStreak}-day streak milestone!`}
-              className="flex items-center space-x-1 px-2.5 py-0.5 rounded-full bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/20 hover:border-amber-500/40 text-[10px] font-bold cursor-pointer transition shadow-xs group"
-            >
-              <span>🔥 {maxStreak}-day streak on '{topStreakHabit.name}'</span>
-              <Share2 className="w-2.5 h-2.5 opacity-60 group-hover:opacity-100 transition-opacity" />
-            </button>
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => {
+                  triggerHaptic('light');
+                  setIsShareModalOpen(true);
+                }}
+                title={`Share ${maxStreak}-day streak milestone!`}
+                className="flex items-center space-x-1 px-2.5 py-0.5 rounded-full bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/20 hover:border-amber-500/40 text-[10px] font-bold cursor-pointer transition shadow-xs group"
+              >
+                <span>🔥 {maxStreak}-day streak on '{topStreakHabit.name}'</span>
+                <Share2 className="w-2.5 h-2.5 opacity-60 group-hover:opacity-100 transition-opacity" />
+              </button>
+              {topStreakHabit.shieldActive && (
+                <span
+                  title="Streak Shield active (1-day grace applied)"
+                  className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 text-[10px] font-bold"
+                >
+                  <Shield className="w-2.5 h-2.5 fill-indigo-500/20" />
+                  <span>Shield</span>
+                </span>
+              )}
+            </div>
           )}
         </div>
 
