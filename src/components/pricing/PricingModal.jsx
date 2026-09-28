@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useDashboard } from "../../context/DashboardContext";
 import { useAuth } from "../../context/AuthContext";
-import { getLocalizedPrice, PRICING_DATA, getPaidLifetimeSeatsStatus, getFamily100SeatsStatus } from "../../utils/pricingUtils";
+import { getLocalizedPrice, PRICING_DATA, getPaidLifetimeSeatsStatus } from "../../utils/pricingUtils";
 import { openRazorpayCheckout } from "../../utils/paymentUtils";
 import {
   X,
@@ -27,8 +27,7 @@ export const PricingModal = () => {
     redeemPromoCode,
     currency,
     trialInfo,
-    occupiedPaidLifetimeSeats,
-    occupiedCouponSeats
+    occupiedPaidLifetimeSeats
   } = useDashboard();
   const { user } = useAuth();
 
@@ -49,7 +48,6 @@ export const PricingModal = () => {
   const yearlyPrice = getLocalizedPrice("yearly", currency);
   const lifetimePrice = getLocalizedPrice("lifetime", currency);
   const paidLifetimeSeats = getPaidLifetimeSeatsStatus(occupiedPaidLifetimeSeats);
-  const couponSeats = getFamily100SeatsStatus(occupiedCouponSeats);
   const isTrialActive = Boolean(trialInfo?.isTrialActive && subscriptionTier === "free");
 
   const handleApplyPromo = async (e) => {
@@ -540,13 +538,7 @@ export const PricingModal = () => {
               <Tag className="w-3.5 h-3.5 text-indigo-500" />
               <span>Have a VIP / Invite Code?</span>
             </span>
-            <span className="text-[10px] font-mono text-indigo-600 dark:text-indigo-400 font-bold bg-indigo-500/10 px-2.5 py-0.5 rounded-full border border-indigo-500/20">
-              {couponSeats.claimed} / 100 VIP Codes Claimed ({couponSeats.remaining} Left)
-            </span>
           </div>
-          <p className="text-[10px] text-slate-500 dark:text-slate-400">
-            FAMILY100 VIP Founder Pass is strictly limited to 100 users only and tracked independently from paid lifetime seats.
-          </p>
 
           <form onSubmit={handleApplyPromo} className="flex flex-col sm:flex-row items-stretch gap-2">
             <input
