@@ -456,28 +456,6 @@ export const PricingModal = () => {
                 </p>
               </div>
 
-              {/* Limited Founder Batch Scarcity Meter */}
-              <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/25 space-y-1.5">
-                <div className="flex items-center justify-between text-[11px] font-bold">
-                  <span className="text-amber-800 dark:text-amber-300 flex items-center gap-1 text-[10px]">
-                    <Flame className="w-3 h-3 text-amber-500 fill-amber-500" />
-                    Limited to 500 Paid Members
-                  </span>
-                  <span className="text-amber-700 dark:text-amber-400 font-mono text-[10px] bg-amber-500/20 px-1.5 py-0.5 rounded-full">
-                    {paidLifetimeSeats.remaining} Seats Left
-                  </span>
-                </div>
-                <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-r from-amber-500 to-amber-600 rounded-full transition-all duration-500"
-                    style={{ width: `${Math.max(paidLifetimeSeats.claimed > 0 ? 1 : 0, paidLifetimeSeats.percentage)}%` }}
-                  />
-                </div>
-                <p className="text-[9px] text-amber-700/80 dark:text-amber-400/80 leading-tight">
-                  <strong>{paidLifetimeSeats.claimed} of {paidLifetimeSeats.total}</strong> paid lifetime seats occupied (real-time). Excludes promo codes. Strictly capped at 500 paid users.
-                </p>
-              </div>
-
               <ul className="space-y-2.5 text-xs text-slate-700 dark:text-slate-300 pt-3 border-t border-amber-100 dark:border-slate-800 min-h-[136px] flex flex-col justify-start">
                 <li className="flex items-center gap-2">
                   <CheckCircle2 className="w-3.5 h-3.5 text-amber-500 shrink-0" />
@@ -496,6 +474,25 @@ export const PricingModal = () => {
                   <span>Priority Direct Founder Support</span>
                 </li>
               </ul>
+
+              {/* Slim Founder Quota Indicator */}
+              <div className="pt-2 space-y-1">
+                <div className="flex items-center justify-between text-[10px] font-medium text-amber-800 dark:text-amber-300">
+                  <span className="flex items-center gap-1">
+                    <Flame className="w-3 h-3 text-amber-500 fill-amber-500 shrink-0" />
+                    <span>{paidLifetimeSeats.remaining} seats left</span>
+                  </span>
+                  <span className="font-mono text-[9px] text-amber-600 dark:text-amber-400">
+                    {paidLifetimeSeats.claimed}/500 claimed
+                  </span>
+                </div>
+                <div className="w-full h-1 bg-amber-200/60 dark:bg-slate-800 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-amber-500 to-amber-600 rounded-full transition-all duration-500"
+                    style={{ width: `${Math.max(paidLifetimeSeats.claimed > 0 ? 1 : 0, paidLifetimeSeats.percentage)}%` }}
+                  />
+                </div>
+              </div>
             </div>
 
             {/* Lifetime button — locked permanently when active or sold out */}
