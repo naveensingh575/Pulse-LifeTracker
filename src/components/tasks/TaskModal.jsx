@@ -149,13 +149,10 @@ export const TaskModal = ({ isOpen, onClose, initialCategory = 'Work', initialTa
               Context Board / Tag:
             </label>
             <div className="relative flex items-center">
-              <div className="absolute left-3 pointer-events-none text-sm">
-                {categories.find(c => c.key === category)?.emoji || '📌'}
-              </div>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full pl-9 pr-8 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs font-medium focus:outline-none focus:border-indigo-500 transition cursor-pointer appearance-none"
+                className="w-full px-3.5 pr-8 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs font-medium focus:outline-none focus:border-indigo-500 transition cursor-pointer appearance-none"
               >
                 {categories.map((cat) => (
                   <option key={cat.key} value={cat.key} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">

@@ -244,13 +244,10 @@ export const GoalModal = ({ isOpen, onClose, onSave, onDelete, initialData }) =>
               Goal Icon / Logo
             </label>
             <div className="relative flex items-center">
-              <div className="absolute left-3 pointer-events-none text-base">
-                {GOAL_ICONS.find(i => i.id === formData.icon)?.emoji || '🎯'}
-              </div>
               <select
                 value={formData.icon}
                 onChange={e => setFormData({ ...formData, icon: e.target.value })}
-                className="w-full pl-9 pr-8 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500 cursor-pointer appearance-none font-medium"
+                className="w-full px-3 pr-8 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500 cursor-pointer appearance-none font-medium"
               >
                 {GOAL_ICONS.map((item) => (
                   <option key={item.id} value={item.id} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
