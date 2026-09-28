@@ -133,7 +133,7 @@ export const PolicyPage = ({ defaultTab }) => {
               <span>Terms of Service Overview</span>
             </div>
             <p>
-              These Terms of Service govern your access to and use of Pulse Life Tracker (“Pulse”, “Service”, “we”, “our”, or “us”). By creating an account or accessing the Service, you signify your agreement to these Terms. If you do not agree, please discontinue use immediately.
+              These Terms of Service govern your access to and use of Pulse Life Tracker (“Pulse”). By creating an account or accessing Pulse, you signify your agreement to these Terms. If you do not agree, please discontinue use immediately.
             </p>
           </div>
 
@@ -239,22 +239,24 @@ export const PolicyPage = ({ defaultTab }) => {
 
           {/* 7. Limitation of Liability */}
           <PolicySection icon={<Scale className="w-4 h-4" />} title="7. Limitation of Liability & 'AS IS' Warranty" color="slate">
-            <div className="space-y-2.5">
-              <p className="uppercase font-bold text-xs text-slate-800 dark:text-slate-200 tracking-wider">
-                Warranty Disclaimer
-              </p>
+            <div className="space-y-3">
               <p>
-                THE SERVICE IS PROVIDED STRICTLY ON AN “AS IS” AND “AS AVAILABLE” BASIS WITHOUT WARRANTIES OF ANY KIND, WHETHER EXPRESS, IMPLIED, STATUTORY, OR OTHERWISE, INCLUDING WITHOUT LIMITATION WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR UNINTERRUPTED AVAILABILITY.
+                Pulse is provided strictly on an <strong>“as is”</strong> and <strong>“as available”</strong> basis without warranties of any kind, whether express, statutory, or implied, including but not limited to warranties of merchantability, fitness for a particular purpose, or uninterrupted availability.
               </p>
-              <p className="uppercase font-bold text-xs text-slate-800 dark:text-slate-200 tracking-wider pt-2">
-                Cap on Aggregate Liability
-              </p>
-              <p>
-                TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, IN NO EVENT SHALL PULSE, ITS DIRECTORS, CONTRACTORS, LICENSORS, OR AFFILIATES BE LIABLE FOR ANY INDIRECT, INCIDENTAL, PUNITIVE, SPECIAL, OR CONSEQUENTIAL DAMAGES (INCLUDING LOSS OF PROFITS, DATA, GOODWILL, OR BUSINESS INTERRUPTION) ARISING OUT OF OR IN CONNECTION WITH YOUR USE OR INABILITY TO USE THE SERVICE.
-              </p>
-              <p>
-                IN ALL CASES, PULSE’S TOTAL AGGREGATE LIABILITY ARISING UNDER OR RELATED TO THESE TERMS SHALL BE STRICTLY LIMITED TO THE AMOUNT ACTUALLY PAID BY YOU TO PULSE IN THE TWELVE (12) MONTHS PRECEDING THE CLAIM, OR FIFTY UNITED STATES DOLLARS ($50.00 USD / EQUIVALENT IN INR), WHICHEVER IS LESS.
-              </p>
+
+              <div className="space-y-2">
+                <p className="font-semibold text-slate-800 dark:text-slate-200">
+                  To the maximum extent permitted by applicable law:
+                </p>
+                <ul className="list-disc list-inside space-y-1.5 text-xs pl-1 text-slate-600 dark:text-slate-400">
+                  <li>
+                    <strong className="text-slate-800 dark:text-slate-200">Exclusion of Consequential Damages:</strong> In no event shall Pulse, its creators, directors, or affiliates be liable for any indirect, incidental, special, consequential, or punitive damages—including loss of data, profits, revenue, or business interruption—arising from your use or inability to use the application.
+                  </li>
+                  <li>
+                    <strong className="text-slate-800 dark:text-slate-200">Cap on Total Aggregate Liability:</strong> Under all circumstances, Pulse’s total cumulative liability for any and all claims related to the service shall be strictly limited to the actual amount paid by you to Pulse in the twelve (12) months preceding the claim, or fifty United States dollars ($50.00 USD / equivalent in INR), whichever is lower.
+                  </li>
+                </ul>
+              </div>
             </div>
           </PolicySection>
 
@@ -462,7 +464,7 @@ export const PolicyPage = ({ defaultTab }) => {
           Pulse Operating Standard
         </h3>
         <p className="text-xs font-semibold text-slate-800 dark:text-slate-200">
-          Clean Architecture · Total User Privacy · Clear Legal Standards
+          Total User Privacy · Clear Legal Standards
         </p>
         <p className="text-xs text-slate-600 dark:text-slate-400 max-w-xl mx-auto">
           We maintain transparent policies and legal safeguards to protect both your personal data privacy and the integrity of the Pulse ecosystem.
