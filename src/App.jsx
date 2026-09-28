@@ -20,11 +20,13 @@ import { JournalPage } from './pages/JournalPage';
 import { ActivityPage } from './pages/ActivityPage';
 import { PolicyPage } from './pages/PolicyPage';
 import { PricingModal } from './components/pricing/PricingModal';
+import { SundayReviewModal } from './components/review/SundayReviewModal';
 import { AppInstallModal } from './components/common/AppInstallModal';
 import { PwaInstallBanner } from './components/common/PwaInstallBanner';
 import { checkAndTriggerScheduledReminders } from './utils/notificationUtils';
+import { captureIncomingReferral, shouldShowReferralBanner, dismissReferralBanner } from './utils/referralUtils';
 
-import { ShieldCheck, Loader2, WifiOff, Sparkles, ArrowRight, X } from 'lucide-react';
+import { ShieldCheck, Loader2, WifiOff, Sparkles, ArrowRight, X, Gift } from 'lucide-react';
 
 // ── Global Email Verified Success Overlay ────────────────────────────────────
 // Renders on top of all routing when the user clicks their verification link.
@@ -101,6 +103,17 @@ const AppLayout = () => {
   const [isOnline, setIsOnline] = useState(() => typeof navigator !== 'undefined' ? navigator.onLine : true);
   const [showInstallModal, setShowInstallModal] = useState(false);
   const [installPlatform, setInstallPlatform] = useState('android');
+  const [incomingReferral, setIncomingReferral] = useState(null);
+  const [showReferralBanner, setShowReferralBanner] = useState(false);
+
+  // 🎁 Viral Referral Engine: capture ?ref= on mount
+  useEffect(() => {
+    const refData = captureIncomingReferral();
+    if (refData && shouldShowReferralBanner()) {
+      setIncomingReferral(refData);
+      setShowReferralBanner(true);
+    }
+  }, []);
 
   // Global Cmd+K / Ctrl+K listener
   useEffect(() => {
@@ -136,7 +149,24 @@ const AppLayout = () => {
   }, []);
 
   const location = useLocation();
-  const { openPricingModal } = useDashboard();
+  const { openPricingModal, isSundayReviewOpen, openSundayReview, closeSundayReview } = useDashboard();
+
+  // 📋 Sunday Executive Review Auto-Trigger on Sundays (if not dismissed or completed today)
+  useEffect(() => {
+    const today = new Date();
+    const isSunday = today.getDay() === 0;
+    if (isSunday) {
+      const todayDateStr = today.toISOString().split('T')[0];
+      const reviewedToday = localStorage.getItem(`pulse_sunday_reviewed_${todayDateStr}`);
+      if (!reviewedToday) {
+        // Small delay so other elements mount smoothly
+        const timer = setTimeout(() => {
+          openSundayReview();
+        }, 1200);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [openSundayReview]);
 
   // If user navigates directly to /subscription or /pricing (via URL, bookmark, or direct link)
   useEffect(() => {
@@ -172,6 +202,32 @@ const AppLayout = () => {
             >
               <span>Create Free Account</span>
               <ArrowRight className="w-3 h-3" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 🎁 Viral Referral Welcome Banner */}
+      {showReferralBanner && (
+        <div className="sticky top-0 z-50 w-full bg-gradient-to-r from-amber-600 via-indigo-600 to-emerald-600 text-white px-3 sm:px-4 py-2 sm:py-2.5 flex items-center justify-between text-xs sm:text-sm font-medium shadow-md animate-in slide-in-from-top duration-300">
+          <div className="flex items-center space-x-2.5 truncate">
+            <div className="p-1 rounded-lg bg-white/20 shrink-0">
+              <Gift className="w-4 h-4 text-amber-200" />
+            </div>
+            <span className="truncate">
+              <strong className="font-bold">VIP Invite Activated:</strong> You were invited by <span className="font-mono underline underline-offset-2">{incomingReferral?.code}</span>! Enjoy <strong className="font-bold text-amber-200">14 Days of Pulse Pro Exploration</strong> on us.
+            </span>
+          </div>
+          <div className="flex items-center space-x-2 shrink-0 ml-2">
+            <button
+              onClick={() => {
+                dismissReferralBanner();
+                setShowReferralBanner(false);
+              }}
+              className="p-1 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition cursor-pointer"
+              title="Dismiss"
+            >
+              <X className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -233,6 +289,12 @@ const AppLayout = () => {
         isOpen={showInstallModal}
         onClose={() => setShowInstallModal(false)}
         initialPlatform={installPlatform}
+      />
+
+      {/* 📋 Sunday Executive Review & Weekly Synthesis Modal */}
+      <SundayReviewModal
+        isOpen={isSundayReviewOpen}
+        onClose={closeSundayReview}
       />
 
       {/* 👑 Pulse Membership & Founder Pass Modal */}

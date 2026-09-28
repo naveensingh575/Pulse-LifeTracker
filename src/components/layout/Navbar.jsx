@@ -7,10 +7,10 @@ import { DeleteAccountModal } from '../auth/DeleteAccountModal';
 import { getLocalDateString, formatDisplayDate } from '../../utils/dateUtils';
 import { NotificationSettingsModal } from '../reminders/NotificationSettingsModal';
 import { DataBackupModal } from '../backup/DataBackupModal';
-import { Sun, Moon, Calendar, LogOut, ChevronDown, LogIn, Globe, Search, Trash2, Shield, Crown, Sparkles, Star, FileText, Bell, HardDrive } from 'lucide-react';
+import { Sun, Moon, Calendar, LogOut, ChevronDown, LogIn, Globe, Search, Trash2, Shield, Crown, Sparkles, Star, FileText, Bell, HardDrive, ClipboardCheck } from 'lucide-react';
 
 export const Navbar = ({ onOpenQuickCapture }) => {
-  const { theme, toggleTheme, currency, setCurrency, subscriptionTier, openPricingModal, trialInfo } = useDashboard();
+  const { theme, toggleTheme, currency, setCurrency, subscriptionTier, openPricingModal, openSundayReview, trialInfo } = useDashboard();
   const { user, logout } = useAuth();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -59,6 +59,16 @@ export const Navbar = ({ onOpenQuickCapture }) => {
               <kbd className="text-[10px] font-mono bg-slate-200 dark:bg-slate-800 px-1.5 py-0.5 rounded text-slate-500 dark:text-slate-400">⌘K</kbd>
             </button>
           )}
+
+          {/* Sunday Executive Brief Button */}
+          <button
+            onClick={openSundayReview}
+            className="flex items-center space-x-1.5 px-3 py-1.5 text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/50 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 rounded-full border border-indigo-200 dark:border-indigo-800/80 transition cursor-pointer font-bold"
+            title="Sunday Executive Review & Weekly Synthesis"
+          >
+            <ClipboardCheck className="w-3.5 h-3.5 text-indigo-500" />
+            <span>Weekly Brief</span>
+          </button>
         </div>
 
         {/* Action Controls & User Avatar Menu */}
@@ -141,6 +151,18 @@ export const Navbar = ({ onOpenQuickCapture }) => {
                     </div>
                     <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">{user.email}</p>
                   </div>
+
+                  {/* Sunday Executive Review */}
+                  <button
+                    onClick={() => {
+                      setShowUserMenu(false);
+                      openSundayReview();
+                    }}
+                    className="w-full flex items-center space-x-2 px-3 py-2 rounded-lg text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 transition cursor-pointer"
+                  >
+                    <ClipboardCheck className="w-4 h-4 text-indigo-500" />
+                    <span>Weekly Executive Brief</span>
+                  </button>
 
                   {/* Subscription Link */}
                   <button

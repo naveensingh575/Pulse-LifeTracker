@@ -209,6 +209,11 @@ export const DashboardProvider = ({ children }) => {
   const openPricingModal = useCallback(() => setIsPricingModalOpen(true), []);
   const closePricingModal = useCallback(() => setIsPricingModalOpen(false), []);
 
+  // Sunday Executive Review Modal State
+  const [isSundayReviewOpen, setIsSundayReviewOpen] = useState(false);
+  const openSundayReview = useCallback(() => setIsSundayReviewOpen(true), []);
+  const closeSundayReview = useCallback(() => setIsSundayReviewOpen(false), []);
+
   // 1. Live Paid Founder Lifetime Seats Counter (Strictly for payment subscriptions, capped at 500 users)
   const [occupiedPaidLifetimeSeats, setOccupiedPaidLifetimeSeats] = useState(() => {
     return Number(localStorage.getItem('pulse_occupied_paid_lifetime_seats') || '0');
@@ -472,21 +477,24 @@ export const DashboardProvider = ({ children }) => {
     return recordMonthlyView('habits');
   }, [recordMonthlyView]);
 
-  // 7-Day Pro Preview Trial for New Users (Activates full Pro exploration on Day 1-7)
+  // 7-Day Pro Preview Trial for New Users (Boosted to 14 Days if arriving via referral)
   const trialInfo = useMemo(() => {
     let firstSeen = localStorage.getItem('pulse_first_seen_at');
     if (!firstSeen) {
       firstSeen = new Date().toISOString();
       localStorage.setItem('pulse_first_seen_at', firstSeen);
     }
+    const hasReferralBonus = localStorage.getItem('pulse_referral_pro_boost') === 'true';
+    const maxDays = hasReferralBonus ? 14 : 7;
     const diffMs = Date.now() - new Date(firstSeen).getTime();
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-    const isTrialActive = diffDays < 7;
-    const trialDaysRemaining = Math.max(0, 7 - diffDays);
+    const isTrialActive = diffDays < maxDays;
+    const trialDaysRemaining = Math.max(0, maxDays - diffDays);
     return {
       isTrialActive,
       trialDaysRemaining,
-      firstSeenAt: firstSeen
+      firstSeenAt: firstSeen,
+      hasReferralBonus
     };
   }, []);
 
@@ -2022,6 +2030,10 @@ export const DashboardProvider = ({ children }) => {
         isPricingModalOpen,
         openPricingModal,
         closePricingModal,
+        // Sunday Executive Review
+        isSundayReviewOpen,
+        openSundayReview,
+        closeSundayReview,
         // Data Sovereignty & Backup
         getBackupData,
         restoreBackupData,

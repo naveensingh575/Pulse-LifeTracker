@@ -16,13 +16,14 @@ import {
   Sparkles,
   Crown,
   Shield,
-  ArrowRight
+  ArrowRight,
+  ClipboardCheck
 } from 'lucide-react';
 
 export const MobileBottomNav = ({ onOpenQuickCapture }) => {
   const [isMoreOpen, setIsMoreOpen] = useState(false);
   const location = useLocation();
-  const { subscriptionTier, openPricingModal } = useDashboard();
+  const { subscriptionTier, openPricingModal, openSundayReview } = useDashboard();
 
   const primaryTabs = [
     { to: '/', label: 'Pulse', icon: LayoutDashboard },
@@ -166,6 +167,35 @@ export const MobileBottomNav = ({ onOpenQuickCapture }) => {
                 );
               })}
             </div>
+
+            {/* Sunday Executive Review Trigger */}
+            <button
+              onClick={() => {
+                setIsMoreOpen(false);
+                openSundayReview();
+              }}
+              className="w-full p-3 rounded-2xl border border-indigo-200 dark:border-indigo-800/80 bg-indigo-50/60 dark:bg-indigo-950/40 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 flex items-center justify-between text-left transition cursor-pointer"
+            >
+              <div className="flex items-center space-x-2.5">
+                <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+                  <ClipboardCheck className="w-4 h-4 text-indigo-500" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-xs font-bold text-slate-900 dark:text-white">
+                      Sunday Executive Brief
+                    </p>
+                    <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 uppercase">
+                      Weekly
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                    Review rhythm, burn & next week's focus
+                  </p>
+                </div>
+              </div>
+              <ArrowRight className="w-4 h-4 text-indigo-500 shrink-0" />
+            </button>
 
             {/* Subscription Trigger */}
             <button
