@@ -5,6 +5,31 @@
 
 export const MAX_FAMILY100_ACCOUNTS = 100;
 
+/**
+ * Currencies that go through Razorpay (INR only for now).
+ * All others show a "coming soon" notice.
+ */
+export const PAYMENT_SUPPORTED_CURRENCIES = ["₹"];
+
+export function isPaymentSupported(currency) {
+  return PAYMENT_SUPPORTED_CURRENCIES.includes(currency);
+}
+
+/**
+ * Human-readable labels for each currency symbol
+ */
+export const CURRENCY_LABELS = {
+  "₹": "Indian Rupee (INR)",
+  "$": "US Dollar (USD)",
+  "€": "Euro (EUR)",
+  "£": "British Pound (GBP)",
+  "¥": "Japanese Yen (JPY)",
+  "C$": "Canadian Dollar (CAD)",
+  "A$": "Australian Dollar (AUD)",
+  "AED": "UAE Dirham (AED)"
+};
+
+
 export const VALID_PROMO_CODES = {
   FAMILY100: {
     tier: "founder",
