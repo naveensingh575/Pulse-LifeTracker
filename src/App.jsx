@@ -18,7 +18,7 @@ import { TasksPage } from './pages/TasksPage';
 import { AnalyticsPage } from './pages/AnalyticsPage';
 import { JournalPage } from './pages/JournalPage';
 import { ActivityPage } from './pages/ActivityPage';
-import { PrivacyPage } from './pages/PrivacyPage';
+import { PolicyPage } from './pages/PolicyPage';
 import { PricingModal } from './components/pricing/PricingModal';
 
 import { ShieldCheck, Loader2, WifiOff } from 'lucide-react';
@@ -147,7 +147,10 @@ const AppLayout = () => {
             <Route path="/tasks" element={<TasksPage />} />
             <Route path="/journal" element={<JournalPage />} />
             <Route path="/analytics" element={<AnalyticsPage />} />
-            <Route path="/privacy" element={<PrivacyPage />} />
+            <Route path="/policy" element={<PolicyPage />} />
+            <Route path="/privacy" element={<PolicyPage defaultTab="privacy" />} />
+            <Route path="/terms" element={<PolicyPage defaultTab="terms" />} />
+            <Route path="/refund-policy" element={<PolicyPage defaultTab="refund" />} />
           </Routes>
         </main>
       </div>

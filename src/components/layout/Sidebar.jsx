@@ -83,13 +83,13 @@ export const Sidebar = () => {
           })}
         </div>
 
-        {/* Privacy Policy Footer Link */}
+        {/* Policies & Legal Link */}
         <div className="mt-auto pt-4">
           <NavLink
-            to="/privacy"
-            className="flex items-center justify-center gap-1 text-[11px] text-slate-400 dark:text-slate-600 hover:text-indigo-500 dark:hover:text-indigo-400 transition py-1"
+            to="/policy"
+            className="flex items-center justify-center gap-1.5 text-[11px] text-slate-400 dark:text-slate-600 hover:text-indigo-500 dark:hover:text-indigo-400 transition py-1"
           >
-            🔒 Privacy Policy
+            📜 Policies & Legal
           </NavLink>
         </div>
 

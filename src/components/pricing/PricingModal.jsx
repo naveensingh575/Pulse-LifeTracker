@@ -527,7 +527,10 @@ export const PricingModal = () => {
         <div className="flex items-start gap-2.5 p-3 rounded-xl bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800">
           <Shield className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
           <p className="text-[11px] text-slate-500 dark:text-slate-500 leading-relaxed">
-            <strong className="text-slate-600 dark:text-slate-400">No Refund Policy:</strong> All payments are final and non-refundable. Monthly and yearly plans can be cancelled anytime — you retain access until the current period ends. Lifetime plans are permanent and cannot be cancelled, downgraded, or refunded.
+            <strong className="text-slate-600 dark:text-slate-400">No Refund Policy:</strong> All payments are final and non-refundable. Monthly and yearly plans can be cancelled anytime — you retain access until the current period ends. Lifetime plans are permanent and cannot be cancelled, downgraded, or refunded. View full{" "}
+            <a href="/refund-policy" target="_blank" rel="noreferrer" className="text-indigo-600 dark:text-indigo-400 font-bold hover:underline">
+              Cancellation & Refund Policy
+            </a>.
           </p>
         </div>
 

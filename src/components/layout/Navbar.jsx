@@ -5,7 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { PulseLogo } from '../common/PulseLogo';
 import { DeleteAccountModal } from '../auth/DeleteAccountModal';
 import { getLocalDateString, formatDisplayDate } from '../../utils/dateUtils';
-import { Sun, Moon, Calendar, LogOut, ChevronDown, LogIn, Globe, Search, Trash2, Shield, Crown, Sparkles, Star } from 'lucide-react';
+import { Sun, Moon, Calendar, LogOut, ChevronDown, LogIn, Globe, Search, Trash2, Shield, Crown, Sparkles, Star, FileText } from 'lucide-react';
 
 export const Navbar = ({ onOpenQuickCapture }) => {
   const { theme, toggleTheme, currency, setCurrency, subscriptionTier, openPricingModal, trialInfo } = useDashboard();
@@ -149,14 +149,14 @@ export const Navbar = ({ onOpenQuickCapture }) => {
                     <span>Subscription</span>
                   </button>
 
-                  {/* Privacy Policy */}
+                  {/* Policies & Legal */}
                   <Link
-                    to="/privacy"
+                    to="/policy"
                     onClick={() => setShowUserMenu(false)}
                     className="w-full flex items-center space-x-2 px-3 py-2 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
                   >
-                    <Shield className="w-4 h-4 text-indigo-500" />
-                    <span>Privacy Policy</span>
+                    <FileText className="w-4 h-4 text-indigo-500" />
+                    <span>Policies & Legal</span>
                   </Link>
 
                   {/* Sign Out */}
