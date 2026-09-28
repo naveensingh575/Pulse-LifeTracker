@@ -175,6 +175,14 @@ export const DashboardProvider = ({ children }) => {
   const closePricingModal = useCallback(() => setIsPricingModalOpen(false), []);
 
   const selectPlan = useCallback(async (tierId, paymentDetails = null) => {
+    // Upgrades to paid tiers strictly require valid payment details from Razorpay
+    if (tierId !== 'free') {
+      if (!paymentDetails || !paymentDetails.paymentId) {
+        console.warn('Payment verification required to upgrade to paid tier.');
+        return { success: false, message: 'Payment verification required.' };
+      }
+    }
+
     setSubscriptionTier(tierId);
     localStorage.setItem('pulse_subscription_tier', tierId);
 

@@ -12,8 +12,7 @@ import {
   ArrowRight,
   CheckCircle2,
   Crown,
-  Globe,
-  CreditCard
+  Globe
 } from "lucide-react";
 
 export const PricingModal = () => {
@@ -30,8 +29,6 @@ export const PricingModal = () => {
   const [promoInput, setPromoInput] = useState("");
   const [promoStatus, setPromoStatus] = useState(null); // { type: "success"|"error", message }
   const [isApplying, setIsApplying] = useState(false);
-  const [checkoutModalPlan, setCheckoutModalPlan] = useState(null); // { id, name, price }
-  const [isProcessingCheckout, setIsProcessingCheckout] = useState(false);
 
   if (!isPricingModalOpen) return null;
 
@@ -67,71 +64,56 @@ export const PricingModal = () => {
   };
 
   const handleSelectPlan = async (planId) => {
-    const plan = PRICING_DATA[planId];
-    const localized = getLocalizedPrice(planId, currency);
+    if (planId === "free") {
+      await selectPlan("free");
+      setPromoStatus({
+        type: "success",
+        message: "Switched to Free Starter Plan."
+      });
+      return;
+    }
 
-    if (currency === "₹") {
-      setIsApplying(true);
-      const opened = await openRazorpayCheckout({
-        planId,
-        user,
-        onSuccess: async (paymentDetails) => {
-          await selectPlan(planId, paymentDetails);
+    const plan = PRICING_DATA[planId];
+    setIsApplying(true);
+    setPromoStatus(null);
+
+    const opened = await openRazorpayCheckout({
+      planId,
+      user,
+      onSuccess: async (paymentDetails) => {
+        const upgradeRes = await selectPlan(planId, paymentDetails);
+        if (upgradeRes?.success) {
           setPromoStatus({
             type: "success",
             message: "🎉 Payment verified (ID: " + paymentDetails.paymentId + ")! Successfully upgraded to " + plan.name + "."
           });
-          setIsApplying(false);
-        },
-        onFailure: (error) => {
-          console.warn("Razorpay payment issue:", error);
-          setIsApplying(false);
-          setCheckoutModalPlan({
-            id: planId,
-            name: plan.name,
-            price: localized.current + " " + localized.period
+        } else {
+          setPromoStatus({
+            type: "error",
+            message: "Payment verification failed. Please contact support."
           });
-        },
-        onDismiss: () => {
-          setIsApplying(false);
         }
-      });
-
-      if (!opened) {
         setIsApplying(false);
-        setCheckoutModalPlan({
-          id: planId,
-          name: plan.name,
-          price: localized.current + " " + localized.period
+      },
+      onFailure: (error) => {
+        console.warn("Razorpay payment issue:", error);
+        setIsApplying(false);
+        setPromoStatus({
+          type: "error",
+          message: error?.description || "Payment was not completed. Please try again to upgrade."
         });
+      },
+      onDismiss: () => {
+        setIsApplying(false);
       }
-    } else {
-      setCheckoutModalPlan({
-        id: planId,
-        name: plan.name,
-        price: localized.current + " " + localized.period
-      });
-    }
-  };
+    });
 
-  const handleConfirmCheckout = async () => {
-    if (!checkoutModalPlan) return;
-    setIsProcessingCheckout(true);
-    try {
-      await selectPlan(checkoutModalPlan.id, {
-        gateway: currency === "₹" ? "razorpay_direct" : "stripe_direct",
-        amount: checkoutModalPlan.price,
-        currency: currency === "₹" ? "INR" : "USD"
-      });
+    if (!opened) {
+      setIsApplying(false);
       setPromoStatus({
-        type: "success",
-        message: "🎉 Successfully activated " + checkoutModalPlan.name + "! All intelligence features unlocked."
+        type: "error",
+        message: "Could not open Razorpay checkout. Please check your internet connection or disable adblockers."
       });
-      setCheckoutModalPlan(null);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsProcessingCheckout(false);
     }
   };
 
@@ -430,63 +412,6 @@ export const PricingModal = () => {
         </div>
 
       </div>
-
-      {/* Checkout / Payment Gateway Integration Modal */}
-      {checkoutModalPlan && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-150">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-              <div className="flex items-center space-x-2">
-                <CreditCard className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-                <h3 className="text-sm font-black text-slate-900 dark:text-white">Payment Gateway Checkout</h3>
-              </div>
-              <button
-                onClick={() => setCheckoutModalPlan(null)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200 dark:border-indigo-800/60 space-y-1.5">
-              <p className="text-xs text-indigo-700 dark:text-indigo-300 font-bold uppercase tracking-wide">
-                Selected Plan
-              </p>
-              <div className="flex items-baseline justify-between">
-                <p className="text-base font-black text-slate-900 dark:text-white">
-                  {checkoutModalPlan.name}
-                </p>
-                <p className="text-sm font-bold text-indigo-600 dark:text-indigo-400">
-                  {checkoutModalPlan.price}
-                </p>
-              </div>
-            </div>
-
-            <div className="text-xs text-slate-500 space-y-1">
-              <p>💳 <strong>Gateway Integration:</strong> Ready for Razorpay / Stripe direct checkout.</p>
-              <p>🔒 256-Bit SSL Encrypted. Cancel anytime or upgrade seamlessly.</p>
-            </div>
-
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-              <button
-                type="button"
-                onClick={() => setCheckoutModalPlan(null)}
-                className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirmCheckout}
-                disabled={isProcessingCheckout}
-                className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-bold shadow-md shadow-indigo-600/30 cursor-pointer"
-              >
-                {isProcessingCheckout ? "Upgrading..." : "Confirm & Activate"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
