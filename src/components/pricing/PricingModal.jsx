@@ -12,7 +12,9 @@ import {
   ArrowRight,
   CheckCircle2,
   Crown,
-  Globe
+  Globe,
+  AlertTriangle,
+  Lock
 } from "lucide-react";
 
 export const PricingModal = () => {
@@ -29,6 +31,7 @@ export const PricingModal = () => {
   const [promoInput, setPromoInput] = useState("");
   const [promoStatus, setPromoStatus] = useState(null); // { type: "success"|"error", message }
   const [isApplying, setIsApplying] = useState(false);
+  const [cancelConfirm, setCancelConfirm] = useState(null); // "monthly" | "yearly" | null
 
   if (!isPricingModalOpen) return null;
 
@@ -36,6 +39,7 @@ export const PricingModal = () => {
   const isLifetime = subscriptionTier === "lifetime" || subscriptionTier === "founder";
   const isYearly = subscriptionTier === "yearly";
   const isMonthly = subscriptionTier === "monthly";
+  const isCancellable = isMonthly || isYearly; // only these two can cancel
 
   const monthlyPrice = getLocalizedPrice("monthly", currency);
   const yearlyPrice = getLocalizedPrice("yearly", currency);
@@ -63,15 +67,38 @@ export const PricingModal = () => {
     }
   };
 
-  const handleSelectPlan = async (planId) => {
-    if (planId === "free") {
+  // Cancel subscription (monthly or yearly → free)
+  const handleCancelSubscription = async () => {
+    setIsApplying(true);
+    setCancelConfirm(null);
+    setPromoStatus(null);
+    try {
       await selectPlan("free");
       setPromoStatus({
         type: "success",
-        message: "Switched to Free Starter Plan."
+        message: "Your subscription has been cancelled. You've been moved to the Free Starter plan. No further charges will apply."
+      });
+    } catch (err) {
+      setPromoStatus({ type: "error", message: "Could not cancel subscription. Please try again." });
+    } finally {
+      setIsApplying(false);
+    }
+  };
+
+  const handleSelectPlan = async (planId) => {
+    // Lifetime plan is permanent — no action when already active
+    if (isLifetime && planId === "lifetime") return;
+
+    // Prevent lifetime holders from downgrading
+    if (isLifetime) {
+      setPromoStatus({
+        type: "error",
+        message: "Lifetime access is permanent and cannot be changed or downgraded."
       });
       return;
     }
+
+    if (planId === "free") return; // free handled via cancel flow only
 
     const plan = PRICING_DATA[planId];
     setIsApplying(true);
@@ -79,7 +106,7 @@ export const PricingModal = () => {
 
     const result = await openRazorpayCheckout({
       planId,
-      currency,          // pass active dashboard currency symbol
+      currency,
       user,
       onSuccess: async (paymentDetails) => {
         const upgradeRes = await selectPlan(planId, paymentDetails);
@@ -118,12 +145,10 @@ export const PricingModal = () => {
     }
   };
 
-
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 dark:bg-slate-950/85 backdrop-blur-md animate-in fade-in duration-150 overflow-y-auto">
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white max-w-4xl w-full rounded-3xl p-5 sm:p-8 shadow-2xl relative my-6 max-h-[92vh] overflow-y-auto space-y-6">
-        
+
         {/* Close Button */}
         <button
           onClick={closePricingModal}
@@ -133,14 +158,14 @@ export const PricingModal = () => {
           <X className="w-5 h-5" />
         </button>
 
-        {/* Simple Clean Header */}
+        {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3 pt-1">
           <div>
             <h2 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white">
               Subscription Plans
             </h2>
           </div>
-          
+
           <div className="flex items-center gap-2">
             <span className="text-xs text-slate-500 dark:text-slate-400">Current Plan:</span>
             <span className={'text-xs font-bold px-3 py-1 rounded-full border ' + (
@@ -155,18 +180,51 @@ export const PricingModal = () => {
           </div>
         </div>
 
+        {/* Cancel Confirmation Dialog */}
+        {cancelConfirm && (
+          <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-700/50 space-y-3">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="w-5 h-5 text-rose-500 shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <p className="text-sm font-bold text-rose-800 dark:text-rose-300">
+                  Cancel {cancelConfirm === "monthly" ? "Monthly" : "Yearly"} Subscription?
+                </p>
+                <p className="text-xs text-rose-700 dark:text-rose-400 leading-relaxed">
+                  You will immediately lose Pro access and be moved to the Free Starter plan.
+                  <strong className="block mt-1">No refunds are issued for any subscription plan.</strong>
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={handleCancelSubscription}
+                disabled={isApplying}
+                className="flex-1 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 disabled:opacity-50 text-white text-xs font-bold transition cursor-pointer"
+              >
+                {isApplying ? "Cancelling..." : "Yes, Cancel Subscription"}
+              </button>
+              <button
+                onClick={() => setCancelConfirm(null)}
+                className="flex-1 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold transition cursor-pointer"
+              >
+                Keep My Plan
+              </button>
+            </div>
+          </div>
+        )}
 
-        {/* 3 High-Impact Pricing Cards */}
-
+        {/* 3 Pricing Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5 items-stretch">
-          
+
           {/* Card 1: Monthly Pro */}
           <div
-            onClick={() => handleSelectPlan("monthly")}
-            className={"relative rounded-2xl p-5 border-2 flex flex-col justify-between space-y-4 transition-all duration-300 ease-out cursor-pointer group hover:-translate-y-1.5 hover:shadow-xl " + (
+            onClick={() => !isMonthly && !isLifetime && handleSelectPlan("monthly")}
+            className={"relative rounded-2xl p-5 border-2 flex flex-col justify-between space-y-4 transition-all duration-300 ease-out " + (
               isMonthly
-                ? "border-emerald-500 bg-emerald-50/20 dark:bg-emerald-950/20 shadow-md"
-                : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 hover:border-indigo-400 dark:hover:border-indigo-500 hover:shadow-indigo-500/15 hover:bg-indigo-50/10 dark:hover:bg-slate-900/90"
+                ? "border-emerald-500 bg-emerald-50/20 dark:bg-emerald-950/20 shadow-md cursor-default"
+                : isLifetime
+                ? "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 opacity-50 cursor-not-allowed"
+                : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 cursor-pointer group hover:-translate-y-1.5 hover:shadow-xl hover:border-indigo-400 dark:hover:border-indigo-500 hover:shadow-indigo-500/15 hover:bg-indigo-50/10 dark:hover:bg-slate-900/90"
             )}
           >
             <div className="absolute -top-3 left-1/2 -translate-x-1/2">
@@ -190,7 +248,7 @@ export const PricingModal = () => {
                   <span className="text-xs text-slate-400 line-through ml-1">{monthlyPrice.regular}</span>
                 </div>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold mt-1">
-                  Flexible monthly operating rhythm
+                  Cancel anytime · No refunds
                 </p>
               </div>
 
@@ -214,28 +272,44 @@ export const PricingModal = () => {
               </ul>
             </div>
 
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleSelectPlan("monthly");
-              }}
-              className={"w-full py-2.5 rounded-xl text-xs font-bold transition shadow-sm cursor-pointer group-hover:shadow-md " + (
-                isMonthly
-                  ? "bg-emerald-600 text-white cursor-default"
-                  : "bg-slate-100 hover:bg-indigo-600 hover:text-white dark:bg-slate-800 dark:hover:bg-indigo-600 text-slate-900 dark:text-white"
-              )}
-            >
-              {isMonthly ? "✓ Current Plan" : "Choose Monthly"}
-            </button>
+            {/* Action button */}
+            {isMonthly ? (
+              <div className="space-y-2">
+                <div className="w-full py-2.5 rounded-xl text-xs font-bold text-center bg-emerald-600 text-white">
+                  ✓ Current Plan
+                </div>
+                <button
+                  onClick={(e) => { e.stopPropagation(); setCancelConfirm("monthly"); setPromoStatus(null); }}
+                  disabled={isApplying}
+                  className="w-full py-2 rounded-xl text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 border border-rose-200 dark:border-rose-800 transition cursor-pointer disabled:opacity-50"
+                >
+                  Cancel Subscription
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={(e) => { e.stopPropagation(); if (!isLifetime) handleSelectPlan("monthly"); }}
+                disabled={isLifetime}
+                className={"w-full py-2.5 rounded-xl text-xs font-bold transition shadow-sm cursor-pointer group-hover:shadow-md " + (
+                  isLifetime
+                    ? "bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed"
+                    : "bg-slate-100 hover:bg-indigo-600 hover:text-white dark:bg-slate-800 dark:hover:bg-indigo-600 text-slate-900 dark:text-white"
+                )}
+              >
+                Choose Monthly
+              </button>
+            )}
           </div>
 
           {/* Card 2: Yearly Pro (⭐ Best Value) */}
           <div
-            onClick={() => handleSelectPlan("yearly")}
-            className={"relative rounded-2xl p-5 border-2 flex flex-col justify-between space-y-4 transition-all duration-300 ease-out cursor-pointer group hover:-translate-y-1.5 hover:shadow-2xl " + (
+            onClick={() => !isYearly && !isLifetime && handleSelectPlan("yearly")}
+            className={"relative rounded-2xl p-5 border-2 flex flex-col justify-between space-y-4 transition-all duration-300 ease-out " + (
               isYearly
-                ? "border-emerald-500 bg-emerald-50/20 dark:bg-emerald-950/20 shadow-xl"
-                : "border-indigo-500 bg-gradient-to-b from-indigo-50/60 via-white to-indigo-50/20 dark:from-indigo-950/40 dark:via-slate-900 dark:to-slate-900 shadow-indigo-500/10 hover:border-indigo-400 dark:hover:border-indigo-400 hover:shadow-indigo-500/25"
+                ? "border-emerald-500 bg-emerald-50/20 dark:bg-emerald-950/20 shadow-xl cursor-default"
+                : isLifetime
+                ? "border-indigo-500/30 bg-gradient-to-b from-indigo-50/20 via-white to-indigo-50/10 dark:from-indigo-950/20 dark:via-slate-900 dark:to-slate-900 opacity-50 cursor-not-allowed"
+                : "border-indigo-500 bg-gradient-to-b from-indigo-50/60 via-white to-indigo-50/20 dark:from-indigo-950/40 dark:via-slate-900 dark:to-slate-900 shadow-indigo-500/10 cursor-pointer group hover:-translate-y-1.5 hover:shadow-2xl hover:border-indigo-400 dark:hover:border-indigo-400 hover:shadow-indigo-500/25"
             )}
           >
             <div className="absolute -top-3 left-1/2 -translate-x-1/2">
@@ -259,7 +333,7 @@ export const PricingModal = () => {
                   <span className="text-xs text-slate-400 line-through ml-1">{yearlyPrice.regular}</span>
                 </div>
                 <p className="text-[11px] text-indigo-600 dark:text-indigo-400 font-semibold mt-1">
-                  {yearlyPrice.effectiveMonthly}
+                  {yearlyPrice.effectiveMonthly} · Cancel anytime
                 </p>
               </div>
 
@@ -283,28 +357,42 @@ export const PricingModal = () => {
               </ul>
             </div>
 
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleSelectPlan("yearly");
-              }}
-              className={"w-full py-2.5 rounded-xl text-xs font-bold transition shadow-md cursor-pointer group-hover:brightness-110 group-hover:shadow-lg " + (
-                isYearly
-                  ? "bg-emerald-600 text-white cursor-default"
-                  : "bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-600/30"
-              )}
-            >
-              {isYearly ? "✓ Current Plan" : "Choose Yearly (Save 33%)"}
-            </button>
+            {/* Action button */}
+            {isYearly ? (
+              <div className="space-y-2">
+                <div className="w-full py-2.5 rounded-xl text-xs font-bold text-center bg-emerald-600 text-white">
+                  ✓ Current Plan
+                </div>
+                <button
+                  onClick={(e) => { e.stopPropagation(); setCancelConfirm("yearly"); setPromoStatus(null); }}
+                  disabled={isApplying}
+                  className="w-full py-2 rounded-xl text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 border border-rose-200 dark:border-rose-800 transition cursor-pointer disabled:opacity-50"
+                >
+                  Cancel Subscription
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={(e) => { e.stopPropagation(); if (!isLifetime) handleSelectPlan("yearly"); }}
+                disabled={isLifetime}
+                className={"w-full py-2.5 rounded-xl text-xs font-bold transition shadow-md cursor-pointer group-hover:brightness-110 group-hover:shadow-lg " + (
+                  isLifetime
+                    ? "bg-indigo-300 dark:bg-indigo-900/40 text-white/60 cursor-not-allowed"
+                    : "bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-600/30"
+                )}
+              >
+                Choose Yearly (Save 33%)
+              </button>
+            )}
           </div>
 
-          {/* Card 3: Founder Lifetime Pass (👑 One-Time) */}
+          {/* Card 3: Founder Lifetime Pass (👑 One-Time) — PERMANENT, no cancel */}
           <div
-            onClick={() => handleSelectPlan("lifetime")}
-            className={"relative rounded-2xl p-5 border-2 flex flex-col justify-between space-y-4 transition-all duration-300 ease-out cursor-pointer group hover:-translate-y-1.5 hover:shadow-2xl " + (
+            onClick={() => !isLifetime && handleSelectPlan("lifetime")}
+            className={"relative rounded-2xl p-5 border-2 flex flex-col justify-between space-y-4 transition-all duration-300 ease-out " + (
               isLifetime
-                ? "border-emerald-500 bg-emerald-50/20 dark:bg-emerald-950/20 shadow-lg"
-                : "border-amber-500/70 bg-gradient-to-b from-amber-50/60 via-white to-amber-50/20 dark:from-amber-950/30 dark:via-slate-900 dark:to-slate-900 hover:border-amber-400 dark:hover:border-amber-400 hover:shadow-amber-500/25"
+                ? "border-emerald-500 bg-emerald-50/20 dark:bg-emerald-950/20 shadow-lg cursor-default"
+                : "border-amber-500/70 bg-gradient-to-b from-amber-50/60 via-white to-amber-50/20 dark:from-amber-950/30 dark:via-slate-900 dark:to-slate-900 cursor-pointer group hover:-translate-y-1.5 hover:shadow-2xl hover:border-amber-400 dark:hover:border-amber-400 hover:shadow-amber-500/25"
             )}
           >
             <div className="absolute -top-3 left-1/2 -translate-x-1/2">
@@ -333,7 +421,7 @@ export const PricingModal = () => {
                   <span className="text-xs text-slate-400 line-through ml-1">{lifetimePrice.regular}</span>
                 </div>
                 <p className="text-[11px] text-amber-700 dark:text-amber-400 font-semibold mt-1">
-                  Zero recurring subscriptions
+                  Non-refundable · Permanent access
                 </p>
               </div>
 
@@ -357,21 +445,35 @@ export const PricingModal = () => {
               </ul>
             </div>
 
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleSelectPlan("lifetime");
-              }}
-              className={"w-full py-2.5 rounded-xl text-xs font-black transition shadow-md cursor-pointer group-hover:brightness-110 group-hover:shadow-lg " + (
-                isLifetime
-                  ? "bg-emerald-600 text-white cursor-default"
-                  : "bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 shadow-amber-500/20"
-              )}
-            >
-              {isLifetime ? "✓ Lifetime Active" : "Get Lifetime Access"}
-            </button>
+            {/* Lifetime button — locked permanently when active */}
+            {isLifetime ? (
+              <div className="space-y-2">
+                <div className="w-full py-2.5 rounded-xl text-xs font-bold text-center bg-emerald-600 text-white flex items-center justify-center gap-1.5">
+                  <Lock className="w-3.5 h-3.5" />
+                  Lifetime Active — Permanent
+                </div>
+                <p className="text-[10px] text-center text-slate-400 dark:text-slate-500">
+                  Lifetime plans cannot be cancelled or changed
+                </p>
+              </div>
+            ) : (
+              <button
+                onClick={(e) => { e.stopPropagation(); handleSelectPlan("lifetime"); }}
+                className="w-full py-2.5 rounded-xl text-xs font-black transition shadow-md cursor-pointer group-hover:brightness-110 group-hover:shadow-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 shadow-amber-500/20"
+              >
+                Get Lifetime Access
+              </button>
+            )}
           </div>
 
+        </div>
+
+        {/* No-Refund Policy Notice */}
+        <div className="flex items-start gap-2.5 p-3 rounded-xl bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800">
+          <Shield className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
+          <p className="text-[11px] text-slate-500 dark:text-slate-500 leading-relaxed">
+            <strong className="text-slate-600 dark:text-slate-400">No Refund Policy:</strong> All payments are final and non-refundable. Monthly and yearly plans can be cancelled anytime — you retain access until the current period ends. Lifetime plans are permanent and cannot be cancelled, downgraded, or refunded.
+          </p>
         </div>
 
         {/* Secret VIP Promo Code Redemption Bar */}

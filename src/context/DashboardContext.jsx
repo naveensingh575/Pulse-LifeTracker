@@ -175,6 +175,13 @@ export const DashboardProvider = ({ children }) => {
   const closePricingModal = useCallback(() => setIsPricingModalOpen(false), []);
 
   const selectPlan = useCallback(async (tierId, paymentDetails = null) => {
+    // Lifetime/Founder plan is permanent — cannot be downgraded or changed
+    const currentTier = localStorage.getItem('pulse_subscription_tier') || subscriptionTier;
+    if ((currentTier === 'lifetime' || currentTier === 'founder') && tierId !== currentTier) {
+      console.warn('Lifetime plan is permanent and cannot be changed.');
+      return { success: false, message: 'Lifetime access is permanent and cannot be changed or cancelled.' };
+    }
+
     // Upgrades to paid tiers strictly require valid payment details from Razorpay
     if (tierId !== 'free') {
       if (!paymentDetails || !paymentDetails.paymentId) {
@@ -211,7 +218,8 @@ export const DashboardProvider = ({ children }) => {
     }
 
     return { success: true, tier: tierId };
-  }, [user]);
+  }, [user, subscriptionTier]);
+
 
   const redeemPromoCode = useCallback(async (code) => {
     const clean = (code || '').trim().toUpperCase();
