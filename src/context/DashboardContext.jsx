@@ -380,11 +380,29 @@ export const DashboardProvider = ({ children }) => {
     return recordMonthlyView('habits');
   }, [recordMonthlyView]);
 
+  // 7-Day Pro Preview Trial for New Users (Activates full Pro exploration on Day 1-7)
+  const trialInfo = useMemo(() => {
+    let firstSeen = localStorage.getItem('pulse_first_seen_at');
+    if (!firstSeen) {
+      firstSeen = new Date().toISOString();
+      localStorage.setItem('pulse_first_seen_at', firstSeen);
+    }
+    const diffMs = Date.now() - new Date(firstSeen).getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const isTrialActive = diffDays < 7;
+    const trialDaysRemaining = Math.max(0, 7 - diffDays);
+    return {
+      isTrialActive,
+      trialDaysRemaining,
+      firstSeenAt: firstSeen
+    };
+  }, []);
+
   const canViewMonthOnPage = useCallback((page = 'habits') => {
-    if (subscriptionTier !== 'free') return true;
+    if (subscriptionTier !== 'free' || trialInfo.isTrialActive) return true;
     const current = monthViewsByPage[page] || 0;
     return current < FREE_TIER_LIMITS.MAX_MONTHLY_MONTH_VIEWS;
-  }, [subscriptionTier, monthViewsByPage]);
+  }, [subscriptionTier, trialInfo.isTrialActive, monthViewsByPage]);
 
   const quotaStatus = useMemo(() => {
     return getQuotaStatus({
@@ -394,9 +412,11 @@ export const DashboardProvider = ({ children }) => {
       monthViews: monthViewsByPage,
       monthViewsThisMonth: monthViewsByPage.habits,
       analyticsViewsThisMonth: analyticsViewsCount,
-      subscriptionTier
+      subscriptionTier,
+      isTrialActive: trialInfo.isTrialActive,
+      trialDaysRemaining: trialInfo.trialDaysRemaining
     });
-  }, [habits, goals, aiRunsCount, monthViewsByPage, analyticsViewsCount, subscriptionTier]);
+  }, [habits, goals, aiRunsCount, monthViewsByPage, analyticsViewsCount, subscriptionTier, trialInfo]);
 
   // Apply dark mode class
   useEffect(() => {
@@ -1637,6 +1657,7 @@ export const DashboardProvider = ({ children }) => {
         canViewAnalytics: quotaStatus.analyticsViews.canView,
         canExportData: quotaStatus.exports.canExport,
         quotaStatus,
+        trialInfo,
         recordAiAnalyticsRun,
         FREE_TIER_LIMITS,
         selectPlan,

@@ -30,9 +30,13 @@ export function getQuotaStatus({
   monthViews = { habits: 0, activity: 0, finance: 0 },
   monthViewsThisMonth = 0, // backwards compatibility
   analyticsViewsThisMonth = 0,
-  subscriptionTier = "free"
+  subscriptionTier = "free",
+  isTrialActive = false,
+  trialDaysRemaining = 0
 }) {
-  const isPremium = subscriptionTier !== "free";
+  const hasPaidPlan = subscriptionTier !== "free";
+  // User has Pro privileges if they have a paid subscription OR their 7-day trial is active
+  const isPremium = hasPaidPlan || isTrialActive;
 
   const habitsMax = Infinity;
   const goalsMax = Infinity;
@@ -47,6 +51,9 @@ export function getQuotaStatus({
 
   return {
     isPremium,
+    hasPaidPlan,
+    isTrialActive,
+    trialDaysRemaining,
     subscriptionTier,
     habits: {
       current: habitsCount,
@@ -105,7 +112,7 @@ export function getQuotaStatus({
       isLimitReached: !isPremium && analyticsViewsThisMonth >= analyticsViewsMax
     },
     exports: {
-      canExport: isPremium
+      canExport: hasPaidPlan
     }
   };
 }

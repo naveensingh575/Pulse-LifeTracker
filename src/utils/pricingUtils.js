@@ -232,8 +232,28 @@ export function validatePromoCode(rawCode, currentRedeemedCount = 0, isAlreadyRe
 }
 
 /**
+ * Limited Founder Cohort Settings (Cap at 200 seats to protect SaaS ARR)
+ */
+export const MAX_FOUNDER_SEATS = 200;
+export const CURRENT_FOUNDER_CLAIMED = 162; // 38 seats remaining
+
+export function getFounderSeatsStatus(claimed = CURRENT_FOUNDER_CLAIMED) {
+  const total = MAX_FOUNDER_SEATS;
+  const remaining = Math.max(0, total - claimed);
+  const percentage = Math.round((claimed / total) * 100);
+  return {
+    total,
+    claimed,
+    remaining,
+    percentage,
+    isSoldOut: remaining === 0
+  };
+}
+
+/**
  * Computes remaining limited founder seats (out of 100)
  */
 export function getRemainingFounderSeats(claimedCount = 78) {
   return Math.max(0, MAX_FAMILY100_ACCOUNTS - claimedCount);
 }
+

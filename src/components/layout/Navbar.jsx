@@ -8,7 +8,7 @@ import { getLocalDateString, formatDisplayDate } from '../../utils/dateUtils';
 import { Sun, Moon, Calendar, LogOut, ChevronDown, LogIn, Globe, Search, Trash2, Shield, Crown, Sparkles, Star } from 'lucide-react';
 
 export const Navbar = ({ onOpenQuickCapture }) => {
-  const { theme, toggleTheme, currency, setCurrency, subscriptionTier, openPricingModal } = useDashboard();
+  const { theme, toggleTheme, currency, setCurrency, subscriptionTier, openPricingModal, trialInfo } = useDashboard();
   const { user, logout } = useAuth();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -58,6 +58,18 @@ export const Navbar = ({ onOpenQuickCapture }) => {
 
         {/* Action Controls & User Avatar Menu */}
         <div className="flex items-center space-x-2 sm:space-x-3">
+
+          {/* Pro Preview Trial Pill */}
+          {trialInfo?.isTrialActive && subscriptionTier === 'free' && (
+            <button
+              onClick={openPricingModal}
+              className="hidden md:flex items-center space-x-1.5 px-3 py-1.5 text-xs font-bold text-amber-700 dark:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 rounded-xl transition cursor-pointer shrink-0"
+              title="7-Day Pro Preview Active — Click to Upgrade"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+              <span>Pro Trial: {trialInfo.trialDaysRemaining}d left</span>
+            </button>
+          )}
           
           {/* Dynamic Global Currency Switcher — min 44px touch target on mobile */}
           <div className="relative flex items-center">

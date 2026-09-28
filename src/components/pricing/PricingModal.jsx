@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useDashboard } from "../../context/DashboardContext";
 import { useAuth } from "../../context/AuthContext";
-import { getLocalizedPrice, PRICING_DATA, getRemainingFounderSeats } from "../../utils/pricingUtils";
+import { getLocalizedPrice, PRICING_DATA, getFounderSeatsStatus } from "../../utils/pricingUtils";
 import { openRazorpayCheckout } from "../../utils/paymentUtils";
 import {
   X,
@@ -14,7 +14,8 @@ import {
   Crown,
   Globe,
   AlertTriangle,
-  Lock
+  Lock,
+  Flame
 } from "lucide-react";
 
 export const PricingModal = () => {
@@ -24,7 +25,8 @@ export const PricingModal = () => {
     subscriptionTier,
     selectPlan,
     redeemPromoCode,
-    currency
+    currency,
+    trialInfo
   } = useDashboard();
   const { user } = useAuth();
 
@@ -44,6 +46,8 @@ export const PricingModal = () => {
   const monthlyPrice = getLocalizedPrice("monthly", currency);
   const yearlyPrice = getLocalizedPrice("yearly", currency);
   const lifetimePrice = getLocalizedPrice("lifetime", currency);
+  const founderSeats = getFounderSeatsStatus();
+  const isTrialActive = Boolean(trialInfo?.isTrialActive && subscriptionTier === "free");
 
   const handleApplyPromo = async (e) => {
     if (e) e.preventDefault();
@@ -173,12 +177,33 @@ export const PricingModal = () => {
                 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
                 : isYearly || isMonthly
                 ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/30'
+                : isTrialActive
+                ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/40'
                 : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'
             )}>
-              {isFounder ? 'Founder Lifetime' : isLifetime ? 'Lifetime Pass' : isYearly ? 'Pro Yearly' : isMonthly ? 'Pro Monthly' : 'Free Starter'}
+              {isFounder ? 'Founder Lifetime' : isLifetime ? 'Lifetime Pass' : isYearly ? 'Pro Yearly' : isMonthly ? 'Pro Monthly' : isTrialActive ? `⭐ Pro Preview Trial (${trialInfo?.trialDaysRemaining}d left)` : 'Free Starter'}
             </span>
           </div>
         </div>
+
+        {/* 7-Day Pro Trial Active Announcement Banner */}
+        {isTrialActive && (
+          <div className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-indigo-500/10 to-transparent border border-amber-500/30 text-xs flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 shrink-0">
+                <Sparkles className="w-4 h-4" />
+              </div>
+              <div className="space-y-0.5">
+                <p className="font-bold text-slate-900 dark:text-white">
+                  7-Day Pro Preview Active ({trialInfo?.trialDaysRemaining} days remaining)
+                </p>
+                <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
+                  You currently have full access to Monthly Heatmaps and the Analytics Suite. Lock in <strong>Pro Yearly (Save 33%)</strong> or the <strong>Founder Lifetime Pass</strong> to keep unlimited intelligence forever.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Cancel Confirmation Dialog */}
         {cancelConfirm && (
@@ -301,7 +326,7 @@ export const PricingModal = () => {
             )}
           </div>
 
-          {/* Card 2: Yearly Pro (⭐ Best Value) */}
+          {/* Card 2: Yearly Pro (⭐ Best Value · Recommended) */}
           <div
             onClick={() => !isYearly && !isLifetime && handleSelectPlan("yearly")}
             className={"relative rounded-2xl p-5 border-2 flex flex-col justify-between space-y-4 transition-all duration-300 ease-out " + (
@@ -309,18 +334,18 @@ export const PricingModal = () => {
                 ? "border-emerald-500 bg-emerald-50/20 dark:bg-emerald-950/20 shadow-xl cursor-default"
                 : isLifetime
                 ? "border-indigo-500/30 bg-gradient-to-b from-indigo-50/20 via-white to-indigo-50/10 dark:from-indigo-950/20 dark:via-slate-900 dark:to-slate-900 opacity-50 cursor-not-allowed"
-                : "border-indigo-500 bg-gradient-to-b from-indigo-50/60 via-white to-indigo-50/20 dark:from-indigo-950/40 dark:via-slate-900 dark:to-slate-900 shadow-indigo-500/10 cursor-pointer group hover:-translate-y-1.5 hover:shadow-2xl hover:border-indigo-400 dark:hover:border-indigo-400 hover:shadow-indigo-500/25"
+                : "border-indigo-500 ring-2 ring-indigo-500/40 bg-gradient-to-b from-indigo-50/70 via-white to-indigo-50/30 dark:from-indigo-950/50 dark:via-slate-900 dark:to-slate-900 shadow-xl shadow-indigo-500/15 cursor-pointer group hover:-translate-y-1.5 hover:shadow-2xl hover:border-indigo-400 dark:hover:border-indigo-400 hover:shadow-indigo-500/30"
             )}
           >
             <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-              <span className="px-3 py-0.5 rounded-full bg-gradient-to-r from-indigo-600 to-cyan-600 text-white text-[10px] font-extrabold uppercase tracking-wider shadow-sm group-hover:scale-105 transition-transform">
-                ⭐ Best Value
+              <span className="px-3 py-0.5 rounded-full bg-gradient-to-r from-indigo-600 via-indigo-500 to-cyan-600 text-white text-[10px] font-extrabold uppercase tracking-wider shadow-md group-hover:scale-105 transition-transform">
+                ⭐ Best Value · Recommended
               </span>
             </div>
 
             <div className="space-y-3 pt-1">
               <div className="flex items-center justify-between min-h-[24px]">
-                <h3 className="font-bold text-sm text-indigo-900 dark:text-indigo-200">Pro Yearly</h3>
+                <h3 className="font-bold text-sm text-indigo-950 dark:text-indigo-200">Pro Yearly</h3>
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300">
                   Save 33%
                 </span>
@@ -333,7 +358,10 @@ export const PricingModal = () => {
                   <span className="text-xs text-slate-400 line-through ml-1">{yearlyPrice.regular}</span>
                 </div>
                 <p className="text-[11px] text-indigo-600 dark:text-indigo-400 font-semibold mt-1">
-                  {yearlyPrice.effectiveMonthly} · Cancel anytime
+                  {yearlyPrice.effectiveMonthly}
+                </p>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                  Billed annually · Cancel anytime
                 </p>
               </div>
 
@@ -352,7 +380,7 @@ export const PricingModal = () => {
                 </li>
                 <li className="flex items-center gap-2">
                   <CheckCircle2 className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
-                  <span>Priority Support & System Updates</span>
+                  <span>Priority Support & Continuous Updates</span>
                 </li>
               </ul>
             </div>
@@ -378,10 +406,10 @@ export const PricingModal = () => {
                 className={"w-full py-2.5 rounded-xl text-xs font-bold transition shadow-md cursor-pointer group-hover:brightness-110 group-hover:shadow-lg " + (
                   isLifetime
                     ? "bg-indigo-300 dark:bg-indigo-900/40 text-white/60 cursor-not-allowed"
-                    : "bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-600/30"
+                    : "bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-600/30 font-extrabold"
                 )}
               >
-                Choose Yearly (Save 33%)
+                Get Pro Yearly (Save 33%)
               </button>
             )}
           </div>
@@ -422,6 +450,28 @@ export const PricingModal = () => {
                 </div>
                 <p className="text-[11px] text-amber-700 dark:text-amber-400 font-semibold mt-1">
                   Non-refundable · Permanent access
+                </p>
+              </div>
+
+              {/* Limited Founder Batch Scarcity Meter */}
+              <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/25 space-y-1.5">
+                <div className="flex items-center justify-between text-[11px] font-bold">
+                  <span className="text-amber-800 dark:text-amber-300 flex items-center gap-1 text-[10px]">
+                    <Flame className="w-3 h-3 text-amber-500 fill-amber-500" />
+                    Limited Founder Cohort
+                  </span>
+                  <span className="text-amber-700 dark:text-amber-400 font-mono text-[10px] bg-amber-500/20 px-1.5 py-0.5 rounded-full">
+                    {founderSeats.remaining} Seats Left
+                  </span>
+                </div>
+                <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-amber-500 to-amber-600 rounded-full transition-all duration-500"
+                    style={{ width: `${founderSeats.percentage}%` }}
+                  />
+                </div>
+                <p className="text-[9px] text-amber-700/80 dark:text-amber-400/80 leading-tight">
+                  {founderSeats.claimed} / {founderSeats.total} passes claimed. Once filled, Lifetime access will be retired.
                 </p>
               </div>
 
