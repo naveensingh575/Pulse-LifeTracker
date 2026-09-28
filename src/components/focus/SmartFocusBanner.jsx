@@ -24,6 +24,7 @@ export const SmartFocusBanner = () => {
     getMonthlyAllocation = () => ({ expenseBudget: 0, investmentGoal: 0 }),
     habits = [],
     isHabitDoneOn = () => false,
+    isHabitActiveOnDate = () => true,
     tasks = [],
     goals = [],
     currency = '₹',
@@ -77,7 +78,8 @@ export const SmartFocusBanner = () => {
   }
 
   // 2. Habit Consistency Directive
-  const pendingTodayHabits = habits.filter(h => !isHabitDoneOn(h.id, todayStr));
+  const activeTodayHabits = habits.filter(h => isHabitActiveOnDate(h, todayStr));
+  const pendingTodayHabits = activeTodayHabits.filter(h => !isHabitDoneOn(h.id, todayStr));
   if (habits.length === 0) {
     insights.push({
       id: 'habit-directive',

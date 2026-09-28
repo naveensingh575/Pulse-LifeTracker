@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { HabitTracker } from '../components/habits/HabitTracker';
 import { useDashboard } from '../context/DashboardContext';
+import { isHabitActiveOnDate, encodeActiveDays } from '../context/DashboardContext';
 import {
   getISTYearMonth,
   getISTDateString,
   getISTWeekDays,
   getMonthCalendarGrid,
   formatISTDisplayDate,
+  getWeekdayIndex,
   MONTH_NAMES_FULL,
   DAY_NAMES_SHORT
 } from '../utils/dateUtils';
@@ -57,11 +59,13 @@ export const HabitsPage = () => {
   const [newHabitName, setNewHabitName] = useState('');
   const [newHabitCategory, setNewHabitCategory] = useState('Health');
   const [newHabitStartDate, setNewHabitStartDate] = useState(todayStr);
+  const [newHabitActiveDays, setNewHabitActiveDays] = useState([0, 1, 2, 3, 4, 5, 6]);
 
   const handleOpenAdd = () => {
     setNewHabitName('');
     setNewHabitCategory(selectedCategory !== 'All' ? selectedCategory : 'Health');
     setNewHabitStartDate(getISTDateString());
+    setNewHabitActiveDays([0, 1, 2, 3, 4, 5, 6]);
     setShowAddModal(true);
   };
 
@@ -73,11 +77,13 @@ export const HabitsPage = () => {
       name: newHabitName.trim(),
       category: newHabitCategory,
       icon: 'Smile',
-      createdAt: newHabitStartDate || getISTDateString()
+      createdAt: newHabitStartDate || getISTDateString(),
+      activeDays: newHabitActiveDays
     });
 
     setNewHabitName('');
     setNewHabitStartDate(getISTDateString());
+    setNewHabitActiveDays([0, 1, 2, 3, 4, 5, 6]);
     setShowAddModal(false);
   };
 
@@ -351,47 +357,56 @@ export const HabitsPage = () => {
 
           {/* Day Habit Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
-            {filteredHabits.map((habit) => {
-              const isDone = isHabitDoneOn(habit.id, selectedDayDate);
+            {filteredHabits
+              .filter(habit => isHabitActiveOnDate(habit, selectedDayDate))
+              .map((habit) => {
+                const isDone = isHabitDoneOn(habit.id, selectedDayDate);
 
-              return (
-                <div
-                  key={habit.id}
-                  className={`p-4 rounded-xl border flex items-center justify-between transition-all ${
-                    isDone
-                      ? 'bg-amber-500/10 border-amber-500/30 text-slate-900 dark:text-slate-100 shadow-sm'
-                      : 'bg-slate-50 dark:bg-slate-950/70 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-700'
-                  }`}
-                >
-                  <div className="space-y-1">
-                    <p className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
-                      {habit.name}
-                      {habit.streak > 0 && (
-                        <span className="text-[10px] text-amber-600 dark:text-amber-400 font-mono font-extrabold flex items-center gap-0.5">
-                          <Flame className="w-3 h-3 fill-amber-500" />
-                          {habit.streak}d
-                        </span>
-                      )}
-                    </p>
-                    <span className="text-[10px] px-2 py-0.5 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 font-medium">
-                      {habit.category}
-                    </span>
-                  </div>
-
-                  <button
-                    onClick={() => toggleHabitForDate(habit.id, selectedDayDate)}
-                    className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all transform active:scale-95 shadow-sm cursor-pointer ${
+                return (
+                  <div
+                    key={habit.id}
+                    className={`p-4 rounded-xl border flex items-center justify-between transition-all ${
                       isDone
-                        ? 'bg-amber-500 text-slate-950 hover:bg-amber-400 shadow-amber-500/20'
-                        : 'bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700'
+                        ? 'bg-amber-500/10 border-amber-500/30 text-slate-900 dark:text-slate-100 shadow-sm'
+                        : 'bg-slate-50 dark:bg-slate-950/70 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-700'
                     }`}
                   >
-                    {isDone ? <Check className="w-4 h-4 stroke-[3]" /> : null}
-                    <span>{isDone ? 'Done' : 'Mark Done'}</span>
-                  </button>
-                </div>
-              );
-            })}
+                    <div className="space-y-1">
+                      <p className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                        {habit.name}
+                        {habit.streak > 0 && (
+                          <span className="text-[10px] text-amber-600 dark:text-amber-400 font-mono font-extrabold flex items-center gap-0.5">
+                            <Flame className="w-3 h-3 fill-amber-500" />
+                            {habit.streak}d
+                          </span>
+                        )}
+                      </p>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="text-[10px] px-2 py-0.5 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 font-medium">
+                          {habit.category}
+                        </span>
+                        {habit.activeDays && habit.activeDays.length < 7 && (
+                          <span className="text-[9px] text-indigo-600 dark:text-indigo-400 font-bold px-1.5 py-0.5 rounded bg-indigo-500/10 border border-indigo-500/15">
+                            {habit.activeDays.map(d => DAY_NAMES_SHORT[d]).join(', ')}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => toggleHabitForDate(habit.id, selectedDayDate)}
+                      className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all transform active:scale-95 shadow-sm cursor-pointer ${
+                        isDone
+                          ? 'bg-amber-500 text-slate-950 hover:bg-amber-400 shadow-amber-500/20'
+                          : 'bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700'
+                      }`}
+                    >
+                      {isDone ? <Check className="w-4 h-4 stroke-[3]" /> : null}
+                      <span>{isDone ? 'Done' : 'Mark Done'}</span>
+                    </button>
+                  </div>
+                );
+              })}
 
             {/* Add New Habit Card (Same size as listed habit cards) */}
             <div
@@ -673,6 +688,64 @@ export const HabitsPage = () => {
                   <option value="Skill">Skill</option>
                   <option value="Productivity">Productivity</option>
                 </select>
+              </div>
+
+              {/* Weekly Schedule Picker */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Schedule</label>
+                <div className="flex items-center gap-1.5 mb-2">
+                  <button
+                    type="button"
+                    onClick={() => setNewHabitActiveDays([0, 1, 2, 3, 4, 5, 6])}
+                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer ${
+                      newHabitActiveDays.length === 7
+                        ? 'bg-amber-500 text-slate-950 shadow-sm'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                    }`}
+                  >
+                    Daily
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setNewHabitActiveDays([0, 1, 2, 3, 4])}
+                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer ${
+                      newHabitActiveDays.length === 5 && [0,1,2,3,4].every(d => newHabitActiveDays.includes(d))
+                        ? 'bg-amber-500 text-slate-950 shadow-sm'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                    }`}
+                  >
+                    Weekdays
+                  </button>
+                </div>
+                <div className="flex items-center gap-1">
+                  {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((label, idx) => {
+                    const isActive = newHabitActiveDays.includes(idx);
+                    return (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => {
+                          setNewHabitActiveDays(prev =>
+                            isActive
+                              ? prev.filter(d => d !== idx)
+                              : [...prev, idx].sort((a, b) => a - b)
+                          );
+                        }}
+                        className={`w-8 h-8 rounded-lg text-[11px] font-bold transition cursor-pointer flex items-center justify-center ${
+                          isActive
+                            ? 'bg-amber-500 text-slate-950 shadow-sm border border-amber-500'
+                            : 'bg-slate-50 dark:bg-slate-950 text-slate-500 dark:text-slate-400 border border-slate-300 dark:border-slate-700 hover:border-amber-500/50'
+                        }`}
+                        title={DAY_NAMES_SHORT[idx]}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">
+                  {newHabitActiveDays.length === 7 ? 'Tracked every day' : `Tracked ${newHabitActiveDays.length} days/week: ${newHabitActiveDays.map(d => DAY_NAMES_SHORT[d]).join(', ')}`}
+                </p>
               </div>
 
               <div>

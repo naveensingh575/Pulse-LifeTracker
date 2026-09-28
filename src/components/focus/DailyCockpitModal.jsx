@@ -24,6 +24,7 @@ export const DailyCockpitModal = ({ isOpen, onClose }) => {
     habits = [],
     tasks = [],
     isHabitDoneOn = () => false,
+    isHabitActiveOnDate = () => true,
     toggleHabitForDate,
     toggleTask
   } = useDashboard();
@@ -47,9 +48,10 @@ export const DailyCockpitModal = ({ isOpen, onClose }) => {
 
   const displayName = user?.name || user?.email?.split('@')[0] || 'Builder';
 
-  // Habits pending for today
-  const pendingHabits = habits.filter(h => !isHabitDoneOn(h.id, todayStr));
-  const completedHabitsCount = habits.length - pendingHabits.length;
+  // Habits pending for today (scheduled for today and active)
+  const activeHabitsToday = habits.filter(h => isHabitActiveOnDate(h, todayStr));
+  const pendingHabits = activeHabitsToday.filter(h => !isHabitDoneOn(h.id, todayStr));
+  const completedHabitsCount = activeHabitsToday.length - pendingHabits.length;
 
   // High priority tasks
   const pendingTasks = tasks.filter(t => !t.completed);

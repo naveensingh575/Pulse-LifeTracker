@@ -83,6 +83,7 @@ export const AnalyticsView = () => {
     transactions = [],
     habits = [],
     isHabitDoneOn = () => false,
+    isHabitActiveOnDate = () => true,
     getMonthlyAllocation = () => ({ expenseBudget: 0, investmentGoal: 0 }),
     activities = [],
     goals = [],
@@ -239,16 +240,21 @@ export const AnalyticsView = () => {
   let habitDeltaText = '';
 
   if (timeframe === 'day') {
-    const doneOnDate = habits.filter(h => isHabitDoneOn(h.id, selectedDate)).length;
-    habitScore = habits.length > 0 ? Math.round((doneOnDate / habits.length) * 100) : 0;
+    const activeHabitsOnDate = habits.filter(h => isHabitActiveOnDate(h, selectedDate));
+    const doneOnDate = activeHabitsOnDate.filter(h => isHabitDoneOn(h.id, selectedDate)).length;
+    const totalPossible = activeHabitsOnDate.length;
+    habitScore = totalPossible > 0 ? Math.round((doneOnDate / totalPossible) * 100) : 0;
     habitRating = habitScore >= 80 ? 'High Discipline 🔥' : habitScore >= 50 ? 'Moderate Consistency' : 'Needs Focus';
-    habitDeltaText = `${doneOnDate} of ${habits.length} routines completed (${selectedDate === todayStr ? 'Today' : formatISTDisplayDate(selectedDate)})`;
+    habitDeltaText = `${doneOnDate} of ${totalPossible} scheduled routines completed (${selectedDate === todayStr ? 'Today' : formatISTDisplayDate(selectedDate)})`;
   } else if (timeframe === 'week') {
-    const totalSlots = habits.length * 7;
+    let totalSlots = 0;
     let doneSlots = 0;
     habits.forEach(h => {
       activeWeekDays.forEach(d => {
-        if (isHabitDoneOn(h.id, d.dateStr)) doneSlots += 1;
+        if (isHabitActiveOnDate(h, d.dateStr)) {
+          totalSlots += 1;
+          if (isHabitDoneOn(h.id, d.dateStr)) doneSlots += 1;
+        }
       });
     });
     habitScore = totalSlots > 0 ? Math.round((doneSlots / totalSlots) * 100) : 0;
@@ -264,7 +270,7 @@ export const AnalyticsView = () => {
     habits.forEach(h => {
       for (let dayI = 1; dayI <= daysToCount; dayI++) {
         const dStr = `${selectedMonthKey}-${String(dayI).padStart(2, '0')}`;
-        if (!h.createdAt || h.createdAt <= dStr) {
+        if (isHabitActiveOnDate(h, dStr)) {
           totalSlots += 1;
           if (isHabitDoneOn(h.id, dStr)) doneSlots += 1;
         }
@@ -552,19 +558,22 @@ export const AnalyticsView = () => {
   let habitChartData = [];
   if (timeframe === 'day') {
     const hours = ['08:00', '12:00', '16:00', '20:00', '23:00'];
-    const doneOnDate = habits.filter(h => isHabitDoneOn(h.id, selectedDate)).length;
+    const activeHabitsOnDate = habits.filter(h => isHabitActiveOnDate(h, selectedDate));
+    const doneOnDate = activeHabitsOnDate.filter(h => isHabitDoneOn(h.id, selectedDate)).length;
+    const totalDayHabits = activeHabitsOnDate.length;
     habitChartData = hours.map((hr, idx) => {
       const currentDone = Math.min(doneOnDate, Math.ceil((doneOnDate / hours.length) * (idx + 1)));
       return {
         label: hr,
-        completionPct: habits.length > 0 ? Math.round((currentDone / habits.length) * 100) : 0,
+        completionPct: totalDayHabits > 0 ? Math.round((currentDone / totalDayHabits) * 100) : 0,
         doneCount: currentDone
       };
     });
   } else if (timeframe === 'week') {
     habitChartData = activeWeekDays.map(w => {
-      const doneCount = habits.filter(h => isHabitDoneOn(h.id, w.dateStr)).length;
-      const pct = habits.length > 0 ? Math.round((doneCount / habits.length) * 100) : 0;
+      const activeForDay = habits.filter(h => isHabitActiveOnDate(h, w.dateStr));
+      const doneCount = activeForDay.filter(h => isHabitDoneOn(h.id, w.dateStr)).length;
+      const pct = activeForDay.length > 0 ? Math.round((doneCount / activeForDay.length) * 100) : 0;
       return {
         label: `${w.dayNameShort} ${w.dayNumber}`,
         completionPct: pct,
@@ -572,7 +581,7 @@ export const AnalyticsView = () => {
       };
     });
   } else {
-    // Month: grouped by 5-day intervals or daily trend
+    // Month: grouped by 3-day intervals
     habitChartData = Array.from({ length: Math.ceil(daysInMonth / 3) }, (_, idx) => {
       const startDay = idx * 3 + 1;
       const endDay = Math.min(daysInMonth, (idx + 1) * 3);
@@ -582,7 +591,7 @@ export const AnalyticsView = () => {
       for (let d = startDay; d <= endDay; d++) {
         const dStr = `${selectedMonthKey}-${String(d).padStart(2, '0')}`;
         habits.forEach(h => {
-          if (!h.createdAt || h.createdAt <= dStr) {
+          if (isHabitActiveOnDate(h, dStr)) {
             periodPossible += 1;
             if (isHabitDoneOn(h.id, dStr)) periodDone += 1;
           }

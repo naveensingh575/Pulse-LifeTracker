@@ -228,6 +228,16 @@ export const getLocalWeekBadge = (refDate = new Date()) => {
 
 export const getISTWeekBadge = getLocalWeekBadge;
 
+// Get weekday index (0=Mon, 1=Tue, ..., 6=Sun) for a YYYY-MM-DD date string
+// Matches DAY_NAMES_SHORT ordering: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+export const getWeekdayIndex = (dateStr) => {
+  if (!dateStr || typeof dateStr !== 'string') return 0;
+  const parts = dateStr.split('-');
+  const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+  const jsDay = d.getDay(); // JS: 0=Sun, 1=Mon, ..., 6=Sat
+  return jsDay === 0 ? 6 : jsDay - 1; // Convert to 0=Mon, 6=Sun
+};
+
 // Get days count for a given month/year
 export const getDaysInMonth = (year, month) => {
   return new Date(year, month, 0).getDate();
@@ -392,3 +402,28 @@ export const calculateHabitStreakWithShield = (completionsMap = {}, createdAt) =
 export const calculateHabitStreak = (completionsMap = {}, createdAt) => {
   return calculateHabitStreakWithShield(completionsMap, createdAt).streak;
 };
+
+// --- Weekly Habit Schedule & Frequency Utilities ---
+export const ALL_DAYS = [0, 1, 2, 3, 4, 5, 6];
+
+export const parseActiveDays = (frequency) => {
+  if (!frequency || frequency === 'daily' || frequency === 'Daily') {
+    return ALL_DAYS;
+  }
+  const parts = frequency.split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n) && n >= 0 && n <= 6);
+  return parts.length > 0 ? parts : ALL_DAYS;
+};
+
+export const encodeActiveDays = (activeDays) => {
+  if (!activeDays || activeDays.length === 0 || activeDays.length === 7) return 'daily';
+  return [...activeDays].sort((a, b) => a - b).join(',');
+};
+
+export const isHabitActiveOnDate = (habit, dateStr) => {
+  if (!habit || !dateStr) return false;
+  if (habit.createdAt && dateStr < habit.createdAt) return false;
+  const activeDays = habit.activeDays || ALL_DAYS;
+  const weekdayIdx = getWeekdayIndex(dateStr);
+  return activeDays.includes(weekdayIdx);
+};
+

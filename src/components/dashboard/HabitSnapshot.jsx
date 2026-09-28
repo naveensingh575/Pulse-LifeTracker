@@ -18,12 +18,12 @@ import { triggerHaptic } from '../../utils/hapticUtils';
 import { DisciplineShareModal } from '../analytics/DisciplineShareModal';
 
 export const HabitSnapshot = () => {
-  const { habits, isHabitDoneOn, toggleHabitForDate, theme } = useDashboard();
+  const { habits, isHabitDoneOn, isHabitActiveOnDate, toggleHabitForDate, theme } = useDashboard();
   const todayStr = getISTDateString();
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
-  // Active habits for today
-  const activeHabits = habits.filter(h => !h.createdAt || h.createdAt <= todayStr);
+  // Active habits for today based on createdAt and weekly schedule
+  const activeHabits = habits.filter(h => isHabitActiveOnDate ? isHabitActiveOnDate(h, todayStr) : (!h.createdAt || h.createdAt <= todayStr));
   const totalHabits = activeHabits.length;
   const completedHabits = activeHabits.filter(h => isHabitDoneOn(h.id, todayStr));
   const completedCount = completedHabits.length;

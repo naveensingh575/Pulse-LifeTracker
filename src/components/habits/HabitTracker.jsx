@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useDashboard } from '../../context/DashboardContext';
+import { isHabitActiveOnDate, encodeActiveDays, parseActiveDays } from '../../context/DashboardContext';
 import {
   getISTWeekDays,
   getISTWeekBadge,
   getISTDateString,
   formatISTDisplayDate,
-  isDateEditable
+  isDateEditable,
+  DAY_NAMES_SHORT
 } from '../../utils/dateUtils';
 import {
   Flame,
@@ -78,6 +80,7 @@ export const HabitTracker = ({ activeCategoryProp }) => {
   const [newHabitName, setNewHabitName] = useState('');
   const [newHabitCategory, setNewHabitCategory] = useState('Health');
   const [newHabitStartDate, setNewHabitStartDate] = useState(getISTDateString());
+  const [newHabitActiveDays, setNewHabitActiveDays] = useState([0, 1, 2, 3, 4, 5, 6]);
 
   // Case-insensitive category filtering
   const filteredHabits = !activeCategory || activeCategory === 'All'
@@ -93,6 +96,7 @@ export const HabitTracker = ({ activeCategoryProp }) => {
     setNewHabitName('');
     setNewHabitCategory('Health');
     setNewHabitStartDate(getISTDateString());
+    setNewHabitActiveDays([0, 1, 2, 3, 4, 5, 6]);
     setShowAddModal(true);
   };
 
@@ -101,6 +105,7 @@ export const HabitTracker = ({ activeCategoryProp }) => {
     setNewHabitName(habit.name || '');
     setNewHabitCategory(habit.category || 'Health');
     setNewHabitStartDate(habit.createdAt || getISTDateString());
+    setNewHabitActiveDays(habit.activeDays || [0, 1, 2, 3, 4, 5, 6]);
     setShowAddModal(true);
   };
 
@@ -112,18 +117,21 @@ export const HabitTracker = ({ activeCategoryProp }) => {
       updateHabit(editingHabit.id, {
         name: newHabitName.trim(),
         category: newHabitCategory,
-        createdAt: newHabitStartDate || getISTDateString()
+        createdAt: newHabitStartDate || getISTDateString(),
+        activeDays: newHabitActiveDays
       });
     } else {
       addHabit({
         name: newHabitName.trim(),
         category: newHabitCategory,
         icon: 'Smile',
-        createdAt: newHabitStartDate || getISTDateString()
+        createdAt: newHabitStartDate || getISTDateString(),
+        activeDays: newHabitActiveDays
       });
     }
     setNewHabitName('');
     setNewHabitStartDate(getISTDateString());
+    setNewHabitActiveDays([0, 1, 2, 3, 4, 5, 6]);
     setEditingHabit(null);
     setShowAddModal(false);
   };
@@ -276,9 +284,11 @@ export const HabitTracker = ({ activeCategoryProp }) => {
           filteredHabits.map((habit) => {
             const IconComp = habitIconMap[habit.icon] || Smile;
 
-            // Calculate completions for the currently visible 7-day week
-            const weekCompletedCount = weekDays.filter(d => isHabitDoneOn(habit.id, d.dateStr)).length;
-            const progressPercent = Math.round((weekCompletedCount / 7) * 100);
+            // Calculate completions for the currently visible week, only for scheduled days
+            const scheduledDays = weekDays.filter(d => isHabitActiveOnDate(habit, d.dateStr));
+            const weekCompletedCount = scheduledDays.filter(d => isHabitDoneOn(habit.id, d.dateStr)).length;
+            const weekScheduledCount = scheduledDays.length;
+            const progressPercent = weekScheduledCount > 0 ? Math.round((weekCompletedCount / weekScheduledCount) * 100) : 0;
 
             return (
               <div
@@ -323,8 +333,13 @@ export const HabitTracker = ({ activeCategoryProp }) => {
                           </div>
                         )}
                       </h4>
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-1.5 flex-wrap">
                         <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">{habit.category}</span>
+                        {habit.activeDays && habit.activeDays.length < 7 && (
+                          <span className="text-[9px] text-indigo-600 dark:text-indigo-400 font-bold px-1.5 py-0.5 rounded bg-indigo-500/10 border border-indigo-500/15">
+                            {habit.activeDays.map(d => DAY_NAMES_SHORT[d]).join(', ')}
+                          </span>
+                        )}
                         {habit.createdAt && (
                           <span className="text-[9px] text-slate-400 dark:text-slate-500 font-mono">
                             • from {habit.createdAt}
@@ -357,7 +372,8 @@ export const HabitTracker = ({ activeCategoryProp }) => {
                   {weekDays.map((day) => {
                     const isDone = isHabitDoneOn(habit.id, day.dateStr);
                     const isPriorToCreation = habit.createdAt && day.dateStr < habit.createdAt;
-                    const editable = day.isEditable && !isPriorToCreation;
+                    const isNotScheduled = !isHabitActiveOnDate(habit, day.dateStr) && !isPriorToCreation;
+                    const editable = day.isEditable && !isPriorToCreation && !isNotScheduled;
 
                     // PRIOR TO CREATION DATE: Display subtle N/A dash
                     if (isPriorToCreation) {
@@ -368,6 +384,19 @@ export const HabitTracker = ({ activeCategoryProp }) => {
                           title={`${formatISTDisplayDate(day.dateStr)}: Prior to habit start date (${habit.createdAt})`}
                         >
                           -
+                        </div>
+                      );
+                    }
+
+                    // NOT SCHEDULED on this weekday: Display subtle off-day indicator
+                    if (isNotScheduled) {
+                      return (
+                        <div
+                          key={day.dateStr}
+                          className="h-8 sm:h-7 rounded-lg flex items-center justify-center text-[10px] text-slate-400 dark:text-slate-600 bg-slate-100/50 dark:bg-slate-950/40 border border-dashed border-slate-200 dark:border-slate-800 cursor-not-allowed select-none"
+                          title={`${formatISTDisplayDate(day.dateStr)}: Rest day (not scheduled)`}
+                        >
+                          ·
                         </div>
                       );
                     }
@@ -426,7 +455,7 @@ export const HabitTracker = ({ activeCategoryProp }) => {
                 <div className="sm:col-span-2 w-full flex items-center justify-between sm:justify-end space-x-2">
                   <div className="text-right">
                     <span className="text-xs font-extrabold font-mono text-slate-900 dark:text-slate-200">
-                      {weekCompletedCount}/7
+                      {weekCompletedCount}/{weekScheduledCount}
                     </span>
                     <div className="w-12 h-1 bg-slate-200 dark:bg-slate-950 rounded-full overflow-hidden mt-0.5 border border-slate-300 dark:border-slate-800">
                       <div
@@ -518,6 +547,64 @@ export const HabitTracker = ({ activeCategoryProp }) => {
                   <option value="Skill">Skill</option>
                   <option value="Productivity">Productivity</option>
                 </select>
+              </div>
+
+              {/* Weekly Schedule Picker */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Schedule</label>
+                <div className="flex items-center gap-1.5 mb-2">
+                  <button
+                    type="button"
+                    onClick={() => setNewHabitActiveDays([0, 1, 2, 3, 4, 5, 6])}
+                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer ${
+                      newHabitActiveDays.length === 7
+                        ? 'bg-amber-500 text-slate-950 shadow-sm'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                    }`}
+                  >
+                    Daily
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setNewHabitActiveDays([0, 1, 2, 3, 4])}
+                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer ${
+                      newHabitActiveDays.length === 5 && [0,1,2,3,4].every(d => newHabitActiveDays.includes(d))
+                        ? 'bg-amber-500 text-slate-950 shadow-sm'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                    }`}
+                  >
+                    Weekdays
+                  </button>
+                </div>
+                <div className="flex items-center gap-1">
+                  {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((label, idx) => {
+                    const isActive = newHabitActiveDays.includes(idx);
+                    return (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => {
+                          setNewHabitActiveDays(prev =>
+                            isActive
+                              ? prev.filter(d => d !== idx)
+                              : [...prev, idx].sort((a, b) => a - b)
+                          );
+                        }}
+                        className={`w-8 h-8 rounded-lg text-[11px] font-bold transition cursor-pointer flex items-center justify-center ${
+                          isActive
+                            ? 'bg-amber-500 text-slate-950 shadow-sm border border-amber-500'
+                            : 'bg-slate-50 dark:bg-slate-950 text-slate-500 dark:text-slate-400 border border-slate-300 dark:border-slate-700 hover:border-amber-500/50'
+                        }`}
+                        title={DAY_NAMES_SHORT[idx]}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">
+                  {newHabitActiveDays.length === 7 ? 'Tracked every day' : `Tracked ${newHabitActiveDays.length} days/week: ${newHabitActiveDays.map(d => DAY_NAMES_SHORT[d]).join(', ')}`}
+                </p>
               </div>
 
               <div>

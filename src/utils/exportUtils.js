@@ -1,7 +1,4 @@
-/**
- * CSV Export Utilities for Pulse Life Tracker
- * Safe, client-side data portability with zero external dependencies
- */
+import { DAY_NAMES_SHORT } from './dateUtils';
 
 const downloadCSV = (filename, csvContent) => {
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -72,10 +69,13 @@ export const exportHabitsToCSV = (habits = [], isHabitDoneOn = () => false, cust
   const headers = ['Habit Name', 'Category', 'Frequency', ...dates];
   const rows = habits.map(h => {
     const checkins = dates.map(d => (isHabitDoneOn(h.id, d) ? 'Completed' : 'Pending'));
+    const freqLabel = h.activeDays && h.activeDays.length < 7
+      ? h.activeDays.map(d => DAY_NAMES_SHORT[d]).join(', ')
+      : (h.frequency || 'Daily');
     return [
       escapeCSV(h.name || ''),
       escapeCSV(h.category || 'General'),
-      escapeCSV(h.frequency || 'Daily'),
+      escapeCSV(freqLabel),
       ...checkins.map(escapeCSV)
     ];
   });

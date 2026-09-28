@@ -7,8 +7,14 @@ import {
   getISTDate,
   getISTDateDiffDays,
   isDateEditable,
-  detectDeviceDefaultCurrency
+  detectDeviceDefaultCurrency,
+  getWeekdayIndex,
+  ALL_DAYS,
+  parseActiveDays,
+  encodeActiveDays,
+  isHabitActiveOnDate
 } from '../utils/dateUtils';
+export { ALL_DAYS, parseActiveDays, encodeActiveDays, isHabitActiveOnDate };
 import { isLivingBudgetExpense } from '../utils/financeUtils';
 import { triggerHaptic } from '../utils/hapticUtils';
 import { validatePromoCode, PLAN_TIERS } from '../utils/pricingUtils';
@@ -91,6 +97,8 @@ const normalizeHabit = (h) => {
   const currentWeek = getISTWeekDays();
   const completedDays = currentWeek.map(w => Boolean(completions[w.dateStr]));
   const createdAt = h.created_at || h.createdAt || getISTDateString();
+  const frequency = h.frequency || 'daily';
+  const activeDays = parseActiveDays(frequency);
   const { streak, shieldActive } = calculateHabitStreakWithShield(completions, createdAt);
 
   return {
@@ -99,6 +107,8 @@ const normalizeHabit = (h) => {
     name: h.name,
     category: h.category || 'Health',
     icon: h.icon || 'Smile',
+    frequency,
+    activeDays,
     createdAt,
     completions,
     completedDays,
@@ -835,6 +845,7 @@ export const DashboardProvider = ({ children }) => {
   const addHabit = async (newHabit) => {
     const todayStr = getISTDateString();
     const habitCreatedAt = newHabit.createdAt || todayStr;
+    const frequency = newHabit.activeDays ? encodeActiveDays(newHabit.activeDays) : (newHabit.frequency || 'daily');
 
     if (userId) {
       const { data, error } = await supabase.from('habits').insert({
@@ -842,7 +853,7 @@ export const DashboardProvider = ({ children }) => {
         name: newHabit.name.trim(),
         category: newHabit.category || 'Health',
         icon: newHabit.icon || 'Smile',
-        frequency: newHabit.frequency || 'daily',
+        frequency,
         streak: 0,
         created_at: habitCreatedAt
       }).select().single();
@@ -854,6 +865,7 @@ export const DashboardProvider = ({ children }) => {
       const localHabit = normalizeHabit({
         ...newHabit,
         id: `h-${Date.now()}`,
+        frequency,
         createdAt: habitCreatedAt,
         completions: {},
         streak: 0
@@ -885,7 +897,8 @@ export const DashboardProvider = ({ children }) => {
     const name = (updatedHabit.name || '').trim();
     const category = updatedHabit.category || 'Health';
     const icon = updatedHabit.icon || 'Smile';
-    const frequency = updatedHabit.frequency || 'daily';
+    const frequency = updatedHabit.activeDays ? encodeActiveDays(updatedHabit.activeDays) : (updatedHabit.frequency || 'daily');
+    const activeDays = parseActiveDays(frequency);
     const createdAt = updatedHabit.createdAt || updatedHabit.created_at || getISTDateString();
 
     setHabits(prev =>
@@ -899,6 +912,7 @@ export const DashboardProvider = ({ children }) => {
           category,
           icon,
           frequency,
+          activeDays,
           createdAt,
           streak
         };
@@ -1649,8 +1663,10 @@ export const DashboardProvider = ({ children }) => {
     if (!habits || habits.length === 0) {
       return { completed: 0, total: 0, percentage: 0 };
     }
-    const total = habits.length;
-    const completed = habits.filter(h => h.completions && Boolean(h.completions[dateStr])).length;
+    // Only count habits that are active on this specific date (respects createdAt + activeDays schedule)
+    const activeHabits = habits.filter(h => isHabitActiveOnDate(h, dateStr));
+    const total = activeHabits.length;
+    const completed = activeHabits.filter(h => h.completions && Boolean(h.completions[dateStr])).length;
     const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
     return { completed, total, percentage };
   }, [habits]);
@@ -1919,6 +1935,7 @@ export const DashboardProvider = ({ children }) => {
         // Habits
         habits,
         isHabitDoneOn,
+        isHabitActiveOnDate,
         isDateEditable,
         toggleHabitForDate,
         toggleHabitDay,

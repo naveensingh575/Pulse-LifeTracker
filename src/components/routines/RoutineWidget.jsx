@@ -67,6 +67,7 @@ export const RoutineWidget = () => {
     habits = [],
     tasks = [],
     isHabitDoneOn = () => false,
+    isHabitActiveOnDate = () => true,
     toggleHabitForDate,
     getJournalEntry = () => null,
     saveJournalEntry = async () => {},
@@ -112,8 +113,9 @@ export const RoutineWidget = () => {
   };
 
   // Calculations for Evening Mode using real IST Today completions
-  const totalHabits = habits.length;
-  const completedHabitsToday = habits.filter(h => isHabitDoneOn(h.id, todayStr)).length;
+  const activeHabitsToday = habits.filter(h => isHabitActiveOnDate(h, todayStr));
+  const totalHabits = activeHabitsToday.length;
+  const completedHabitsToday = activeHabitsToday.filter(h => isHabitDoneOn(h.id, todayStr)).length;
   const totalTasks = tasks.length;
   const completedTasksToday = tasks.filter(t => t.completed).length;
 
@@ -300,7 +302,7 @@ export const RoutineWidget = () => {
             </div>
 
             <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
-              {habits.map((habit) => {
+              {habits.filter(h => isHabitActiveOnDate(h, todayStr)).map((habit) => {
                 const isDoneToday = isHabitDoneOn(habit.id, todayStr);
                 return (
                   <div
