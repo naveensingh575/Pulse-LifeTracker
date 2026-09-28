@@ -1,6 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useAuth } from '../../context/AuthContext';
-import { getReferralShareUrl, getUserReferralCode } from '../../utils/referralUtils';
 import {
   X,
   Share2,
@@ -13,8 +11,7 @@ import {
   Flame,
   Activity,
   CheckCircle2,
-  Shield,
-  Gift
+  Shield
 } from 'lucide-react';
 
 export const DisciplineShareModal = ({
@@ -30,15 +27,11 @@ export const DisciplineShareModal = ({
   timeframeLabel = 'W39',
   theme = 'dark'
 }) => {
-  const { user } = useAuth();
   const [copied, setCopied] = useState(false);
   const [downloading, setDownloading] = useState(false);
   // Default card export theme matches app theme, but user can toggle
   const [cardTheme, setCardTheme] = useState(theme);
   const canvasRef = useRef(null);
-
-  const referralUrl = getReferralShareUrl(user);
-  const referralCode = getUserReferralCode(user);
 
   useEffect(() => {
     if (isOpen) {
@@ -63,8 +56,8 @@ export const DisciplineShareModal = ({
     '💪 Physical Vitality: ' + totalActiveMins + ' active mins',
     '✅ Executed Tasks: ' + tasksCompleted,
     '',
-    '🎁 Claim 14 Days of Pulse Pro Free via my invite link:',
-    referralUrl
+    'Tracking habits, energy & wealth on Pulse:',
+    'https://pulse-life-tracker.vercel.app'
   ].join('\n');
 
   const handleCopyText = async () => {
@@ -205,15 +198,15 @@ export const DisciplineShareModal = ({
         ctx.fillText(s.sub, x + 20, 785);
       });
 
-      // 9. Branded Footer with Referral Link
+      // 9. Branded Footer
       ctx.fillStyle = '#64748b';
       ctx.font = 'bold 22px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
       ctx.fillText('PULSE LIFE TRACKER', 140, 920);
 
       ctx.fillStyle = '#818cf8';
-      ctx.font = '500 18px monospace';
+      ctx.font = '500 20px monospace';
       ctx.textAlign = 'right';
-      ctx.fillText(`pulse-life-tracker.vercel.app/?ref=${referralCode}`, 940, 920);
+      ctx.fillText('pulse-life-tracker.vercel.app', 940, 920);
       ctx.textAlign = 'left';
     } else {
       // --- LIGHT THEME CANVAS ---
@@ -330,15 +323,15 @@ export const DisciplineShareModal = ({
         ctx.fillText(s.sub, x + 20, 785);
       });
 
-      // 9. Branded Footer with Referral Link
+      // 9. Branded Footer
       ctx.fillStyle = '#64748b';
       ctx.font = 'bold 22px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
       ctx.fillText('PULSE LIFE TRACKER', 140, 920);
 
       ctx.fillStyle = '#4f46e5';
-      ctx.font = '600 18px monospace';
+      ctx.font = '600 20px monospace';
       ctx.textAlign = 'right';
-      ctx.fillText(`pulse-life-tracker.vercel.app/?ref=${referralCode}`, 940, 920);
+      ctx.fillText('pulse-life-tracker.vercel.app', 940, 920);
       ctx.textAlign = 'left';
     }
 
@@ -384,7 +377,7 @@ export const DisciplineShareModal = ({
               await navigator.share({
                 title: 'My Pulse Discipline Score',
                 text: shareSummaryText,
-                url: referralUrl
+                url: 'https://pulse-life-tracker.vercel.app'
               });
             }
           });
@@ -392,7 +385,7 @@ export const DisciplineShareModal = ({
           await navigator.share({
             title: 'My Pulse Discipline Score',
             text: shareSummaryText,
-            url: referralUrl
+            url: 'https://pulse-life-tracker.vercel.app'
           });
         }
       } catch (e) {
@@ -508,29 +501,9 @@ export const DisciplineShareModal = ({
 
           <div className={'flex items-center justify-between text-[10px] pt-1 ' + (isLight ? 'text-slate-500' : 'text-slate-400')}>
             <span>Pulse Life Tracker</span>
-            <span className={'font-mono truncate max-w-[240px] ' + (isLight ? 'text-indigo-600' : 'text-indigo-400')}>
-              pulse-life-tracker.vercel.app/?ref={referralCode}
+            <span className={'font-mono ' + (isLight ? 'text-indigo-600' : 'text-indigo-400')}>
+              pulse-life-tracker.vercel.app
             </span>
-          </div>
-        </div>
-
-        {/* Viral Referral Incentive Box */}
-        <div className="flex items-center justify-between p-3 rounded-2xl bg-gradient-to-r from-amber-500/10 via-indigo-500/10 to-emerald-500/10 border border-amber-500/25">
-          <div className="flex items-center space-x-2.5">
-            <div className="p-1.5 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400">
-              <Gift className="w-4 h-4" />
-            </div>
-            <div>
-              <p className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                <span>Gift 14 Days of Free Pro</span>
-                <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-700 dark:text-amber-300 font-bold uppercase">
-                  Referral Perk
-                </span>
-              </p>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                Anyone opening your link gets 14 free Pro days to test drive Pulse.
-              </p>
-            </div>
           </div>
         </div>
 

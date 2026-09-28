@@ -7,15 +7,17 @@ import { DeleteAccountModal } from '../auth/DeleteAccountModal';
 import { getLocalDateString, formatDisplayDate } from '../../utils/dateUtils';
 import { NotificationSettingsModal } from '../reminders/NotificationSettingsModal';
 import { DataBackupModal } from '../backup/DataBackupModal';
-import { Sun, Moon, Calendar, LogOut, ChevronDown, LogIn, Globe, Search, Trash2, Shield, Crown, Sparkles, Star, FileText, Bell, HardDrive, ClipboardCheck } from 'lucide-react';
+import { ReferralModal } from '../referral/ReferralModal';
+import { Sun, Moon, Calendar, LogOut, ChevronDown, LogIn, Globe, Search, Trash2, Shield, Crown, Sparkles, Star, FileText, Bell, HardDrive, Gift } from 'lucide-react';
 
 export const Navbar = ({ onOpenQuickCapture }) => {
-  const { theme, toggleTheme, currency, setCurrency, subscriptionTier, openPricingModal, openSundayReview, trialInfo } = useDashboard();
+  const { theme, toggleTheme, currency, setCurrency, subscriptionTier, openPricingModal, trialInfo } = useDashboard();
   const { user, logout } = useAuth();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showNotifSettings, setShowNotifSettings] = useState(false);
   const [showBackupModal, setShowBackupModal] = useState(false);
+  const [showReferralModal, setShowReferralModal] = useState(false);
   const isRemindersActive = typeof window !== 'undefined' && localStorage.getItem('pulse_reminders_enabled') === 'true';
 
   const currentDateStr = formatDisplayDate(getLocalDateString());
@@ -59,16 +61,6 @@ export const Navbar = ({ onOpenQuickCapture }) => {
               <kbd className="text-[10px] font-mono bg-slate-200 dark:bg-slate-800 px-1.5 py-0.5 rounded text-slate-500 dark:text-slate-400">⌘K</kbd>
             </button>
           )}
-
-          {/* Sunday Executive Brief Button */}
-          <button
-            onClick={openSundayReview}
-            className="flex items-center space-x-1.5 px-3 py-1.5 text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/50 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 rounded-full border border-indigo-200 dark:border-indigo-800/80 transition cursor-pointer font-bold"
-            title="Sunday Executive Review & Weekly Synthesis"
-          >
-            <ClipboardCheck className="w-3.5 h-3.5 text-indigo-500" />
-            <span>Weekly Brief</span>
-          </button>
         </div>
 
         {/* Action Controls & User Avatar Menu */}
@@ -152,16 +144,21 @@ export const Navbar = ({ onOpenQuickCapture }) => {
                     <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">{user.email}</p>
                   </div>
 
-                  {/* Sunday Executive Review */}
+                  {/* Invite Friends & Referral */}
                   <button
                     onClick={() => {
                       setShowUserMenu(false);
-                      openSundayReview();
+                      setShowReferralModal(true);
                     }}
-                    className="w-full flex items-center space-x-2 px-3 py-2 rounded-lg text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 transition cursor-pointer"
+                    className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
                   >
-                    <ClipboardCheck className="w-4 h-4 text-indigo-500" />
-                    <span>Weekly Executive Brief</span>
+                    <div className="flex items-center space-x-2">
+                      <Gift className="w-4 h-4 text-amber-500" />
+                      <span>Invite Friends</span>
+                    </div>
+                    <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 uppercase font-mono">
+                      14d Pro
+                    </span>
                   </button>
 
                   {/* Subscription Link */}
@@ -274,6 +271,12 @@ export const Navbar = ({ onOpenQuickCapture }) => {
     <DataBackupModal
       isOpen={showBackupModal}
       onClose={() => setShowBackupModal(false)}
+    />
+
+    {/* Dedicated Referral & Invite Modal */}
+    <ReferralModal
+      isOpen={showReferralModal}
+      onClose={() => setShowReferralModal(false)}
     />
   </>
   );

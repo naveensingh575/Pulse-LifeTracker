@@ -151,15 +151,18 @@ const AppLayout = () => {
   const location = useLocation();
   const { openPricingModal, isSundayReviewOpen, openSundayReview, closeSundayReview } = useDashboard();
 
-  // 📋 Sunday Executive Review Auto-Trigger on Sundays (if not dismissed or completed today)
+  // 📋 Sunday Executive Review Auto-Trigger: opens at or after 9 PM (21:00) on Sundays upon opening/login
   useEffect(() => {
     const today = new Date();
     const isSunday = today.getDay() === 0;
-    if (isSunday) {
+    const currentHour = today.getHours();
+    
+    // Triggers strictly on Sunday at or after 9:00 PM (21:00)
+    if (isSunday && currentHour >= 21) {
       const todayDateStr = today.toISOString().split('T')[0];
       const reviewedToday = localStorage.getItem(`pulse_sunday_reviewed_${todayDateStr}`);
       if (!reviewedToday) {
-        // Small delay so other elements mount smoothly
+        // Delay slightly for smooth initial page hydration
         const timer = setTimeout(() => {
           openSundayReview();
         }, 1200);

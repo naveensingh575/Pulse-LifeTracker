@@ -17,13 +17,15 @@ import {
   Crown,
   Shield,
   ArrowRight,
-  ClipboardCheck
+  Gift
 } from 'lucide-react';
+import { ReferralModal } from '../referral/ReferralModal';
 
 export const MobileBottomNav = ({ onOpenQuickCapture }) => {
   const [isMoreOpen, setIsMoreOpen] = useState(false);
+  const [showReferralModal, setShowReferralModal] = useState(false);
   const location = useLocation();
-  const { subscriptionTier, openPricingModal, openSundayReview } = useDashboard();
+  const { subscriptionTier, openPricingModal } = useDashboard();
 
   const primaryTabs = [
     { to: '/', label: 'Pulse', icon: LayoutDashboard },
@@ -168,33 +170,33 @@ export const MobileBottomNav = ({ onOpenQuickCapture }) => {
               })}
             </div>
 
-            {/* Sunday Executive Review Trigger */}
+            {/* Invite Friends & Referral Trigger */}
             <button
               onClick={() => {
                 setIsMoreOpen(false);
-                openSundayReview();
+                setShowReferralModal(true);
               }}
-              className="w-full p-3 rounded-2xl border border-indigo-200 dark:border-indigo-800/80 bg-indigo-50/60 dark:bg-indigo-950/40 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 flex items-center justify-between text-left transition cursor-pointer"
+              className="w-full p-3 rounded-2xl border border-amber-200 dark:border-amber-800/60 bg-amber-50/60 dark:bg-amber-950/30 hover:bg-amber-100 dark:hover:bg-amber-900/40 flex items-center justify-between text-left transition cursor-pointer"
             >
               <div className="flex items-center space-x-2.5">
-                <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
-                  <ClipboardCheck className="w-4 h-4 text-indigo-500" />
+                <div className="p-2 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400">
+                  <Gift className="w-4 h-4" />
                 </div>
                 <div>
                   <div className="flex items-center gap-1.5">
                     <p className="text-xs font-bold text-slate-900 dark:text-white">
-                      Sunday Executive Brief
+                      Invite Friends
                     </p>
-                    <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 uppercase">
-                      Weekly
+                    <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-700 dark:text-amber-300 uppercase font-mono">
+                      14d Pro
                     </span>
                   </div>
                   <p className="text-[10px] text-slate-500 dark:text-slate-400">
-                    Review rhythm, burn & next week's focus
+                    Give 14 days of free Pro access
                   </p>
                 </div>
               </div>
-              <ArrowRight className="w-4 h-4 text-indigo-500 shrink-0" />
+              <ArrowRight className="w-4 h-4 text-amber-500 shrink-0" />
             </button>
 
             {/* Subscription Trigger */}
@@ -232,6 +234,12 @@ export const MobileBottomNav = ({ onOpenQuickCapture }) => {
           </div>
         </div>
       )}
+
+      {/* Dedicated Referral & Invite Modal on Mobile */}
+      <ReferralModal
+        isOpen={showReferralModal}
+        onClose={() => setShowReferralModal(false)}
+      />
     </>
   );
 };

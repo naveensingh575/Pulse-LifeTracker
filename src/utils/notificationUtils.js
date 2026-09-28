@@ -139,4 +139,15 @@ export function checkAndTriggerScheduledReminders({ pendingHabitsCount = 0, topT
       tag: 'pulse-evening-review'
     });
   }
+
+  // 3. Sunday 9:00 PM Weekly Executive Brief Notification
+  const isSunday = now.getDay() === 0;
+  const lastSundayNotif = localStorage.getItem('pulse_last_sunday_notif_date');
+  if (isSunday && currentTime === '21:00' && lastSundayNotif !== todayDateStr) {
+    localStorage.setItem('pulse_last_sunday_notif_date', todayDateStr);
+    sendLocalNotification('📋 Pulse Sunday Executive Brief', {
+      body: 'Your weekly performance summary is ready. Review your rhythm, financial burn, and set your top 3 targets for next week.',
+      tag: 'pulse-sunday-brief'
+    });
+  }
 }
