@@ -302,11 +302,13 @@ CREATE POLICY "journal_entries_delete_policy" ON public.journal_entries
 -- deletes the row for the currently authenticated user (auth.uid()).
 -- ============================================================================
 
+DROP FUNCTION IF EXISTS public.delete_user_account();
+
 CREATE OR REPLACE FUNCTION public.delete_user_account()
 RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = public, auth, extensions
 AS $$
 DECLARE
   current_user_id uuid := auth.uid();
@@ -316,7 +318,7 @@ BEGIN
     RAISE EXCEPTION 'Not authenticated';
   END IF;
 
-  -- Delete all user data across all 10 tables
+  -- 1. Delete all user data across all public application tables
   DELETE FROM public.habit_completions   WHERE user_id = current_user_id;
   DELETE FROM public.habits              WHERE user_id = current_user_id;
   DELETE FROM public.monthly_allocations WHERE user_id = current_user_id;
@@ -327,14 +329,21 @@ BEGIN
   DELETE FROM public.tasks               WHERE user_id = current_user_id;
   DELETE FROM public.activities          WHERE user_id = current_user_id;
   DELETE FROM public.journal_entries     WHERE user_id = current_user_id;
+  DELETE FROM public.coupon_redemptions  WHERE user_id = current_user_id;
 
-  -- Delete the auth user record itself
-  DELETE FROM auth.users WHERE id = current_user_id;
+  -- 2. Explicitly delete from auth identities and sessions to prevent any locks
+  DELETE FROM auth.identities            WHERE user_id = current_user_id;
+  DELETE FROM auth.sessions              WHERE user_id = current_user_id;
+
+  -- 3. Delete the auth user record itself permanently
+  DELETE FROM auth.users                 WHERE id = current_user_id;
 END;
 $$;
 
--- Grant execute permission to authenticated users only
+-- Grant execute permission to authenticated users and service_role
 GRANT EXECUTE ON FUNCTION public.delete_user_account() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.delete_user_account() TO service_role;
+REVOKE EXECUTE ON FUNCTION public.delete_user_account() FROM anon, public;
 
 -- ----------------------------------------------------------------------------
 -- 11. Table: coupon_redemptions (Tracks unique account VIP code usage)

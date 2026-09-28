@@ -193,36 +193,16 @@ export const AuthProvider = ({ children }) => {
     setSession(null);
   };
 
-  // Delete Account & All Data (calls RPC first with multi-table cascading fallback)
+  // Delete Account & All Data (triggers PostgreSQL SECURITY DEFINER RPC)
   const deleteAccount = async () => {
-    let rpcSucceeded = false;
-    try {
-      const { error } = await supabase.rpc('delete_user_account');
-      if (!error) {
-        rpcSucceeded = true;
-      }
-    } catch (err) {
-      console.warn('RPC delete_user_account failed or not configured, executing client-side cascading cleanup:', err);
-    }
+    if (!user?.id) throw new Error('No authenticated user found.');
 
-    // Fallback: If RPC was missing or errored, delete all user data across all tables directly
-    if (!rpcSucceeded && user?.id) {
-      const tables = [
-        'habit_completions',
-        'habits',
-        'monthly_allocations',
-        'transactions',
-        'sub_goals',
-        'goals',
-        'deadlines',
-        'tasks',
-        'activities',
-        'journal_entries',
-        'coupon_redemptions'
-      ];
+    const { error: rpcError } = await supabase.rpc('delete_user_account');
 
-      await Promise.allSettled(
-        tables.map(table => supabase.from(table).delete().eq('user_id', user.id))
+    if (rpcError) {
+      console.error('Supabase delete_user_account RPC error:', rpcError);
+      throw new Error(
+        rpcError.message || 'Failed to delete account. Please ensure the delete_user_account SQL function is configured in Supabase SQL Editor.'
       );
     }
 
@@ -238,7 +218,11 @@ export const AuthProvider = ({ children }) => {
     setIsPasswordRecovery(false);
     setUser(null);
     setSession(null);
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+    } catch (signOutErr) {
+      // User record already deleted in auth.users, ignore signOut session errors
+    }
   };
 
   return (
