@@ -394,9 +394,6 @@ export const PricingModal = () => {
               <Tag className="w-3.5 h-3.5 text-indigo-500" />
               <span>Have a VIP / Invite Code?</span>
             </span>
-            <span className="text-[10px] text-slate-500 dark:text-slate-400">
-              Private early-access pass
-            </span>
           </div>
 
           <form onSubmit={handleApplyPromo} className="flex flex-col sm:flex-row items-stretch gap-2">
