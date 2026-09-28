@@ -3,7 +3,8 @@
  * Aligned 100% with the central dashboard currency selector.
  */
 
-export const MAX_FAMILY100_ACCOUNTS = 100;
+export const MAX_FOUNDER_SEATS = 500;
+export const MAX_FAMILY100_ACCOUNTS = 500;
 
 /**
  * All currencies now supported via Razorpay International.
@@ -205,11 +206,11 @@ export function validatePromoCode(rawCode, currentRedeemedCount = 0, isAlreadyRe
   const match = VALID_PROMO_CODES[clean];
 
   if (match) {
-    // If limit has been reached (100 unique accounts) and this user has not already claimed it
+    // If limit has been reached (500 unique accounts) and this user has not already claimed it
     if (currentRedeemedCount >= MAX_FAMILY100_ACCOUNTS && !isAlreadyRedeemedByUser) {
       return {
         valid: false,
-        message: "This invite code has reached its 100-user limit and is now expired."
+        message: "This exclusive VIP founder pass has reached its capacity limit (500/500 accounts claimed)."
       };
     }
 
@@ -232,13 +233,11 @@ export function validatePromoCode(rawCode, currentRedeemedCount = 0, isAlreadyRe
 }
 
 /**
- * Limited Founder Cohort Settings (Cap at 200 seats to protect SaaS ARR)
+ * Limited Founder Cohort Settings (Strictly Capped at 500 users)
  */
-export const MAX_FOUNDER_SEATS = 200;
-export const CURRENT_FOUNDER_CLAIMED = 162; // 38 seats remaining
-
-export function getFounderSeatsStatus(claimed = CURRENT_FOUNDER_CLAIMED) {
-  const total = MAX_FOUNDER_SEATS;
+export function getFounderSeatsStatus(occupiedCount = 0) {
+  const total = MAX_FOUNDER_SEATS; // 500
+  const claimed = Math.min(total, Math.max(0, Number(occupiedCount) || 0));
   const remaining = Math.max(0, total - claimed);
   const percentage = Math.round((claimed / total) * 100);
   return {
@@ -251,9 +250,9 @@ export function getFounderSeatsStatus(claimed = CURRENT_FOUNDER_CLAIMED) {
 }
 
 /**
- * Computes remaining limited founder seats (out of 100)
+ * Computes remaining limited founder seats (out of 500)
  */
-export function getRemainingFounderSeats(claimedCount = 78) {
+export function getRemainingFounderSeats(claimedCount = 0) {
   return Math.max(0, MAX_FAMILY100_ACCOUNTS - claimedCount);
 }
 

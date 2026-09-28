@@ -174,6 +174,45 @@ export const DashboardProvider = ({ children }) => {
   const openPricingModal = useCallback(() => setIsPricingModalOpen(true), []);
   const closePricingModal = useCallback(() => setIsPricingModalOpen(false), []);
 
+  // Live Occupied Founder Seats Counter (Strictly capped at 500 users)
+  const [occupiedFounderSeats, setOccupiedFounderSeats] = useState(() => {
+    return Number(localStorage.getItem('pulse_occupied_founder_seats') || '0');
+  });
+
+  const fetchOccupiedFounderSeats = useCallback(async () => {
+    try {
+      // 1. Query coupon redemptions count
+      const { count: couponCount, error: couponErr } = await supabase
+        .from('coupon_redemptions')
+        .select('*', { count: 'exact', head: true });
+
+      // 2. Query user_subscriptions with lifetime/founder
+      const { count: subsCount, error: subsErr } = await supabase
+        .from('user_subscriptions')
+        .select('*', { count: 'exact', head: true })
+        .in('plan_id', ['lifetime', 'founder']);
+
+      let total = 0;
+      if (!couponErr && typeof couponCount === 'number') total += couponCount;
+      if (!subsErr && typeof subsCount === 'number') total += subsCount;
+
+      const localCount = Number(localStorage.getItem('pulse_occupied_founder_seats') || '0');
+      const finalCount = Math.max(total, localCount);
+
+      setOccupiedFounderSeats(finalCount);
+      localStorage.setItem('pulse_occupied_founder_seats', String(finalCount));
+      return finalCount;
+    } catch (err) {
+      console.warn('Could not fetch real-time occupied founder seats:', err);
+      return occupiedFounderSeats;
+    }
+  }, [occupiedFounderSeats]);
+
+  // Fetch occupied founder seats whenever pricing modal is opened
+  useEffect(() => {
+    fetchOccupiedFounderSeats();
+  }, [isPricingModalOpen]);
+
   const selectPlan = useCallback(async (tierId, paymentDetails = null) => {
     // Lifetime/Founder plan is permanent — cannot be downgraded or changed
     const currentTier = localStorage.getItem('pulse_subscription_tier') || subscriptionTier;
@@ -192,6 +231,15 @@ export const DashboardProvider = ({ children }) => {
 
     setSubscriptionTier(tierId);
     localStorage.setItem('pulse_subscription_tier', tierId);
+
+    // If upgrading to lifetime or founder, increment occupied founder seats counter
+    if (tierId === 'lifetime' || tierId === 'founder') {
+      setOccupiedFounderSeats(prev => {
+        const next = Math.min(500, prev + 1);
+        localStorage.setItem('pulse_occupied_founder_seats', String(next));
+        return next;
+      });
+    }
 
     if (user?.id) {
       try {
@@ -223,7 +271,7 @@ export const DashboardProvider = ({ children }) => {
 
   const redeemPromoCode = useCallback(async (code) => {
     const clean = (code || '').trim().toUpperCase();
-    let currentCount = 78;
+    let currentCount = occupiedFounderSeats;
     let isAlreadyRedeemed = false;
 
     if (user?.id) {
@@ -231,11 +279,10 @@ export const DashboardProvider = ({ children }) => {
         // Query coupon redemptions count from Supabase
         const { count, error } = await supabase
           .from('coupon_redemptions')
-          .select('*', { count: 'exact', head: true })
-          .eq('code', clean);
+          .select('*', { count: 'exact', head: true });
 
         if (!error && typeof count === 'number') {
-          currentCount = count;
+          currentCount = Math.max(currentCount, count);
         }
 
         // Check if current user already redeemed
@@ -253,8 +300,8 @@ export const DashboardProvider = ({ children }) => {
         // Table fallback
       }
     } else {
-      const storedCount = Number(localStorage.getItem('pulse_family100_count') || '78');
-      currentCount = storedCount;
+      const storedCount = Number(localStorage.getItem('pulse_occupied_founder_seats') || '0');
+      currentCount = Math.max(currentCount, storedCount);
       const myStoredCode = localStorage.getItem('pulse_founder_code');
       if (myStoredCode === clean) isAlreadyRedeemed = true;
     }
@@ -268,6 +315,10 @@ export const DashboardProvider = ({ children }) => {
     setFounderCode(res.code);
     localStorage.setItem('pulse_subscription_tier', res.tier);
     localStorage.setItem('pulse_founder_code', res.code);
+
+    const nextCount = Math.min(500, currentCount + 1);
+    setOccupiedFounderSeats(nextCount);
+    localStorage.setItem('pulse_occupied_founder_seats', String(nextCount));
 
     if (user?.id) {
       try {
@@ -292,13 +343,10 @@ export const DashboardProvider = ({ children }) => {
       } catch (err) {
         console.warn('Could not sync redemption to Supabase:', err);
       }
-    } else {
-      const nextCount = Math.min(100, currentCount + 1);
-      localStorage.setItem('pulse_family100_count', String(nextCount));
     }
 
     return res;
-  }, [user]);
+  }, [user, occupiedFounderSeats]);
 
   // Sync tier if Supabase user object updates
   useEffect(() => {
@@ -1658,6 +1706,8 @@ export const DashboardProvider = ({ children }) => {
         canExportData: quotaStatus.exports.canExport,
         quotaStatus,
         trialInfo,
+        occupiedFounderSeats,
+        fetchOccupiedFounderSeats,
         recordAiAnalyticsRun,
         FREE_TIER_LIMITS,
         selectPlan,
