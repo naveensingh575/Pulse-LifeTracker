@@ -298,44 +298,41 @@ export const AuthPage = ({ initialMode }) => {
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-500/10 dark:bg-indigo-600/20 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-cyan-500/10 dark:bg-cyan-500/20 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-8 items-center z-10">
+      <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch z-10">
         
         {/* Left Side: Brand Overview */}
-        <div className="space-y-6">
-          <div className="flex items-center space-x-3">
-            <PulseLogo size="lg" />
-            <div>
-              <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
-                PULSE <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-bold uppercase tracking-wider">Life Tracker</span>
-              </h1>
-              <p className="text-xs text-indigo-600 dark:text-cyan-400 font-bold italic tracking-wide">
-                "Your Life, in Rhythm."
-              </p>
+        <div className="flex flex-col justify-between space-y-6">
+          <div className="space-y-6">
+            <div className="flex items-center space-x-3">
+              <PulseLogo size="lg" />
+              <div>
+                <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+                  PULSE <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-bold uppercase tracking-wider">Life Tracker</span>
+                </h1>
+                <p className="text-xs text-indigo-600 dark:text-cyan-400 font-bold italic tracking-wide">
+                  "Your Life, in Rhythm."
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-3 pt-2">
+              {[
+                'Securely Sync across Platforms & Devices',
+                'Strict Database Privacy & Security',
+                'Daily, Weekly & Monthly Habit Rhythm Engine',
+                'Income-First Cashflow & Monthly Budget Allocation',
+                'Multi Activities Tracker'
+              ].map((feat, idx) => (
+                <div key={idx} className="flex items-center space-x-2.5 text-xs font-medium text-slate-700 dark:text-slate-300">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                  <span>{feat}</span>
+                </div>
+              ))}
             </div>
           </div>
 
-          <div className="space-y-3 pt-2">
-            {[
-              'Securely Sync across Platforms & Devices',
-              'Strict Database Privacy & Security',
-              'Daily, Weekly & Monthly Habit Rhythm Engine',
-              'Income-First Cashflow & Monthly Budget Allocation',
-              'Multi Activities Tracker'
-            ].map((feat, idx) => (
-              <div key={idx} className="flex items-center space-x-2.5 text-xs font-medium text-slate-700 dark:text-slate-300">
-                <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                <span>{feat}</span>
-              </div>
-            ))}
-          </div>
-
-          <div className="p-3.5 bg-indigo-50/50 dark:bg-indigo-950/30 rounded-2xl border border-indigo-200/60 dark:border-indigo-500/20 text-xs flex items-center space-x-3 text-indigo-900 dark:text-indigo-200">
-            <ShieldCheck className="w-5 h-5 text-indigo-500 shrink-0" />
-            <span>Encrypted storage. Your data remains strictly private to your verified account.</span>
-          </div>
-
           {/* Mobile App Download Card */}
-          <div className="p-4 bg-slate-100/80 dark:bg-slate-900/80 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3 shadow-sm">
+          <div className="p-4 bg-slate-100/80 dark:bg-slate-900/80 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3 shadow-sm mt-6 md:mt-0">
             <div className="flex items-center gap-2">
               <div className="p-1.5 rounded-lg bg-indigo-500/15 text-indigo-600 dark:text-cyan-400">
                 <Smartphone className="w-4 h-4" />
