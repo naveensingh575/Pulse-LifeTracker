@@ -43,13 +43,13 @@ export const RAZORPAY_PLAN_AMOUNTS = {
     amountInPaise: 79900, // ₹799
     amountINR: 799,
     name: "Pro Yearly Subscription",
-    description: "Pulse Pro Yearly Operating Suite (2 Months Free)"
+    description: "Pulse Pro Yearly Operating Suite"
   },
   lifetime: {
     amountInPaise: 149900, // ₹1,499
     amountINR: 1499,
     name: "Founder Lifetime Pass",
-    description: "Pulse Founder Lifetime Access (Pay Once, Own Forever)"
+    description: "Pulse Founder Lifetime Access (Pay Once)"
   }
 };
 

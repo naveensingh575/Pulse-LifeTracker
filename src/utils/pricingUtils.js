@@ -46,16 +46,16 @@ export const PRICING_DATA = {
   yearly: {
     id: "yearly",
     name: "Pro Yearly",
-    badge: "⭐ Best Value · 2 Mos Free",
+    badge: "⭐ Best Value",
     discountTag: "60% OFF · Best Value",
     period: "/ year",
     description: "Save 33% over monthly. Less than the cost of one cup of coffee a month.",
     features: [
       "Everything in Pro Monthly",
-      "2 Months Completely Free Included",
       "Predictive Long-Term Feasibility Radar",
       "Executive Multi-Pillar Analytics",
-      "Automated Routine Calendar Export"
+      "Automated Routine Calendar Export",
+      "Priority Support & System Updates"
     ],
     highlight: true,
     isPopular: true,
@@ -84,9 +84,9 @@ export const PRICING_DATA = {
     id: "lifetime",
     name: "Founder Lifetime Pass",
     badge: "👑 One-Time Investment",
-    discountTag: "70% OFF · Pay Once, Own Forever",
-    period: "One-time · Own Forever",
-    description: "Pay once, own forever. Zero recurring subscription fatigue with all future updates.",
+    discountTag: "70% OFF · Pay Once",
+    period: "One-time",
+    description: "Pay once. Zero recurring subscription fatigue with all future updates.",
     features: [
       "Lifetime Access to All Intelligence Modules",
       "Unlimited Habits, Goals & Predictive Analytics",
@@ -109,8 +109,8 @@ export const PRICING_DATA = {
   free: {
     id: "free",
     name: "Starter Plan",
-    badge: "Free Forever",
-    period: "Forever free",
+    badge: "Free",
+    period: "Free",
     description: "Essential life & habit tracking for individuals building baseline routines.",
     features: [
       "Up to 5 Active Habits with Streak Tracking",

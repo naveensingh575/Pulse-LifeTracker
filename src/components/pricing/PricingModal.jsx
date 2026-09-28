@@ -12,7 +12,6 @@ import {
   ArrowRight,
   CheckCircle2,
   Crown,
-  Lock,
   Globe,
   CreditCard
 } from "lucide-react";
@@ -237,7 +236,7 @@ export const PricingModal = () => {
           )}>
             <div className="absolute -top-3 left-1/2 -translate-x-1/2">
               <span className="px-3 py-0.5 rounded-full bg-gradient-to-r from-indigo-600 to-cyan-600 text-white text-[10px] font-extrabold uppercase tracking-wider shadow-sm">
-                ⭐ Best Value · 2 Mos Free
+                ⭐ Best Value
               </span>
             </div>
 
@@ -267,15 +266,15 @@ export const PricingModal = () => {
                 </li>
                 <li className="flex items-center gap-2">
                   <CheckCircle2 className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
-                  <span>2 Months Completely Free Included</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
                   <span>Predictive Feasibility Radar</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <CheckCircle2 className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
                   <span>Executive Multi-Pillar Analytics</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                  <span>Priority Support & System Updates</span>
                 </li>
               </ul>
             </div>
@@ -300,7 +299,7 @@ export const PricingModal = () => {
           )}>
             <div className="absolute -top-3 left-1/2 -translate-x-1/2">
               <span className="px-3 py-0.5 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 text-[10px] font-black uppercase tracking-wider shadow-sm">
-                👑 Pay Once · Own Forever
+                👑 Pay Once
               </span>
             </div>
 
@@ -324,7 +323,7 @@ export const PricingModal = () => {
                   <span className="text-xs text-slate-400 line-through ml-1">{lifetimePrice.regular}</span>
                 </div>
                 <p className="text-[11px] text-amber-700 dark:text-amber-400 font-semibold mt-0.5">
-                  Zero recurring subscriptions forever
+                  Zero recurring subscriptions
                 </p>
               </div>
 
@@ -405,17 +404,6 @@ export const PricingModal = () => {
               <span>{promoStatus.message}</span>
             </div>
           )}
-        </div>
-
-        {/* Free Starter Note & Privacy Guarantee */}
-        <div className="pt-1 text-center space-y-1">
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            Want to use free forever? <strong>Starter Plan</strong> includes up to 5 habits & 3 active goals with no time limits.
-          </p>
-          <p className="text-[10px] text-slate-400 dark:text-slate-500 flex items-center justify-center gap-1">
-            <Lock className="w-3 h-3" />
-            <span>100% Private · Zero Advertising · Zero Data Selling</span>
-          </p>
         </div>
 
       </div>
