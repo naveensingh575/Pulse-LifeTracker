@@ -7,8 +7,7 @@ import {
   Copy,
   Check,
   Share2,
-  Sparkles,
-  ShieldCheck
+  Sparkles
 } from 'lucide-react';
 import { triggerHaptic } from '../../utils/hapticUtils';
 
@@ -72,14 +71,11 @@ export const ReferralModal = ({ isOpen, onClose }) => {
             <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
               Invite Friends to Pulse
             </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Give 14 days of free Pro access
-            </p>
           </div>
         </div>
 
-        {/* Perk Highlights (Clear, minimal, zero personal streak leaks) */}
-        <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800/80 space-y-3">
+        {/* Perk Highlights */}
+        <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800/80">
           <div className="flex items-start gap-3">
             <div className="p-1 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5">
               <Sparkles className="w-4 h-4" />
@@ -88,18 +84,6 @@ export const ReferralModal = ({ isOpen, onClose }) => {
               <p className="font-bold text-slate-900 dark:text-slate-100">14 Days of Free Pro for Friends</p>
               <p className="text-slate-500 dark:text-slate-400">
                 Anyone who joins with your link gets instant full access to Pro features for 14 days.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-3">
-            <div className="p-1 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5">
-              <ShieldCheck className="w-4 h-4" />
-            </div>
-            <div className="text-xs">
-              <p className="font-bold text-slate-900 dark:text-slate-100">100% Private</p>
-              <p className="text-slate-500 dark:text-slate-400">
-                Your habits, personal streak, and journal stay private. Only your invite link is shared.
               </p>
             </div>
           </div>
