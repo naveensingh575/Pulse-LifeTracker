@@ -31,6 +31,7 @@ import {
 } from 'lucide-react';
 import { triggerHaptic } from '../../utils/hapticUtils';
 import { DisciplineShareModal } from '../analytics/DisciplineShareModal';
+import { HABIT_CATEGORIES, HABIT_FILTER_CATEGORIES } from '../../utils/habitCategories';
 
 const habitIconMap = {
   Droplets: Droplets,
@@ -94,7 +95,7 @@ export const HabitTracker = ({ activeCategoryProp }) => {
     }
     setEditingHabit(null);
     setNewHabitName('');
-    setNewHabitCategory('Health');
+    setNewHabitCategory(activeCategory && activeCategory !== 'All' ? activeCategory : 'Health');
     setNewHabitStartDate(getISTDateString());
     setNewHabitActiveDays([0, 1, 2, 3, 4, 5, 6]);
     setShowAddModal(true);
@@ -136,7 +137,7 @@ export const HabitTracker = ({ activeCategoryProp }) => {
     setShowAddModal(false);
   };
 
-  const categories = ['All', 'Health', 'Mind', 'Fitness', 'Skill', 'Productivity'];
+  const categories = HABIT_FILTER_CATEGORIES;
 
   return (
     <div className="glass-panel-dark rounded-2xl p-5 border border-slate-200 dark:border-slate-800 space-y-4">
@@ -541,11 +542,12 @@ export const HabitTracker = ({ activeCategoryProp }) => {
                   onChange={e => setNewHabitCategory(e.target.value)}
                   className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:border-amber-500"
                 >
-                  <option value="Health">Health</option>
-                  <option value="Mind">Mind</option>
-                  <option value="Fitness">Fitness</option>
-                  <option value="Skill">Skill</option>
-                  <option value="Productivity">Productivity</option>
+                  {HABIT_CATEGORIES.map(cat => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                  {editingHabit && !HABIT_CATEGORIES.includes(newHabitCategory) && (
+                    <option value={newHabitCategory}>{newHabitCategory}</option>
+                  )}
                 </select>
               </div>
 

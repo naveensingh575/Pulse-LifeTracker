@@ -62,7 +62,7 @@ export function getGuestDemoData() {
     {
       id: 'demo-h2',
       name: '🎯 90m Deep Work Block',
-      category: 'Career',
+      category: 'Work',
       color: 'indigo',
       icon: 'Code',
       frequency: 'daily',

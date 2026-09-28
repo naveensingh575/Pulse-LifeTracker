@@ -28,6 +28,7 @@ import {
   X
 } from 'lucide-react';
 import { exportHabitsToCSV } from '../utils/exportUtils';
+import { HABIT_CATEGORIES, HABIT_FILTER_CATEGORIES } from '../utils/habitCategories';
 
 export const HabitsPage = () => {
   const {
@@ -111,7 +112,7 @@ export const HabitsPage = () => {
     return acc + keysCount;
   }, 0);
 
-  const categories = ['All', 'Health', 'Mind', 'Fitness', 'Skill', 'Productivity'];
+  const categories = HABIT_FILTER_CATEGORIES;
   const years = [2025, 2026, 2027, 2028];
 
   // Generate calendar grid for the selected month/year
@@ -682,11 +683,12 @@ export const HabitsPage = () => {
                   onChange={e => setNewHabitCategory(e.target.value)}
                   className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:border-amber-500"
                 >
-                  <option value="Health">Health</option>
-                  <option value="Mind">Mind</option>
-                  <option value="Fitness">Fitness</option>
-                  <option value="Skill">Skill</option>
-                  <option value="Productivity">Productivity</option>
+                  {HABIT_CATEGORIES.map(cat => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                  {!HABIT_CATEGORIES.includes(newHabitCategory) && (
+                    <option value={newHabitCategory}>{newHabitCategory}</option>
+                  )}
                 </select>
               </div>
 
