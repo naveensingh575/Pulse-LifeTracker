@@ -5,13 +5,16 @@ import { useAuth } from '../../context/AuthContext';
 import { PulseLogo } from '../common/PulseLogo';
 import { DeleteAccountModal } from '../auth/DeleteAccountModal';
 import { getLocalDateString, formatDisplayDate } from '../../utils/dateUtils';
-import { Sun, Moon, Calendar, LogOut, ChevronDown, LogIn, Globe, Search, Trash2, Shield, Crown, Sparkles, Star, FileText } from 'lucide-react';
+import { NotificationSettingsModal } from '../reminders/NotificationSettingsModal';
+import { Sun, Moon, Calendar, LogOut, ChevronDown, LogIn, Globe, Search, Trash2, Shield, Crown, Sparkles, Star, FileText, Bell } from 'lucide-react';
 
 export const Navbar = ({ onOpenQuickCapture }) => {
   const { theme, toggleTheme, currency, setCurrency, subscriptionTier, openPricingModal, trialInfo } = useDashboard();
   const { user, logout } = useAuth();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showNotifSettings, setShowNotifSettings] = useState(false);
+  const isRemindersActive = typeof window !== 'undefined' && localStorage.getItem('pulse_reminders_enabled') === 'true';
 
   const currentDateStr = formatDisplayDate(getLocalDateString());
 
@@ -103,6 +106,19 @@ export const Navbar = ({ onOpenQuickCapture }) => {
             )}
           </button>
 
+          {/* Daily Retention Reminders Bell */}
+          <button
+            onClick={() => setShowNotifSettings(true)}
+            className="relative p-2 min-h-[36px] min-w-[36px] flex items-center justify-center rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition cursor-pointer border border-transparent hover:border-slate-200 dark:border-slate-800 touch-manipulation"
+            aria-label="Daily Reminders & Notifications"
+            title="Daily Retention Reminders (Morning Focus & Evening Review)"
+          >
+            <Bell className="w-4 h-4 text-slate-600 dark:text-slate-400" />
+            {isRemindersActive && (
+              <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-slate-950" />
+            )}
+          </button>
+
           {/* User Profile Menu */}
           {user ? (
             <div className="relative">
@@ -147,6 +163,18 @@ export const Navbar = ({ onOpenQuickCapture }) => {
                   >
                     <Crown className="w-4 h-4 text-amber-500" />
                     <span>Subscription</span>
+                  </button>
+
+                  {/* Daily Reminders */}
+                  <button
+                    onClick={() => {
+                      setShowUserMenu(false);
+                      setShowNotifSettings(true);
+                    }}
+                    className="w-full flex items-center space-x-2 px-3 py-2 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+                  >
+                    <Bell className="w-4 h-4 text-indigo-500" />
+                    <span>Daily Reminders</span>
                   </button>
 
                   {/* Policies & Legal */}
@@ -207,6 +235,12 @@ export const Navbar = ({ onOpenQuickCapture }) => {
     {showDeleteModal && (
       <DeleteAccountModal onClose={() => setShowDeleteModal(false)} />
     )}
+
+    {/* Daily Retention Notification Settings Modal */}
+    <NotificationSettingsModal
+      isOpen={showNotifSettings}
+      onClose={() => setShowNotifSettings(false)}
+    />
   </>
   );
 };

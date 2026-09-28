@@ -20,6 +20,7 @@ import { JournalPage } from './pages/JournalPage';
 import { ActivityPage } from './pages/ActivityPage';
 import { PolicyPage } from './pages/PolicyPage';
 import { PricingModal } from './components/pricing/PricingModal';
+import { checkAndTriggerScheduledReminders } from './utils/notificationUtils';
 
 import { ShieldCheck, Loader2, WifiOff } from 'lucide-react';
 
@@ -117,6 +118,15 @@ const AppLayout = () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
+  }, []);
+
+  // 🔔 30-Day Retention Loop: Check and dispatch scheduled morning/evening reminder pings
+  useEffect(() => {
+    checkAndTriggerScheduledReminders();
+    const interval = setInterval(() => {
+      checkAndTriggerScheduledReminders();
+    }, 60000);
+    return () => clearInterval(interval);
   }, []);
 
   return (
