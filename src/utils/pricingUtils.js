@@ -3,8 +3,9 @@
  * Aligned 100% with the central dashboard currency selector.
  */
 
-export const MAX_FOUNDER_SEATS = 500;
-export const MAX_FAMILY100_ACCOUNTS = 500;
+export const MAX_PAID_LIFETIME_SEATS = 500; // Strictly 500 for paid Lifetime subscriptions
+export const MAX_FOUNDER_SEATS = 500; // Alias for paid lifetime
+export const MAX_FAMILY100_ACCOUNTS = 100; // Strictly 100 for FAMILY100 coupon code
 
 /**
  * All currencies now supported via Razorpay International.
@@ -206,11 +207,11 @@ export function validatePromoCode(rawCode, currentRedeemedCount = 0, isAlreadyRe
   const match = VALID_PROMO_CODES[clean];
 
   if (match) {
-    // If limit has been reached (500 unique accounts) and this user has not already claimed it
+    // If limit has been reached (100 unique accounts) and this user has not already claimed it
     if (currentRedeemedCount >= MAX_FAMILY100_ACCOUNTS && !isAlreadyRedeemedByUser) {
       return {
         valid: false,
-        message: "This exclusive VIP founder pass has reached its capacity limit (500/500 accounts claimed)."
+        message: "This exclusive VIP founder pass has reached its 100-user limit (100/100 accounts claimed)."
       };
     }
 
@@ -233,11 +234,31 @@ export function validatePromoCode(rawCode, currentRedeemedCount = 0, isAlreadyRe
 }
 
 /**
- * Limited Founder Cohort Settings (Strictly Capped at 500 users)
+ * Paid Founder Lifetime Cohort Settings (Strictly Capped at 500 Paid Users)
  */
-export function getFounderSeatsStatus(occupiedCount = 0) {
-  const total = MAX_FOUNDER_SEATS; // 500
-  const claimed = Math.min(total, Math.max(0, Number(occupiedCount) || 0));
+export function getPaidLifetimeSeatsStatus(occupiedPaidCount = 0) {
+  const total = MAX_PAID_LIFETIME_SEATS; // 500
+  const claimed = Math.min(total, Math.max(0, Number(occupiedPaidCount) || 0));
+  const remaining = Math.max(0, total - claimed);
+  const percentage = Math.round((claimed / total) * 100);
+  return {
+    total,
+    claimed,
+    remaining,
+    percentage,
+    isSoldOut: remaining === 0
+  };
+}
+
+// Backward-compatible alias
+export const getFounderSeatsStatus = getPaidLifetimeSeatsStatus;
+
+/**
+ * FAMILY100 Coupon Redemptions (Strictly Capped at 100 Users)
+ */
+export function getFamily100SeatsStatus(occupiedCouponCount = 0) {
+  const total = MAX_FAMILY100_ACCOUNTS; // 100
+  const claimed = Math.min(total, Math.max(0, Number(occupiedCouponCount) || 0));
   const remaining = Math.max(0, total - claimed);
   const percentage = Math.round((claimed / total) * 100);
   return {
@@ -250,7 +271,7 @@ export function getFounderSeatsStatus(occupiedCount = 0) {
 }
 
 /**
- * Computes remaining limited founder seats (out of 500)
+ * Computes remaining limited founder seats (out of 100)
  */
 export function getRemainingFounderSeats(claimedCount = 0) {
   return Math.max(0, MAX_FAMILY100_ACCOUNTS - claimedCount);

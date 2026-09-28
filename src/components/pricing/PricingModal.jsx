@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useDashboard } from "../../context/DashboardContext";
 import { useAuth } from "../../context/AuthContext";
-import { getLocalizedPrice, PRICING_DATA, getFounderSeatsStatus } from "../../utils/pricingUtils";
+import { getLocalizedPrice, PRICING_DATA, getPaidLifetimeSeatsStatus, getFamily100SeatsStatus } from "../../utils/pricingUtils";
 import { openRazorpayCheckout } from "../../utils/paymentUtils";
 import {
   X,
@@ -27,7 +27,8 @@ export const PricingModal = () => {
     redeemPromoCode,
     currency,
     trialInfo,
-    occupiedFounderSeats
+    occupiedPaidLifetimeSeats,
+    occupiedCouponSeats
   } = useDashboard();
   const { user } = useAuth();
 
@@ -47,7 +48,8 @@ export const PricingModal = () => {
   const monthlyPrice = getLocalizedPrice("monthly", currency);
   const yearlyPrice = getLocalizedPrice("yearly", currency);
   const lifetimePrice = getLocalizedPrice("lifetime", currency);
-  const founderSeats = getFounderSeatsStatus(occupiedFounderSeats);
+  const paidLifetimeSeats = getPaidLifetimeSeatsStatus(occupiedPaidLifetimeSeats);
+  const couponSeats = getFamily100SeatsStatus(occupiedCouponSeats);
   const isTrialActive = Boolean(trialInfo?.isTrialActive && subscriptionTier === "free");
 
   const handleApplyPromo = async (e) => {
@@ -459,20 +461,20 @@ export const PricingModal = () => {
                 <div className="flex items-center justify-between text-[11px] font-bold">
                   <span className="text-amber-800 dark:text-amber-300 flex items-center gap-1 text-[10px]">
                     <Flame className="w-3 h-3 text-amber-500 fill-amber-500" />
-                    Limited to 500 Users Only
+                    Limited to 500 Paid Members
                   </span>
                   <span className="text-amber-700 dark:text-amber-400 font-mono text-[10px] bg-amber-500/20 px-1.5 py-0.5 rounded-full">
-                    {founderSeats.remaining} Seats Left
+                    {paidLifetimeSeats.remaining} Seats Left
                   </span>
                 </div>
                 <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-gradient-to-r from-amber-500 to-amber-600 rounded-full transition-all duration-500"
-                    style={{ width: `${Math.max(founderSeats.claimed > 0 ? 1 : 0, founderSeats.percentage)}%` }}
+                    style={{ width: `${Math.max(paidLifetimeSeats.claimed > 0 ? 1 : 0, paidLifetimeSeats.percentage)}%` }}
                   />
                 </div>
                 <p className="text-[9px] text-amber-700/80 dark:text-amber-400/80 leading-tight">
-                  <strong>{founderSeats.claimed} of {founderSeats.total}</strong> lifetime seats occupied. Strictly capped at 500 accounts. Once filled, Lifetime will be closed.
+                  <strong>{paidLifetimeSeats.claimed} of {paidLifetimeSeats.total}</strong> paid lifetime seats occupied (real-time). Excludes promo codes. Strictly capped at 500 paid users.
                 </p>
               </div>
 
@@ -507,12 +509,12 @@ export const PricingModal = () => {
                   Lifetime plans cannot be cancelled or changed
                 </p>
               </div>
-            ) : founderSeats.isSoldOut ? (
+            ) : paidLifetimeSeats.isSoldOut ? (
               <button
                 disabled
                 className="w-full py-2.5 rounded-xl text-xs font-bold bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed"
               >
-                Founder Cohort Full (500/500 Claimed)
+                Founder Lifetime Sold Out (500/500 Paid Seats Filled)
               </button>
             ) : (
               <button
@@ -541,10 +543,13 @@ export const PricingModal = () => {
               <Tag className="w-3.5 h-3.5 text-indigo-500" />
               <span>Have a VIP / Invite Code?</span>
             </span>
-            <span className="text-[10px] font-mono text-amber-600 dark:text-amber-400 font-bold bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20">
-              {founderSeats.claimed} / 500 Occupied
+            <span className="text-[10px] font-mono text-indigo-600 dark:text-indigo-400 font-bold bg-indigo-500/10 px-2.5 py-0.5 rounded-full border border-indigo-500/20">
+              {couponSeats.claimed} / 100 VIP Codes Claimed ({couponSeats.remaining} Left)
             </span>
           </div>
+          <p className="text-[10px] text-slate-500 dark:text-slate-400">
+            FAMILY100 VIP Founder Pass is strictly limited to 100 users only and tracked independently from paid lifetime seats.
+          </p>
 
           <form onSubmit={handleApplyPromo} className="flex flex-col sm:flex-row items-stretch gap-2">
             <input
