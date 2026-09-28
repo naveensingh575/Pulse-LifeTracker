@@ -50,6 +50,12 @@ export const RAZORPAY_PLAN_AMOUNTS = {
     amountINR: 1499,
     name: "Founder Lifetime Pass",
     description: "Pulse Founder Lifetime Access (Pay Once)"
+  },
+  founder: {
+    amountInPaise: 149900, // ₹1,499
+    amountINR: 1499,
+    name: "Founder Lifetime Pass",
+    description: "Pulse Founder Lifetime Access (Pay Once)"
   }
 };
 
@@ -68,7 +74,7 @@ export async function openRazorpayCheckout({
 
   // If Razorpay SDK is available on window
   if (isLoaded && typeof window !== "undefined" && window.Razorpay) {
-    const keyId = import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_1DP5mmOlF5G5ag";
+    const keyId = import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_live_ThLQKI8oeYBlEN";
 
     const options = {
       key: keyId,
