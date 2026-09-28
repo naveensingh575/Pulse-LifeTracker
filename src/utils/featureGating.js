@@ -5,7 +5,8 @@
 export const FREE_TIER_LIMITS = {
   MAX_HABITS: 5,
   MAX_GOALS: 3,
-  MAX_MONTHLY_AI_RUNS: 3
+  MAX_MONTHLY_AI_RUNS: 3,
+  MAX_MONTHLY_MONTH_VIEWS: 3
 };
 
 /**
@@ -19,12 +20,13 @@ export function getCurrentMonthKey() {
 }
 
 /**
- * Computes full quota status across habits, goals, and AI intelligence runs
+ * Computes full quota status across habits, goals, AI intelligence runs, and month views
  */
 export function getQuotaStatus({
   habitsCount = 0,
   goalsCount = 0,
   aiRunsThisMonth = 0,
+  monthViewsThisMonth = 0,
   subscriptionTier = "free"
 }) {
   const isPremium = subscriptionTier !== "free";
@@ -32,6 +34,7 @@ export function getQuotaStatus({
   const habitsMax = isPremium ? Infinity : FREE_TIER_LIMITS.MAX_HABITS;
   const goalsMax = isPremium ? Infinity : FREE_TIER_LIMITS.MAX_GOALS;
   const aiRunsMax = isPremium ? Infinity : FREE_TIER_LIMITS.MAX_MONTHLY_AI_RUNS;
+  const monthViewsMax = isPremium ? Infinity : FREE_TIER_LIMITS.MAX_MONTHLY_MONTH_VIEWS;
 
   return {
     isPremium,
@@ -56,6 +59,23 @@ export function getQuotaStatus({
       canRun: isPremium || aiRunsThisMonth < aiRunsMax,
       remaining: isPremium ? Infinity : Math.max(0, aiRunsMax - aiRunsThisMonth),
       isLimitReached: !isPremium && aiRunsThisMonth >= aiRunsMax
+    },
+    monthViews: {
+      current: monthViewsThisMonth,
+      max: monthViewsMax,
+      canView: isPremium || monthViewsThisMonth < monthViewsMax,
+      remaining: isPremium ? Infinity : Math.max(0, monthViewsMax - monthViewsThisMonth),
+      isLimitReached: !isPremium && monthViewsThisMonth >= monthViewsMax
+    },
+    exports: {
+      canExport: isPremium
     }
   };
+}
+
+/**
+ * Checks if user can export data (CSV, .ics)
+ */
+export function canExportData(subscriptionTier = "free") {
+  return subscriptionTier !== "free";
 }

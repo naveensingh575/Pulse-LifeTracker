@@ -28,6 +28,8 @@ export const PredictiveFeasibility = () => {
     totalIncome = 0,
     totalSpent = 0,
     addTask,
+    quotaStatus,
+    openPricingModal,
     currency = '₹'
   } = useDashboard();
 
@@ -344,7 +346,30 @@ export const PredictiveFeasibility = () => {
       </div>
 
       {/* 📊 2. PREDICTIONS & PRESCRIBED ADVISORY CARDS */}
-      {goalPredictions.length === 0 ? (
+      {!quotaStatus?.isPremium ? (
+        <div className="relative rounded-2xl p-6 sm:p-8 border border-indigo-500/30 bg-gradient-to-b from-indigo-500/10 via-slate-900/60 to-slate-950 text-center space-y-4 my-2">
+          <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 text-indigo-500 mx-auto flex items-center justify-center shadow-lg shadow-indigo-500/10">
+            <Sparkles className="w-6 h-6" />
+          </div>
+          <div className="space-y-1.5 max-w-md mx-auto">
+            <h4 className="text-base font-black text-slate-900 dark:text-white flex items-center justify-center gap-2">
+              <span>Predictive Feasibility Radar</span>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                👑 Pro Feature
+              </span>
+            </h4>
+            <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+              Unlock AI-driven goal outcome forecasting, milestone velocity diagnostics, automated risk alerts, and personalized behavioral action plans.
+            </p>
+          </div>
+          <button
+            onClick={openPricingModal}
+            className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white font-bold text-xs shadow-lg shadow-indigo-600/25 transition cursor-pointer"
+          >
+            Unlock Predictive Goal Intelligence
+          </button>
+        </div>
+      ) : goalPredictions.length === 0 ? (
         <p className="text-xs text-slate-500 italic text-center p-6">No goals defined yet to run predictive analysis.</p>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

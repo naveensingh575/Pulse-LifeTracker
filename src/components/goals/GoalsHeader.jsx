@@ -93,7 +93,16 @@ const colorThemeStyles = {
 };
 
 export const GoalsHeader = () => {
-  const { goals, addGoal, updateGoal, deleteGoal, toggleGoalSubGoal, addSubGoalToGoal } = useDashboard();
+  const {
+    goals,
+    addGoal,
+    updateGoal,
+    deleteGoal,
+    toggleGoalSubGoal,
+    addSubGoalToGoal,
+    quotaStatus,
+    openPricingModal
+  } = useDashboard();
   
   // Horizon Filter state: 'all' | 'short' | 'long'
   const [horizonFilter, setHorizonFilter] = useState('all');
@@ -154,7 +163,13 @@ export const GoalsHeader = () => {
 
           {/* Download CSV button on mobile - right most to Objectives */}
           <button
-            onClick={() => exportGoalsToCSV(filteredGoals, horizonFilter)}
+            onClick={() => {
+              if (!quotaStatus?.isPremium) {
+                openPricingModal();
+                return;
+              }
+              exportGoalsToCSV(filteredGoals, horizonFilter);
+            }}
             className="flex sm:hidden items-center p-2 rounded-xl bg-slate-100 dark:bg-slate-900/60 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold border border-slate-200 dark:border-slate-800 transition cursor-pointer shrink-0"
             title={`Download ${horizonFilter} goals report`}
             aria-label="Download Report"
@@ -204,7 +219,13 @@ export const GoalsHeader = () => {
 
           {/* Download CSV button on desktop - right most */}
           <button
-            onClick={() => exportGoalsToCSV(filteredGoals, horizonFilter)}
+            onClick={() => {
+              if (!quotaStatus?.isPremium) {
+                openPricingModal();
+                return;
+              }
+              exportGoalsToCSV(filteredGoals, horizonFilter);
+            }}
             className="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900/60 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold border border-slate-200 dark:border-slate-800 transition cursor-pointer shrink-0"
             title={`Download ${horizonFilter} goals report`}
             aria-label="Download Report"

@@ -322,14 +322,29 @@ export const DashboardProvider = ({ children }) => {
     return next;
   }, [aiRunsCount]);
 
+  // Monthly Calendar View Tracking & Quota Engine (Max 3/mo for free tier)
+  const [monthViewsCount, setMonthViewsCount] = useState(() => {
+    const key = `pulse_month_views_${getCurrentMonthKey()}`;
+    return Number(localStorage.getItem(key) || '0');
+  });
+
+  const recordMonthlyCalendarView = useCallback(() => {
+    const key = `pulse_month_views_${getCurrentMonthKey()}`;
+    const next = monthViewsCount + 1;
+    setMonthViewsCount(next);
+    localStorage.setItem(key, String(next));
+    return next;
+  }, [monthViewsCount]);
+
   const quotaStatus = useMemo(() => {
     return getQuotaStatus({
       habitsCount: habits ? habits.length : 0,
       goalsCount: goals ? goals.length : 0,
       aiRunsThisMonth: aiRunsCount,
+      monthViewsThisMonth: monthViewsCount,
       subscriptionTier
     });
-  }, [habits, goals, aiRunsCount, subscriptionTier]);
+  }, [habits, goals, aiRunsCount, monthViewsCount, subscriptionTier]);
 
   // Apply dark mode class
   useEffect(() => {
@@ -1561,8 +1576,11 @@ export const DashboardProvider = ({ children }) => {
         isFounderOrPro: subscriptionTier === 'founder' || subscriptionTier === 'lifetime' || subscriptionTier === 'monthly' || subscriptionTier === 'yearly' || subscriptionTier === 'pro',
         canAddHabit: quotaStatus.habits.canAdd,
         canAddGoal: quotaStatus.goals.canAdd,
+        canViewMonthlyCalendar: quotaStatus.monthViews.canView,
+        canExportData: quotaStatus.exports.canExport,
         quotaStatus,
         recordAiAnalyticsRun,
+        recordMonthlyCalendarView,
         FREE_TIER_LIMITS,
         selectPlan,
         redeemPromoCode,

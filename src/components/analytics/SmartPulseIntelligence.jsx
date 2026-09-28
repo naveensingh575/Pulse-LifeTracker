@@ -416,13 +416,37 @@ export const SmartPulseIntelligence = ({
               </p>
             </div>
           </div>
-          <div className="flex items-center space-x-2">
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold border border-indigo-500/20">
-              Synergy Index: {correlationData.synergyIndex}/100
-            </span>
-          </div>
+        <div className="flex items-center space-x-2">
+          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold border border-indigo-500/20">
+            Synergy Index: {correlationData.synergyIndex}/100
+          </span>
         </div>
+      </div>
 
+      {!quotaStatus?.isPremium ? (
+        <div className="p-6 rounded-xl border border-indigo-500/30 bg-gradient-to-b from-indigo-500/10 via-slate-900/50 to-slate-950 text-center space-y-3">
+          <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/30 text-indigo-500 mx-auto flex items-center justify-center">
+            <Sparkles className="w-5 h-5" />
+          </div>
+          <div className="space-y-1 max-w-sm mx-auto">
+            <p className="text-xs font-black text-slate-900 dark:text-white flex items-center justify-center gap-1.5">
+              <span>Multi-Pillar Synergy Engine</span>
+              <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                👑 Pro Feature
+              </span>
+            </p>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400">
+              Unlock live cross-pillar behavioral correlations between your physical energy, task throughput, and financial pacing.
+            </p>
+          </div>
+          <button
+            onClick={() => openPricingModal?.()}
+            className="px-5 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs shadow-md transition cursor-pointer"
+          >
+            Unlock Live Behavioral Correlations
+          </button>
+        </div>
+      ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {correlationData.insights.map((insight) => (
             <div
@@ -449,6 +473,7 @@ export const SmartPulseIntelligence = ({
             </div>
           ))}
         </div>
+      )}
       </div>
 
       {/* ⚠️ 3. WHERE LAGGING vs 💡 WHAT CAN IMPROVE */}

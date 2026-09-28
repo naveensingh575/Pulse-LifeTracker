@@ -20,7 +20,7 @@ import {
 import { exportTasksToCSV } from '../utils/exportUtils';
 
 export const TasksPage = () => {
-  const { tasks, toggleTaskComplete, deleteTask, addTask, updateTask } = useDashboard();
+  const { tasks, toggleTaskComplete, deleteTask, addTask, updateTask, quotaStatus, openPricingModal } = useDashboard();
   const [activeContext, setActiveContext] = useState('All'); // 'All' | 'Personal' | 'Work' | 'Urgent'
   const [statusFilter, setStatusFilter] = useState('pending'); // 'all' | 'pending' | 'completed'
 
@@ -106,11 +106,15 @@ export const TasksPage = () => {
 
           <button
             onClick={() => {
+              if (!quotaStatus?.isPremium) {
+                openPricingModal();
+                return;
+              }
               const label = `${statusFilter}_${activeContext}`;
               exportTasksToCSV(filteredTasks, label);
             }}
             className="flex items-center space-x-1.5 p-2 sm:px-3 sm:py-2 rounded-xl bg-slate-100 dark:bg-slate-900/60 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold border border-slate-200 dark:border-slate-800 transition cursor-pointer shrink-0"
-            title={`Download ${statusFilter} (${activeContext}) tasks report`}
+            title={quotaStatus?.isPremium ? `Download ${statusFilter} (${activeContext}) tasks report` : "👑 Upgrade to Export CSV"}
             aria-label="Download Report"
           >
             <Download className="w-4 h-4 sm:w-3.5 sm:h-3.5 text-indigo-500" />

@@ -36,6 +36,7 @@ export const HabitsPage = () => {
     addHabit,
     canAddHabit,
     quotaStatus,
+    recordMonthlyCalendarView,
     openPricingModal
   } = useDashboard();
 
@@ -196,7 +197,18 @@ export const HabitsPage = () => {
             </button>
 
             <button
-              onClick={() => setGridMode('monthly')}
+              onClick={() => {
+                if (!quotaStatus?.isPremium) {
+                  if (!quotaStatus?.monthViews?.canView) {
+                    openPricingModal();
+                    return;
+                  }
+                  if (gridMode !== 'monthly') {
+                    recordMonthlyCalendarView();
+                  }
+                }
+                setGridMode('monthly');
+              }}
               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
                 gridMode === 'monthly'
                   ? 'bg-amber-500 text-slate-950 shadow-sm'
@@ -208,9 +220,13 @@ export const HabitsPage = () => {
             </button>
           </div>
 
-          {/* Export CSV Button — moved towards right end on mobile */}
+          {/* Export CSV Button — Gated for Pro/Founder */}
           <button
             onClick={() => {
+              if (!quotaStatus?.isPremium) {
+                openPricingModal();
+                return;
+              }
               let dates = [];
               let label = '';
               if (gridMode === 'day') {
@@ -433,7 +449,22 @@ export const HabitsPage = () => {
               </div>
               <div>
                 <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                  Monthly Habit Tracker
+                  <span>Monthly Habit Tracker</span>
+                  {quotaStatus && (
+                    <button
+                      onClick={() => !quotaStatus.isPremium && openPricingModal()}
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full border transition-all ${
+                        quotaStatus.isPremium
+                          ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30'
+                          : quotaStatus.monthViews.isLimitReached
+                            ? 'bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/40 hover:bg-amber-500/30 cursor-pointer'
+                            : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+                      }`}
+                      title={quotaStatus.isPremium ? 'Unlimited Monthly History Views' : `${quotaStatus.monthViews.remaining} monthly calendar views remaining this month.`}
+                    >
+                      {quotaStatus.isPremium ? '✨ Unlimited Views' : `${quotaStatus.monthViews.remaining} / ${quotaStatus.monthViews.max} Monthly Views Left`}
+                    </button>
+                  )}
                 </h3>
               </div>
             </div>
@@ -493,7 +524,29 @@ export const HabitsPage = () => {
             </div>
           </div>
 
-          {/* Heatmap Grid Section */}
+          {/* Frosted Glass Lock if 3/3 views reached on free tier */}
+          {!quotaStatus?.isPremium && quotaStatus?.monthViews?.isLimitReached ? (
+            <div className="relative rounded-2xl p-8 border border-amber-500/30 bg-gradient-to-b from-amber-500/5 via-slate-900/40 to-slate-950 text-center space-y-4 my-2">
+              <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-500 mx-auto flex items-center justify-center shadow-lg shadow-amber-500/10">
+                <Sparkles className="w-6 h-6" />
+              </div>
+              <div className="space-y-1.5 max-w-md mx-auto">
+                <h4 className="text-base font-black text-slate-900 dark:text-white">
+                  Monthly Historical Archive Locked
+                </h4>
+                <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  You have used your 3 free monthly calendar views for this month. Upgrade to Pro or Founder for unlimited historical heatmaps, calendar archives, and full CSV exports.
+                </p>
+              </div>
+              <button
+                onClick={openPricingModal}
+                className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs shadow-lg shadow-amber-500/20 transition cursor-pointer"
+              >
+                Unlock Unlimited Historical Archive
+              </button>
+            </div>
+          ) : (
+          /* Heatmap Grid Section */
           <div className="pt-2">
             
             {/* Day of Week Headers */}
@@ -578,6 +631,7 @@ export const HabitsPage = () => {
             </div>
 
           </div>
+          )}
         </div>
       )}
 

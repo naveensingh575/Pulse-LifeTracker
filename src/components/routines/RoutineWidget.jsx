@@ -69,7 +69,9 @@ export const RoutineWidget = () => {
     isHabitDoneOn = () => false,
     toggleHabitForDate,
     getJournalEntry = () => null,
-    saveJournalEntry = async () => {}
+    saveJournalEntry = async () => {},
+    quotaStatus,
+    openPricingModal
   } = useDashboard();
 
   const todayStr = getISTDateString();
@@ -251,16 +253,20 @@ export const RoutineWidget = () => {
                 <span>Google Calendar</span>
               </a>
 
-              {/* Download .ics — hidden on mobile, visible on sm+ */}
+              {/* Download .ics — Pro/Founder feature, hidden on mobile, visible on sm+ */}
               <button
-                onClick={() =>
+                onClick={() => {
+                  if (!quotaStatus?.isPremium) {
+                    openPricingModal();
+                    return;
+                  }
                   downloadIcsFile({
                     title: 'PULSE Morning Ritual',
                     details: 'Daily Morning Planning Routine'
-                  })
-                }
+                  });
+                }}
                 className="hidden sm:flex p-1.5 rounded-lg bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 transition"
-                title="Download .ics Calendar File"
+                title={quotaStatus?.isPremium ? "Download .ics Calendar File" : "👑 Upgrade to Export .ics Calendar"}
               >
                 <Download className="w-3.5 h-3.5" />
               </button>
