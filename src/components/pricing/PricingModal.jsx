@@ -194,7 +194,7 @@ export const PricingModal = () => {
           </div>
         </div>
 
-        {/* 7-Day Pro Trial Active Announcement Banner */}
+        {/* Pro Preview Active Announcement Banner */}
         {isTrialActive && (
           <div className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-indigo-500/10 to-transparent border border-amber-500/30 text-xs flex items-center justify-between gap-3">
             <div className="flex items-center gap-2.5">
@@ -203,7 +203,7 @@ export const PricingModal = () => {
               </div>
               <div className="space-y-0.5">
                 <p className="font-bold text-slate-900 dark:text-white">
-                  7-Day Pro Preview Active ({trialInfo?.trialDaysRemaining} days remaining)
+                  Pro Preview Active
                 </p>
                 <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
                   You currently have full access to Monthly Heatmaps and the Analytics Suite. Lock in <strong>Pro Yearly (Save 33%)</strong> or the <strong>Founder Lifetime Pass</strong> to keep unlimited intelligence forever.
@@ -281,7 +281,7 @@ export const PricingModal = () => {
                   <span className="text-xs text-slate-400 line-through ml-1">{monthlyPrice.regular}</span>
                 </div>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold mt-1">
-                  Cancel anytime · No refunds
+                  Cancel anytime
                 </p>
               </div>
 
@@ -457,7 +457,7 @@ export const PricingModal = () => {
                   <span className="text-xs text-slate-400 line-through ml-1">{lifetimePrice.regular}</span>
                 </div>
                 <p className="text-[11px] text-amber-700 dark:text-amber-400 font-semibold mt-1">
-                  Non-refundable · Permanent access
+                  Permanent access
                 </p>
               </div>
 
@@ -530,11 +530,11 @@ export const PricingModal = () => {
 
         </div>
 
-        {/* No-Refund Policy Notice */}
+        {/* Policy Notice */}
         <div className="flex items-start gap-2.5 p-3 rounded-xl bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800">
           <Shield className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
           <p className="text-[11px] text-slate-500 dark:text-slate-500 leading-relaxed">
-            <strong className="text-slate-600 dark:text-slate-400">No Refund Policy:</strong> All payments are final and non-refundable. Monthly and yearly plans can be cancelled anytime — you retain access until the current period ends. Lifetime plans are permanent and cannot be cancelled, downgraded, or refunded. View full{" "}
+            All payments are final and non-refundable. Monthly and yearly plans can be cancelled anytime — you retain access until the current period ends. Lifetime plans are permanent and cannot be cancelled, downgraded, or refunded. View full{" "}
             <Link
               to="/refund-policy"
               onClick={closePricingModal}
