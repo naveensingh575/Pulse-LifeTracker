@@ -54,8 +54,8 @@ export const ActivityPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingActivity, setEditingActivity] = useState(null);
 
-  // Timeframe states: strictly 'day' | 'week' | 'month' (defaults to 'week')
-  const [timeframe, setTimeframe] = useState('week');
+  // Timeframe states: strictly 'day' | 'week' | 'month' (defaults to 'day')
+  const [timeframe, setTimeframe] = useState('day');
   
   // IST Date & Time Selector state
   const currentISTYM = getISTYearMonth();

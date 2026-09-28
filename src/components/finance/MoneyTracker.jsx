@@ -57,8 +57,8 @@ export const MoneyTracker = ({ openAddModalTrigger }) => {
     openPricingModal
   } = dashboard;
 
-  // Time-Horizon state: 'day' | 'week' | 'month' (defaults to 'week')
-  const [timeframe, setTimeframe] = useState('week');
+  // Time-Horizon state: 'day' | 'week' | 'month' (defaults to 'day')
+  const [timeframe, setTimeframe] = useState('day');
   const [filterCategory, setFilterCategory] = useState('All');
   
   // IST Date & Period Selectors

@@ -41,7 +41,7 @@ export const HabitsPage = () => {
     openPricingModal
   } = useDashboard();
 
-  const [gridMode, setGridMode] = useState('7day'); // 'day' | '7day' | 'monthly'
+  const [gridMode, setGridMode] = useState('day'); // 'day' | '7day' | 'monthly'
   const [selectedCategory, setSelectedCategory] = useState('All');
 
   // Month & Year Selector State in IST
