@@ -318,10 +318,10 @@ export const AuthPage = ({ initialMode }) => {
             <div className="space-y-3 pt-2">
               {[
                 'Securely Sync across Platforms & Devices',
-                'Strict Database Privacy & Security',
+                'Encrypted Personal Privacy & Data Sovereignty',
                 'Daily, Weekly & Monthly Habit Rhythm Engine',
                 'Income-First Cashflow & Monthly Budget Allocation',
-                'Multi Activities Tracker'
+                'Multi-Activity Vitality (Gym PRs, Running, Reading)'
               ].map((feat, idx) => (
                 <div key={idx} className="flex items-center space-x-2.5 text-xs font-medium text-slate-700 dark:text-slate-300">
                   <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
