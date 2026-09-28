@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { HashRouter, Routes, Route, useNavigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { DashboardProvider } from './context/DashboardContext';
+import { DashboardProvider, useDashboard } from './context/DashboardContext';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { AuthPage } from './components/auth/AuthPage';
 
@@ -134,6 +134,17 @@ const AppLayout = () => {
     }, 60000);
     return () => clearInterval(interval);
   }, []);
+
+  const location = useLocation();
+  const { openPricingModal } = useDashboard();
+
+  // If user navigates directly to /subscription or /pricing (via URL, bookmark, or direct link)
+  useEffect(() => {
+    if (location.pathname === '/subscription' || location.pathname === '/pricing') {
+      openPricingModal();
+      navigate('/', { replace: true });
+    }
+  }, [location.pathname, openPricingModal, navigate]);
 
   const handleExitGuestMode = async () => {
     await logout();

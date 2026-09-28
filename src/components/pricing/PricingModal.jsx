@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import { useDashboard } from "../../context/DashboardContext";
 import { useAuth } from "../../context/AuthContext";
 import { getLocalizedPrice, PRICING_DATA, getPaidLifetimeSeatsStatus } from "../../utils/pricingUtils";
@@ -151,8 +152,14 @@ export const PricingModal = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 dark:bg-slate-950/85 backdrop-blur-md animate-in fade-in duration-150 overflow-y-auto">
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white max-w-4xl w-full rounded-3xl p-5 sm:p-8 shadow-2xl relative my-6 max-h-[92vh] overflow-y-auto space-y-6">
+    <div
+      onClick={closePricingModal}
+      className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 dark:bg-slate-950/85 backdrop-blur-md animate-in fade-in duration-150 overflow-y-auto"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white max-w-4xl w-full rounded-3xl p-5 sm:p-8 shadow-2xl relative my-6 max-h-[92vh] overflow-y-auto space-y-6"
+      >
 
         {/* Close Button */}
         <button
@@ -528,9 +535,13 @@ export const PricingModal = () => {
           <Shield className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
           <p className="text-[11px] text-slate-500 dark:text-slate-500 leading-relaxed">
             <strong className="text-slate-600 dark:text-slate-400">No Refund Policy:</strong> All payments are final and non-refundable. Monthly and yearly plans can be cancelled anytime — you retain access until the current period ends. Lifetime plans are permanent and cannot be cancelled, downgraded, or refunded. View full{" "}
-            <a href="/refund-policy" target="_blank" rel="noreferrer" className="text-indigo-600 dark:text-indigo-400 font-bold hover:underline">
+            <Link
+              to="/refund-policy"
+              onClick={closePricingModal}
+              className="text-indigo-600 dark:text-indigo-400 font-bold hover:underline"
+            >
               Cancellation & Refund Policy
-            </a>.
+            </Link>.
           </p>
         </div>
 

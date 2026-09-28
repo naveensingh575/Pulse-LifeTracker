@@ -2003,6 +2003,8 @@ export const DashboardProvider = ({ children }) => {
         selectPlan,
         redeemPromoCode,
         isPricingModalOpen,
+        openPricingModal,
+        closePricingModal,
         // Data Sovereignty & Backup
         getBackupData,
         restoreBackupData,
