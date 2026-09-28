@@ -362,9 +362,12 @@ export const AnalyticsView = () => {
   let goalsNeedsFocusCount = 0;
   let goalsAtRiskCount = 0;
 
-  goals.forEach(g => {
-    const pct = Math.round((g.currentAmount / g.targetAmount) * 100);
-    const daysLeft = getISTDateDiffDays(todayStr, g.deadline);
+  (goals || []).forEach(g => {
+    const currentAmt = Number(g.currentAmount ?? g.current_amount ?? 0) || 0;
+    const targetAmt = Number(g.targetAmount ?? g.target_amount ?? 1) || 1;
+    const pct = targetAmt > 0 ? Math.min(100, Math.round((currentAmt / targetAmt) * 100)) : 0;
+    const deadlineStr = g.deadline || g.targetDate || g.target_date || todayStr;
+    const daysLeft = getISTDateDiffDays(deadlineStr, todayStr);
     if (pct >= 50 || daysLeft > 90) {
       goalsOnTrackCount += 1;
     } else if (daysLeft < 30 && pct < 40) {
@@ -1448,16 +1451,19 @@ export const AnalyticsView = () => {
           <p className="text-xs text-slate-500 italic text-center p-6">No goals defined yet.</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {goals.map((g) => {
-              const pct = Math.min(100, Math.round((g.currentAmount / g.targetAmount) * 100));
-              const daysLeft = getISTDateDiffDays(todayStr, g.deadline);
+            {(goals || []).map((g) => {
+              const currentAmt = Number(g.currentAmount ?? g.current_amount ?? 0) || 0;
+              const targetAmt = Number(g.targetAmount ?? g.target_amount ?? 1) || 1;
+              const pct = targetAmt > 0 ? Math.min(100, Math.round((currentAmt / targetAmt) * 100)) : 0;
+              const deadlineStr = g.deadline || g.targetDate || g.target_date || todayStr;
+              const daysLeft = getISTDateDiffDays(deadlineStr, todayStr);
               const isAhead = pct >= 50;
-              const subGoals = g.subGoals || [];
+              const subGoals = g.subGoals || g.sub_goals || [];
               const completedSubs = subGoals.filter(s => s.completed).length;
 
               return (
                 <div
-                  key={g.id}
+                  key={g.id || g.title}
                   className="p-3.5 bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-slate-200 dark:border-slate-800 space-y-2.5"
                 >
                   <div className="flex items-start justify-between">
@@ -1465,7 +1471,7 @@ export const AnalyticsView = () => {
                       <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100">{g.title}</h4>
                       <div className="flex items-center space-x-1.5 text-[10px] text-slate-500 mt-0.5">
                         <span className="px-1.5 py-0.2 rounded bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-semibold border border-indigo-500/20">
-                          {g.category}
+                          {g.category || 'General'}
                         </span>
                         <span>•</span>
                         <span>{g.horizon === 'short' ? '⚡ Short-Term' : '🏔️ Long-Term'}</span>

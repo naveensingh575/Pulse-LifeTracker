@@ -34,6 +34,11 @@ class AnalyticsErrorBoundary extends Component {
             <p className="text-xs text-slate-500 dark:text-slate-400">
               An unexpected issue occurred while rendering charts. Click below to reload your metrics.
             </p>
+            {this.state.error?.message && (
+              <p className="text-[11px] font-mono text-rose-500 bg-rose-500/10 border border-rose-500/20 p-2 rounded-xl mt-2 max-w-sm mx-auto break-words">
+                {this.state.error.message}
+              </p>
+            )}
           </div>
           <button
             onClick={this.handleReset}

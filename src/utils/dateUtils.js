@@ -94,12 +94,23 @@ export const getYesterdayDateString = () => {
 
 // Calculate difference in calendar days (dateStrA - dateStrB)
 export const getLocalDateDiffDays = (dateStrA, dateStrB) => {
-  const [y1, m1, d1] = dateStrA.split('-').map(Number);
-  const [y2, m2, d2] = dateStrB.split('-').map(Number);
-  const dateA = new Date(y1, m1 - 1, d1);
-  const dateB = new Date(y2, m2 - 1, d2);
-  const diffTime = dateA.getTime() - dateB.getTime();
-  return Math.round(diffTime / (1000 * 60 * 60 * 24));
+  if (!dateStrA || !dateStrB || typeof dateStrA !== 'string' || typeof dateStrB !== 'string') {
+    return 0;
+  }
+  try {
+    const partsA = dateStrA.split('-');
+    const partsB = dateStrB.split('-');
+    if (partsA.length < 3 || partsB.length < 3) return 0;
+    const [y1, m1, d1] = partsA.map(Number);
+    const [y2, m2, d2] = partsB.map(Number);
+    if (!y1 || !m1 || !d1 || !y2 || !m2 || !d2) return 0;
+    const dateA = new Date(y1, m1 - 1, d1);
+    const dateB = new Date(y2, m2 - 1, d2);
+    const diffTime = dateA.getTime() - dateB.getTime();
+    return Math.round(diffTime / (1000 * 60 * 60 * 24));
+  } catch (e) {
+    return 0;
+  }
 };
 
 export const getISTDateDiffDays = getLocalDateDiffDays;

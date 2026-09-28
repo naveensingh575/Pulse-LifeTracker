@@ -68,9 +68,13 @@ export const isSentCategory = (category) => {
  * Returns true for standard expenses + 'Sent'.
  * Returns false for 'Saving Account' and 'Pre Commitments'.
  */
-export const isLivingBudgetExpense = (tx) => {
-  if (!tx || tx.type !== 'expense') return false;
-  return !isSavingAccountCategory(tx.category) && !isPreCommitmentsCategory(tx.category);
+export const isLivingBudgetExpense = (txOrCategory) => {
+  if (!txOrCategory) return false;
+  if (typeof txOrCategory === 'object') {
+    if (txOrCategory.type !== 'expense') return false;
+    return !isSavingAccountCategory(txOrCategory.category) && !isPreCommitmentsCategory(txOrCategory.category);
+  }
+  return !isSavingAccountCategory(txOrCategory) && !isPreCommitmentsCategory(txOrCategory);
 };
 
 /**
