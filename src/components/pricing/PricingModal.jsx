@@ -171,57 +171,71 @@ export const PricingModal = () => {
         </div>
 
         {/* 3 High-Impact Pricing Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5 items-stretch">
           
           {/* Card 1: Monthly Pro */}
-          <div className={"rounded-2xl p-5 border flex flex-col justify-between space-y-4 transition " + (
-            isMonthly
-              ? "border-indigo-500 bg-indigo-50/20 dark:bg-indigo-950/20 shadow-md"
-              : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 hover:border-slate-300 dark:hover:border-slate-700"
-          )}>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
+          <div
+            onClick={() => handleSelectPlan("monthly")}
+            className={"relative rounded-2xl p-5 border-2 flex flex-col justify-between space-y-4 transition-all duration-300 ease-out cursor-pointer group hover:-translate-y-1.5 hover:shadow-xl " + (
+              isMonthly
+                ? "border-emerald-500 bg-emerald-50/20 dark:bg-emerald-950/20 shadow-md"
+                : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 hover:border-indigo-400 dark:hover:border-indigo-500 hover:shadow-indigo-500/15 hover:bg-indigo-50/10 dark:hover:bg-slate-900/90"
+            )}
+          >
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+              <span className="px-3 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px] font-extrabold uppercase tracking-wider shadow-sm border border-slate-200 dark:border-slate-700 group-hover:scale-105 transition-transform">
+                ⚡ Flexible
+              </span>
+            </div>
+
+            <div className="space-y-3 pt-1">
+              <div className="flex items-center justify-between min-h-[24px]">
                 <h3 className="font-bold text-sm text-slate-900 dark:text-white">Pro Monthly</h3>
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400">
                   {monthlyPrice.discountTag}
                 </span>
               </div>
 
-              <div>
+              <div className="min-h-[58px] flex flex-col justify-center">
                 <div className="flex items-baseline space-x-1.5">
                   <span className="text-2xl font-black text-slate-900 dark:text-white">{monthlyPrice.current}</span>
                   <span className="text-xs text-slate-400">{monthlyPrice.period}</span>
                   <span className="text-xs text-slate-400 line-through ml-1">{monthlyPrice.regular}</span>
                 </div>
-                <p className="text-[11px] text-slate-500 mt-0.5">Flexible monthly operating rhythm</p>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold mt-1">
+                  Flexible monthly operating rhythm
+                </p>
               </div>
 
-              <ul className="space-y-2 text-xs text-slate-600 dark:text-slate-400 pt-2 border-t border-slate-100 dark:border-slate-800">
+              <ul className="space-y-2.5 text-xs text-slate-600 dark:text-slate-400 pt-3 border-t border-slate-100 dark:border-slate-800 min-h-[136px] flex flex-col justify-start">
                 <li className="flex items-center gap-2">
-                  <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                  <CheckCircle2 className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
                   <span>Unlimited Habits & Sub-goals</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                  <CheckCircle2 className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
                   <span>Goal Advisory & AI Directives</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                  <CheckCircle2 className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
                   <span>Cross-Domain Correlations</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                  <CheckCircle2 className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
                   <span>Full CSV & iCalendar (.ics) Sync</span>
                 </li>
               </ul>
             </div>
 
             <button
-              onClick={() => handleSelectPlan("monthly")}
-              className={"w-full py-2.5 rounded-xl text-xs font-bold transition cursor-pointer " + (
+              onClick={(e) => {
+                e.stopPropagation();
+                handleSelectPlan("monthly");
+              }}
+              className={"w-full py-2.5 rounded-xl text-xs font-bold transition shadow-sm cursor-pointer group-hover:shadow-md " + (
                 isMonthly
                   ? "bg-emerald-600 text-white cursor-default"
-                  : "bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-900 dark:text-white"
+                  : "bg-slate-100 hover:bg-indigo-600 hover:text-white dark:bg-slate-800 dark:hover:bg-indigo-600 text-slate-900 dark:text-white"
               )}
             >
               {isMonthly ? "✓ Current Plan" : "Choose Monthly"}
@@ -229,37 +243,40 @@ export const PricingModal = () => {
           </div>
 
           {/* Card 2: Yearly Pro (⭐ Best Value) */}
-          <div className={"rounded-2xl p-5 border-2 flex flex-col justify-between space-y-4 relative shadow-xl " + (
-            isYearly
-              ? "border-emerald-500 bg-emerald-50/20 dark:bg-emerald-950/20"
-              : "border-indigo-500 bg-gradient-to-b from-indigo-50/60 via-white to-indigo-50/20 dark:from-indigo-950/40 dark:via-slate-900 dark:to-slate-900 shadow-indigo-500/10"
-          )}>
+          <div
+            onClick={() => handleSelectPlan("yearly")}
+            className={"relative rounded-2xl p-5 border-2 flex flex-col justify-between space-y-4 transition-all duration-300 ease-out cursor-pointer group hover:-translate-y-1.5 hover:shadow-2xl " + (
+              isYearly
+                ? "border-emerald-500 bg-emerald-50/20 dark:bg-emerald-950/20 shadow-xl"
+                : "border-indigo-500 bg-gradient-to-b from-indigo-50/60 via-white to-indigo-50/20 dark:from-indigo-950/40 dark:via-slate-900 dark:to-slate-900 shadow-indigo-500/10 hover:border-indigo-400 dark:hover:border-indigo-400 hover:shadow-indigo-500/25"
+            )}
+          >
             <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-              <span className="px-3 py-0.5 rounded-full bg-gradient-to-r from-indigo-600 to-cyan-600 text-white text-[10px] font-extrabold uppercase tracking-wider shadow-sm">
+              <span className="px-3 py-0.5 rounded-full bg-gradient-to-r from-indigo-600 to-cyan-600 text-white text-[10px] font-extrabold uppercase tracking-wider shadow-sm group-hover:scale-105 transition-transform">
                 ⭐ Best Value
               </span>
             </div>
 
             <div className="space-y-3 pt-1">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between min-h-[24px]">
                 <h3 className="font-bold text-sm text-indigo-900 dark:text-indigo-200">Pro Yearly</h3>
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300">
                   Save 33%
                 </span>
               </div>
 
-              <div>
+              <div className="min-h-[58px] flex flex-col justify-center">
                 <div className="flex items-baseline space-x-1.5">
                   <span className="text-2xl font-black text-slate-900 dark:text-white">{yearlyPrice.current}</span>
                   <span className="text-xs text-slate-400">{yearlyPrice.period}</span>
                   <span className="text-xs text-slate-400 line-through ml-1">{yearlyPrice.regular}</span>
                 </div>
-                <p className="text-[11px] text-indigo-600 dark:text-indigo-400 font-semibold mt-0.5">
+                <p className="text-[11px] text-indigo-600 dark:text-indigo-400 font-semibold mt-1">
                   {yearlyPrice.effectiveMonthly}
                 </p>
               </div>
 
-              <ul className="space-y-2 text-xs text-slate-700 dark:text-slate-300 pt-2 border-t border-indigo-100 dark:border-slate-800">
+              <ul className="space-y-2.5 text-xs text-slate-700 dark:text-slate-300 pt-3 border-t border-indigo-100 dark:border-slate-800 min-h-[136px] flex flex-col justify-start">
                 <li className="flex items-center gap-2">
                   <CheckCircle2 className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
                   <span>Everything in Pro Monthly</span>
@@ -280,8 +297,11 @@ export const PricingModal = () => {
             </div>
 
             <button
-              onClick={() => handleSelectPlan("yearly")}
-              className={"w-full py-2.5 rounded-xl text-xs font-bold transition shadow-md cursor-pointer " + (
+              onClick={(e) => {
+                e.stopPropagation();
+                handleSelectPlan("yearly");
+              }}
+              className={"w-full py-2.5 rounded-xl text-xs font-bold transition shadow-md cursor-pointer group-hover:brightness-110 group-hover:shadow-lg " + (
                 isYearly
                   ? "bg-emerald-600 text-white cursor-default"
                   : "bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-600/30"
@@ -292,19 +312,22 @@ export const PricingModal = () => {
           </div>
 
           {/* Card 3: Founder Lifetime Pass (👑 One-Time) */}
-          <div className={"rounded-2xl p-5 border-2 flex flex-col justify-between space-y-4 relative shadow-lg " + (
-            isLifetime
-              ? "border-emerald-500 bg-emerald-50/20 dark:bg-emerald-950/20"
-              : "border-amber-500/70 bg-gradient-to-b from-amber-50/60 via-white to-amber-50/20 dark:from-amber-950/30 dark:via-slate-900 dark:to-slate-900"
-          )}>
+          <div
+            onClick={() => handleSelectPlan("lifetime")}
+            className={"relative rounded-2xl p-5 border-2 flex flex-col justify-between space-y-4 transition-all duration-300 ease-out cursor-pointer group hover:-translate-y-1.5 hover:shadow-2xl " + (
+              isLifetime
+                ? "border-emerald-500 bg-emerald-50/20 dark:bg-emerald-950/20 shadow-lg"
+                : "border-amber-500/70 bg-gradient-to-b from-amber-50/60 via-white to-amber-50/20 dark:from-amber-950/30 dark:via-slate-900 dark:to-slate-900 hover:border-amber-400 dark:hover:border-amber-400 hover:shadow-amber-500/25"
+            )}
+          >
             <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-              <span className="px-3 py-0.5 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 text-[10px] font-black uppercase tracking-wider shadow-sm">
+              <span className="px-3 py-0.5 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 text-[10px] font-black uppercase tracking-wider shadow-sm group-hover:scale-105 transition-transform">
                 👑 Pay Once
               </span>
             </div>
 
             <div className="space-y-3 pt-1">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between min-h-[24px]">
                 <h3 className="font-bold text-sm text-amber-900 dark:text-amber-200 flex items-center gap-1">
                   <Crown className="w-4 h-4 text-amber-500" />
                   <span>Founder Lifetime</span>
@@ -314,7 +337,7 @@ export const PricingModal = () => {
                 </span>
               </div>
 
-              <div>
+              <div className="min-h-[58px] flex flex-col justify-center">
                 <div className="flex items-baseline space-x-1.5">
                   <span className="text-2xl font-black text-slate-900 dark:text-white">
                     {lifetimePrice.current}
@@ -322,12 +345,12 @@ export const PricingModal = () => {
                   <span className="text-xs text-slate-400">{lifetimePrice.period}</span>
                   <span className="text-xs text-slate-400 line-through ml-1">{lifetimePrice.regular}</span>
                 </div>
-                <p className="text-[11px] text-amber-700 dark:text-amber-400 font-semibold mt-0.5">
+                <p className="text-[11px] text-amber-700 dark:text-amber-400 font-semibold mt-1">
                   Zero recurring subscriptions
                 </p>
               </div>
 
-              <ul className="space-y-2 text-xs text-slate-700 dark:text-slate-300 pt-2 border-t border-amber-100 dark:border-slate-800">
+              <ul className="space-y-2.5 text-xs text-slate-700 dark:text-slate-300 pt-3 border-t border-amber-100 dark:border-slate-800 min-h-[136px] flex flex-col justify-start">
                 <li className="flex items-center gap-2">
                   <CheckCircle2 className="w-3.5 h-3.5 text-amber-500 shrink-0" />
                   <span>Unlimited Lifetime Access</span>
@@ -348,8 +371,11 @@ export const PricingModal = () => {
             </div>
 
             <button
-              onClick={() => handleSelectPlan("lifetime")}
-              className={"w-full py-2.5 rounded-xl text-xs font-black transition shadow-md cursor-pointer " + (
+              onClick={(e) => {
+                e.stopPropagation();
+                handleSelectPlan("lifetime");
+              }}
+              className={"w-full py-2.5 rounded-xl text-xs font-black transition shadow-md cursor-pointer group-hover:brightness-110 group-hover:shadow-lg " + (
                 isLifetime
                   ? "bg-emerald-600 text-white cursor-default"
                   : "bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 shadow-amber-500/20"
