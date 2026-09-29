@@ -35,7 +35,7 @@ export const OverviewPage = () => {
     <div className="space-y-6 animate-in fade-in duration-200">
       
       {/* ☀️ 1. MORNING PLANNING FLOW & EVENING REVIEW CARD (Full-Width) */}
-      <RoutineWidget onOpenCockpit={() => setShowDailyCockpit(true)} />
+      <RoutineWidget />
 
       {/* ⏰ 2. REMINDERS & URGENT DEADLINES (Full-Width) */}
       <RemindersList />
