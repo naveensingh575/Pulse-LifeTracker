@@ -62,7 +62,7 @@ END:VCALENDAR`;
   URL.revokeObjectURL(url);
 };
 
-export const RoutineWidget = () => {
+export const RoutineWidget = ({ onOpenCockpit }) => {
   const {
     habits = [],
     tasks = [],
@@ -173,7 +173,20 @@ export const RoutineWidget = () => {
           </div>
         </div>
 
-        <div className="flex items-center bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-200 dark:border-slate-800">
+        <div className="flex items-center space-x-2">
+          {onOpenCockpit && (
+            <button
+              type="button"
+              onClick={onOpenCockpit}
+              className="flex items-center space-x-1.5 px-2.5 py-1 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 text-xs font-bold transition cursor-pointer"
+              title="Open 30-Second Daily Operating Cockpit"
+            >
+              <Zap className="w-3.5 h-3.5 fill-indigo-500 text-indigo-500" />
+              <span>30s Check-In</span>
+            </button>
+          )}
+
+          <div className="flex items-center bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-200 dark:border-slate-800">
           <button
             onClick={() => setActiveTab('morning')}
             className={`px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition ${
@@ -197,6 +210,7 @@ export const RoutineWidget = () => {
             <Moon className="w-3.5 h-3.5" />
             <span>Evening</span>
           </button>
+          </div>
         </div>
       </div>
 
