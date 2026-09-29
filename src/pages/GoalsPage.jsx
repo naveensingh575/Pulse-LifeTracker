@@ -23,11 +23,8 @@ export const GoalsPage = () => {
             <Compass className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-              <span>Goals & Viability</span>
-              <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full border bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/30">
-                {goals.length} Goals
-              </span>
+            <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+              Goals & Viability
             </h2>
           </div>
         </div>

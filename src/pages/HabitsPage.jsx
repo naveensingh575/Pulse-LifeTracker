@@ -602,7 +602,7 @@ export const HabitsPage = () => {
                         <span className="font-mono text-[9px] opacity-80">
                           {stats.completed}/{stats.total}
                         </span>
-                        <span className="font-mono font-bold text-[9px]">
+                        <span className="hidden sm:inline font-mono font-bold text-[9px]">
                           {stats.percentage > 0 ? `${stats.percentage}%` : ''}
                         </span>
                       </div>

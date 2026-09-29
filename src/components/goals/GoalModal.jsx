@@ -52,9 +52,9 @@ export const GoalModal = ({ isOpen, onClose, onSave, onDelete, initialData }) =>
   const [formData, setFormData] = useState({
     title: '',
     horizon: 'short', // 'short' | 'long'
-    targetAmount: 100000,
+    targetAmount: 100,
     currentAmount: 0,
-    unit: currency || '₹',
+    unit: '%',
     deadline: '',
     category: 'Financial',
     color: 'emerald',
@@ -71,9 +71,9 @@ export const GoalModal = ({ isOpen, onClose, onSave, onDelete, initialData }) =>
         id: initialData.id,
         title: initialData.title || '',
         horizon: initialData.horizon || 'short',
-        targetAmount: Number(initialData.targetAmount !== undefined ? initialData.targetAmount : (initialData.target_amount ?? 100000)),
+        targetAmount: Number(initialData.targetAmount !== undefined ? initialData.targetAmount : (initialData.target_amount ?? 100)),
         currentAmount: Number(initialData.currentAmount !== undefined ? initialData.currentAmount : (initialData.current_amount ?? 0)),
-        unit: initialData.unit || currency || '₹',
+        unit: initialData.unit || '%',
         deadline: initialData.deadline || '',
         category: initialData.category || 'Financial',
         color: initialData.color || 'emerald',
@@ -99,9 +99,9 @@ export const GoalModal = ({ isOpen, onClose, onSave, onDelete, initialData }) =>
       setFormData({
         title: '',
         horizon: 'short',
-        targetAmount: 100000,
+        targetAmount: 100,
         currentAmount: 0,
-        unit: currency || '₹',
+        unit: '%',
         deadline: defaultDeadline,
         category: 'Financial',
         color: 'emerald',
@@ -325,7 +325,7 @@ export const GoalModal = ({ isOpen, onClose, onSave, onDelete, initialData }) =>
               <input
                 type="text"
                 required
-                placeholder="₹"
+                placeholder="%"
                 value={formData.unit}
                 onChange={e => setFormData({ ...formData, unit: e.target.value })}
                 className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500 font-mono"

@@ -131,7 +131,7 @@ export const TransactionModal = ({ isOpen, onClose, onSave, initialData }) => {
                 }`}
               >
                 <ArrowUpRight className="w-3.5 h-3.5" />
-                <span>Expense (-)</span>
+                <span>Expense</span>
               </button>
 
               <button
@@ -144,7 +144,7 @@ export const TransactionModal = ({ isOpen, onClose, onSave, initialData }) => {
                 }`}
               >
                 <ArrowDownLeft className="w-3.5 h-3.5" />
-                <span>Income (+)</span>
+                <span>Income</span>
               </button>
 
               <button
@@ -157,7 +157,7 @@ export const TransactionModal = ({ isOpen, onClose, onSave, initialData }) => {
                 }`}
               >
                 <TrendingUp className="w-3.5 h-3.5" />
-                <span>Invest (Asset)</span>
+                <span>Invest</span>
               </button>
             </div>
           </div>
