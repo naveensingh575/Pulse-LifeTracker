@@ -96,22 +96,37 @@ export const DailyCockpitModal = ({ isOpen, onClose }) => {
     localStorage.setItem('pulse_auto_open_cockpit', val ? 'true' : 'false');
   };
 
+  const handleDismissToday = () => {
+    localStorage.setItem('pulse_last_cockpit_date', todayStr);
+    onClose();
+  };
+
   return (
     <div
-      onClick={onClose}
+      onClick={handleDismissToday}
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-md animate-in fade-in duration-200"
     >
       <div
         onClick={(e) => e.stopPropagation()}
         className="relative w-full max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl p-6 sm:p-7 space-y-5 animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto"
       >
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute top-5 right-5 p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
-        >
-          <X className="w-4 h-4" />
-        </button>
+        {/* Close & Quick-Dismiss Buttons */}
+        <div className="absolute top-5 right-5 flex items-center gap-1.5">
+          <button
+            onClick={handleDismissToday}
+            className="text-[11px] font-semibold text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 px-2 py-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+            title="Don't open automatically again today"
+          >
+            Don't show again today
+          </button>
+          <button
+            onClick={handleDismissToday}
+            className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+            title="Close"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
 
         {/* Top Header Badge */}
         <div className="flex items-center space-x-2">
@@ -230,6 +245,15 @@ export const DailyCockpitModal = ({ isOpen, onClose }) => {
           >
             <span>🚀 Launch My Day</span>
             <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+          </button>
+
+          {/* Quick-Dismiss Today Action */}
+          <button
+            type="button"
+            onClick={handleDismissToday}
+            className="w-full py-1 text-center text-xs font-semibold text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition cursor-pointer"
+          >
+            Don't show again today · Skip to dashboard
           </button>
 
           {/* Auto-Open Preference Toggle */}
