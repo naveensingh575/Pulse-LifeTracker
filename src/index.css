@@ -81,3 +81,12 @@ html:not(.dark) .glass-card-dark {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(100, 116, 139, 0.5);
 }
+
+/* Prevent iOS Safari / mobile browser auto-zoom on input focus */
+@media screen and (max-width: 767px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
