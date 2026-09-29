@@ -70,7 +70,7 @@ export const PrioritizedTasks = () => {
             to="/tasks"
             className="flex items-center space-x-1 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition group"
           >
-            <span>View All Tasks</span>
+            <span>Tasks</span>
             <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
           </Link>
         </div>
