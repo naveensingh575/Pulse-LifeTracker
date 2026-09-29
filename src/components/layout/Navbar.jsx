@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useDashboard, SUPPORTED_CURRENCIES } from '../../context/DashboardContext';
 import { useAuth } from '../../context/AuthContext';
@@ -18,7 +18,35 @@ export const Navbar = ({ onOpenQuickCapture }) => {
   const [showNotifSettings, setShowNotifSettings] = useState(false);
   const [showBackupModal, setShowBackupModal] = useState(false);
   const [showReferralModal, setShowReferralModal] = useState(false);
+  const userMenuRef = useRef(null);
   const isRemindersActive = typeof window !== 'undefined' && localStorage.getItem('pulse_reminders_enabled') === 'true';
+
+  // Close profile card when clicking outside anywhere on the screen or pressing Escape
+  useEffect(() => {
+    if (!showUserMenu) return;
+
+    const handleClickOutside = (e) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target)) {
+        setShowUserMenu(false);
+      }
+    };
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setShowUserMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [showUserMenu]);
 
   const currentDateStr = formatDisplayDate(getLocalDateString());
 
@@ -112,7 +140,7 @@ export const Navbar = ({ onOpenQuickCapture }) => {
 
           {/* User Profile Menu */}
           {user ? (
-            <div className="relative">
+            <div className="relative" ref={userMenuRef}>
               <button
                 onClick={() => setShowUserMenu(!showUserMenu)}
                 className="flex items-center space-x-2.5 p-1 px-2 min-h-[36px] rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/60 transition border border-transparent hover:border-slate-200 dark:hover:border-slate-800 cursor-pointer touch-manipulation"
