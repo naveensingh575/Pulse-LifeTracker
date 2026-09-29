@@ -19,11 +19,11 @@ import {
 } from 'lucide-react';
 
 const DISCIPLINES = [
-  { id: 'gym', label: 'Gym / Strength', icon: Dumbbell, emoji: '🏋️' },
-  { id: 'running', label: 'Running / Cardio', icon: Activity, emoji: '🏃' },
-  { id: 'swimming', label: 'Swimming', icon: Waves, emoji: '🏊' },
-  { id: 'sports', label: 'Sports', icon: Trophy, emoji: '🏆' },
-  { id: 'reading', label: 'Reading / Skill', icon: BookOpen, emoji: '📚' }
+  { id: 'gym', label: 'Gym / Strength', icon: Dumbbell },
+  { id: 'running', label: 'Running / Cardio', icon: Activity },
+  { id: 'swimming', label: 'Swimming', icon: Waves },
+  { id: 'sports', label: 'Sports', icon: Trophy },
+  { id: 'reading', label: 'Reading / Skill', icon: BookOpen }
 ];
 
 export const ActivityModal = ({ isOpen, onClose, onSave, initialData = null }) => {
@@ -43,9 +43,9 @@ export const ActivityModal = ({ isOpen, onClose, onSave, initialData = null }) =
       name: 'Barbell Bench Press',
       notes: '',
       setList: [
-        { setNumber: 1, weightKg: 60, reps: 12 },
-        { setNumber: 2, weightKg: 70, reps: 10 },
-        { setNumber: 3, weightKg: 80, reps: 8 }
+        { setNumber: 1, weightKg: 40, reps: 12 },
+        { setNumber: 2, weightKg: 50, reps: 12 },
+        { setNumber: 3, weightKg: 60, reps: 12 }
       ]
     }
   ]);
@@ -158,9 +158,9 @@ export const ActivityModal = ({ isOpen, onClose, onSave, initialData = null }) =
           name: 'Barbell Bench Press',
           notes: '',
           setList: [
-            { setNumber: 1, weightKg: 60, reps: 12 },
-            { setNumber: 2, weightKg: 70, reps: 10 },
-            { setNumber: 3, weightKg: 80, reps: 8 }
+            { setNumber: 1, weightKg: 40, reps: 12 },
+            { setNumber: 2, weightKg: 50, reps: 12 },
+            { setNumber: 3, weightKg: 60, reps: 12 }
           ]
         }
       ]);
@@ -199,9 +199,9 @@ export const ActivityModal = ({ isOpen, onClose, onSave, initialData = null }) =
         name: '',
         notes: '',
         setList: [
-          { setNumber: 1, weightKg: 0, reps: 10 },
-          { setNumber: 2, weightKg: 0, reps: 10 },
-          { setNumber: 3, weightKg: 0, reps: 10 }
+          { setNumber: 1, weightKg: 40, reps: 12 },
+          { setNumber: 2, weightKg: 50, reps: 12 },
+          { setNumber: 3, weightKg: 60, reps: 12 }
         ]
       }
     ]);
@@ -230,11 +230,11 @@ export const ActivityModal = ({ isOpen, onClose, onSave, initialData = null }) =
       prev.map(ex => {
         if (ex.id !== exerciseId) return ex;
         const currentSets = ex.setList || [];
-        const lastSet = currentSets[currentSets.length - 1] || { weightKg: 0, reps: 10 };
+        const lastSet = currentSets[currentSets.length - 1] || { weightKg: 60, reps: 12 };
         const newSet = {
           setNumber: currentSets.length + 1,
-          weightKg: lastSet.weightKg,
-          reps: lastSet.reps
+          weightKg: lastSet.weightKg !== undefined ? lastSet.weightKg : 60,
+          reps: lastSet.reps !== undefined ? lastSet.reps : 12
         };
         return {
           ...ex,
@@ -444,7 +444,7 @@ export const ActivityModal = ({ isOpen, onClose, onSave, initialData = null }) =
               >
                 {DISCIPLINES.map(item => (
                   <option key={item.id} value={item.id} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
-                    {item.emoji} {item.label}
+                    {item.label}
                   </option>
                 ))}
               </select>
@@ -545,7 +545,7 @@ export const ActivityModal = ({ isOpen, onClose, onSave, initialData = null }) =
                     className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-600 dark:text-cyan-300 text-[11px] font-bold border border-indigo-200 dark:border-indigo-800 transition cursor-pointer shrink-0"
                   >
                     <Plus className="w-3 h-3" />
-                    <span>+ Exercise</span>
+                    <span>Exercise</span>
                   </button>
                 </div>
 
