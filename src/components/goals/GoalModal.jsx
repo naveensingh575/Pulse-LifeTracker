@@ -366,7 +366,7 @@ export const GoalModal = ({ isOpen, onClose, onSave, onDelete, initialData }) =>
           <div className="pt-2 border-t border-slate-200 dark:border-slate-800 space-y-2">
             <div className="flex items-center justify-between">
               <label className="block text-xs font-bold text-slate-800 dark:text-slate-200">
-                Nested Milestone Sub-Goals ({formData.subGoals?.length || 0})
+                Sub-Goals ({formData.subGoals?.length || 0})
               </label>
               <span className="text-[10px] text-slate-400">Short milestone checkpoints</span>
             </div>
@@ -413,27 +413,29 @@ export const GoalModal = ({ isOpen, onClose, onSave, onDelete, initialData }) =>
             </div>
 
             {/* Add new sub-goal inputs */}
-            <div className="flex items-center space-x-2 pt-1">
+            <div className="space-y-2 pt-1 sm:space-y-0 sm:flex sm:items-center sm:space-x-2">
               <input
                 type="text"
                 placeholder="Add sub-goal milestone (e.g. Save first ₹25,000 buffer)"
                 value={newSubGoalTitle}
                 onChange={e => setNewSubGoalTitle(e.target.value)}
-                className="flex-1 px-3 py-1.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500"
+                className="w-full sm:flex-1 px-3 py-2 sm:py-1.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500"
               />
-              <input
-                type="date"
-                value={newSubGoalDate}
-                onChange={e => setNewSubGoalDate(e.target.value)}
-                className="w-32 px-2 py-1.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-[11px] text-slate-900 dark:text-slate-100 font-mono"
-              />
-              <button
-                type="button"
-                onClick={handleAddSubGoal}
-                className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition cursor-pointer"
-              >
-                + Add
-              </button>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="date"
+                  value={newSubGoalDate}
+                  onChange={e => setNewSubGoalDate(e.target.value)}
+                  className="flex-1 sm:w-32 px-2.5 sm:px-2 py-2 sm:py-1.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs sm:text-[11px] text-slate-900 dark:text-slate-100 font-mono"
+                />
+                <button
+                  type="button"
+                  onClick={handleAddSubGoal}
+                  className="px-4 py-2 sm:px-3 sm:py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition cursor-pointer shrink-0 shadow-sm"
+                >
+                  + Add
+                </button>
+              </div>
             </div>
           </div>
 
