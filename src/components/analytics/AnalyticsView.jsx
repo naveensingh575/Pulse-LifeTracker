@@ -85,7 +85,7 @@ export const AnalyticsView = () => {
   } = dashboard;
 
   // Unified 3-Header Timeframe Filter: 'day' | 'week' | 'month'
-  const [timeframe, setTimeframe] = useState('month');
+  const [timeframe, setTimeframe] = useState('day');
 
   // Pillar Segment Tab Filter: 'all' | 'finance' | 'habits' | 'vitality' | 'execution'
   const [activeTab, setActiveTab] = useState('all');
@@ -793,16 +793,14 @@ export const AnalyticsView = () => {
 
       {/* 🎯 2. UNIFIED 4-PILLAR EXECUTIVE SCORECARD */}
       <div className="glass-panel-dark rounded-2xl p-5 border border-slate-200 dark:border-slate-800 space-y-3 shadow-lg">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800 pb-2.5">
-          <div className="flex items-center space-x-2">
-            <span className="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-              <Compass className="w-4 h-4 text-indigo-500" />
-              <span>4-Pillar Executive Scorecard</span>
-            </span>
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold border border-indigo-500/20">
-              Pulse Health: {overallPulseScore}%
-            </span>
-          </div>
+        <div className="flex items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800 pb-2.5">
+          <span className="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+            <Compass className="w-4 h-4 text-indigo-500" />
+            <span>4-Pillar Executive Scorecard</span>
+          </span>
+          <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold border border-indigo-500/20 shrink-0">
+            Pulse Health: {overallPulseScore}%
+          </span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
