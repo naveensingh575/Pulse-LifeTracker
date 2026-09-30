@@ -116,12 +116,30 @@ export const RoutineWidget = () => {
   const activeHabitsToday = habits.filter(h => isHabitActiveOnDate(h, todayStr));
   const totalHabits = activeHabitsToday.length;
   const completedHabitsToday = activeHabitsToday.filter(h => isHabitDoneOn(h.id, todayStr)).length;
-  const totalTasks = tasks.length;
-  const completedTasksToday = tasks.filter(t => t.completed).length;
+
+  // Real IST Today Tasks: only count tasks completed today, evaluated against today's planned workload
+  const completedTasksToday = tasks.filter(t =>
+    t.completed && (
+      (t.completedAt && t.completedAt.slice(0, 10) === todayStr) ||
+      (!t.completedAt && t.dueDate === todayStr)
+    )
+  ).length;
+
+  const todayTasksList = tasks.filter(t =>
+    (t.dueDate === todayStr) ||
+    (topPriorities && topPriorities.includes(t.id)) ||
+    (t.completed && t.completedAt && t.completedAt.slice(0, 10) === todayStr)
+  );
+  const totalTasksToday = todayTasksList.length;
+
+  // Day Completion Score: if no tasks due/planned today, score is 100% based on habits
+  const habitRatio = totalHabits > 0 ? (completedHabitsToday / totalHabits) : 1;
+  const taskRatio = totalTasksToday > 0 ? Math.min(1, completedTasksToday / totalTasksToday) : 1;
 
   const dayCompletionScore = Math.round(
-    ((completedHabitsToday / (totalHabits || 1)) * 0.6 +
-      (completedTasksToday / (totalTasks || 1)) * 0.4) * 100
+    totalTasksToday > 0
+      ? (habitRatio * 0.6 + taskRatio * 0.4) * 100
+      : (totalHabits > 0 ? habitRatio * 100 : 100)
   );
 
   // Micro-journal reflection state for evening review
@@ -290,7 +308,7 @@ export const RoutineWidget = () => {
             </div>
             <div className="text-right text-xs text-slate-600 dark:text-slate-400">
               <p><span className="text-amber-600 dark:text-amber-400 font-bold">{completedHabitsToday}/{totalHabits}</span> Habits Done</p>
-              <p><span className="text-cyan-600 dark:text-cyan-400 font-bold">{completedTasksToday}/{totalTasks}</span> Tasks Completed</p>
+              <p><span className="text-cyan-600 dark:text-cyan-400 font-bold">{completedTasksToday}/{totalTasksToday}</span> Tasks Completed</p>
             </div>
           </div>
 

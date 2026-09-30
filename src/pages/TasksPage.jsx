@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useDashboard } from '../context/DashboardContext';
 import { createGoogleCalendarUrl } from '../components/routines/RoutineWidget';
+import { getISTDateString } from '../utils/dateUtils';
 import { TaskModal } from '../components/tasks/TaskModal';
 import {
   CheckSquare,
@@ -23,6 +24,9 @@ export const TasksPage = () => {
   const { tasks, toggleTaskComplete, deleteTask, addTask, updateTask, quotaStatus, openPricingModal } = useDashboard();
   const [activeContext, setActiveContext] = useState('All'); // 'All' | 'Personal' | 'Work' | 'Urgent'
   const [statusFilter, setStatusFilter] = useState('pending'); // 'all' | 'pending' | 'completed'
+
+  const todayStr = getISTDateString();
+  const completedTodayCount = tasks.filter(t => t.completed && t.completedAt && t.completedAt.slice(0, 10) === todayStr).length;
 
   // Task Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -207,9 +211,16 @@ export const TasksPage = () => {
       {/* Main Task List Table / Cards with Calendar Export */}
       <div className="glass-panel-dark rounded-2xl p-5 border border-slate-200 dark:border-slate-800 space-y-3">
         <div className="flex items-center justify-between gap-2 border-b border-slate-200/60 dark:border-slate-800/60 pb-3">
-          <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100 shrink-0">
-            {activeContext === 'All' ? 'Action Feed' : `${activeContext} Tasks`} ({filteredTasks.length})
-          </h3>
+          <div className="flex items-center gap-2">
+            <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100 shrink-0">
+              {activeContext === 'All' ? 'Action Feed' : `${activeContext} Tasks`} ({filteredTasks.length})
+            </h3>
+            {completedTodayCount > 0 && (
+              <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+                {completedTodayCount} done today
+              </span>
+            )}
+          </div>
 
           {/* Status Filter Buttons: Pending | Completed | All */}
           <div className="flex items-center space-x-1 bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-200 dark:border-slate-800 shrink-0">
@@ -274,6 +285,20 @@ export const TasksPage = () => {
                         <>
                           <span>•</span>
                           <span>Due: {task.dueDate}</span>
+                        </>
+                      )}
+                      {task.completed && (
+                        <>
+                          <span>•</span>
+                          {task.completedAt && task.completedAt.slice(0, 10) === todayStr ? (
+                            <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/20">
+                              Done Today
+                            </span>
+                          ) : (
+                            <span className="text-slate-400">
+                              Done {task.completedAt ? task.completedAt.slice(0, 10) : 'earlier'}
+                            </span>
+                          )}
                         </>
                       )}
                       {task.notes && (

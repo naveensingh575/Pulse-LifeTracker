@@ -10,17 +10,20 @@ import {
   Target
 } from 'lucide-react';
 import { checkAndCelebrateTasks } from '../../utils/celebrationUtils';
+import { getISTDateString } from '../../utils/dateUtils';
 
 export const PrioritizedTasks = () => {
   const { tasks, toggleTask, addTask } = useDashboard();
   const [quickTitle, setQuickTitle] = useState('');
   const [showQuickAdd, setShowQuickAdd] = useState(false);
 
+  const todayStr = getISTDateString();
+
   // Filter tasks: High-priority uncompleted tasks first, then other uncompleted
   const highPriorityTasks = tasks.filter(t => !t.completed && t.priority === 'high');
   const otherActiveTasks = tasks.filter(t => !t.completed && t.priority !== 'high');
   const displayTasks = [...highPriorityTasks, ...otherActiveTasks].slice(0, 5);
-  const completedCount = tasks.filter(t => t.completed).length;
+  const completedTodayCount = tasks.filter(t => t.completed && t.completedAt && t.completedAt.slice(0, 10) === todayStr).length;
 
   const handleToggleTask = (task) => {
     toggleTask(task.id);
@@ -151,7 +154,7 @@ export const PrioritizedTasks = () => {
       {/* Footer stats */}
       <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1 border-t border-slate-200 dark:border-slate-800/80">
         <span>{tasks.filter(t => !t.completed).length} open tasks remaining</span>
-        <span className="font-mono">{completedCount} completed today</span>
+        <span className="font-mono">{completedTodayCount} completed today</span>
       </div>
 
     </div>

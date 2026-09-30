@@ -102,7 +102,12 @@ export const SundayReviewModal = ({ isOpen, onClose }) => {
   const isBudgetSafe = weeklyExpenseCap === 0 || totalWeeklyExpense <= weeklyExpenseCap;
 
   // 3. Execution Velocity: Tasks
-  const completedTasksThisWeek = tasks.filter(t => t.completed).length;
+  const completedTasksThisWeek = tasks.filter(t =>
+    t.completed && (
+      (t.completedAt && weekDateStrs.includes(t.completedAt.slice(0, 10))) ||
+      (!t.completedAt && t.dueDate && weekDateStrs.includes(t.dueDate))
+    )
+  ).length;
   const pendingHighPriority = tasks.filter(t => !t.completed && t.priority === 'high').length;
 
   // 4. Physical Vitality & Athletic Output
