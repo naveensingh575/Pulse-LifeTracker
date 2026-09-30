@@ -220,10 +220,10 @@ export function getOperatingPersonality({
     return {
       name: 'The Kinetic Sprinter',
       icon: '⚡',
-      badge: 'High Action & Kinetic Stamina',
+      badge: 'Rapid Sprint Execution',
       color: 'cyan',
-      summary: 'High physical stamina fueling rapid sprint execution',
-      strategyGuide: 'Morning physical momentum transfers directly into needle-moving milestone bursts.'
+      summary: 'High stamina fueling rapid sprint execution',
+      strategyGuide: 'High daily energy fuels focused milestone sprints and momentum.'
     };
   }
   if (avgHabitStreak >= 4 || (habitsLength > 0 && overallTaskCompletionRate >= 70)) {

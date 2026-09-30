@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useDashboard } from '../../context/DashboardContext';
 import {
   getISTDateString,
@@ -12,28 +13,19 @@ import {
 } from '../../utils/dateUtils';
 import {
   calculateFinanceSummary,
-  isLivingBudgetExpense,
-  isSurplusDeductible,
-  isSavingAccountCategory,
-  isPreCommitmentsCategory,
-  isSentCategory
+  isLivingBudgetExpense
 } from '../../utils/financeUtils';
 import {
   ResponsiveContainer,
-  LineChart,
   Line,
   AreaChart,
   Area,
   BarChart,
   Bar,
-  PieChart as RePieChart,
-  Pie,
-  Cell,
   XAxis,
   YAxis,
   Tooltip,
-  CartesianGrid,
-  Legend
+  CartesianGrid
 } from 'recharts';
 import {
   Sparkles,
@@ -63,7 +55,8 @@ import {
   Sun,
   CalendarDays,
   CheckSquare,
-  Share2
+  Share2,
+  ArrowRight
 } from 'lucide-react';
 import { SmartPulseIntelligence } from './SmartPulseIntelligence';
 import { DisciplineShareModal } from './DisciplineShareModal';
@@ -78,6 +71,7 @@ const DISCIPLINE_COLORS = {
 };
 
 export const AnalyticsView = () => {
+  const navigate = useNavigate();
   const dashboard = useDashboard() || {};
   const {
     transactions = [],
@@ -96,8 +90,8 @@ export const AnalyticsView = () => {
   // Unified 3-Header Timeframe Filter: 'day' | 'week' | 'month'
   const [timeframe, setTimeframe] = useState('month');
 
-  // Task Tab Filter: 'all' | 'pending' | 'completed'
-  const [taskTabFilter, setTaskTabFilter] = useState('all');
+  // Pillar Segment Tab Filter: 'all' | 'finance' | 'habits' | 'vitality' | 'execution'
+  const [activeTab, setActiveTab] = useState('all');
 
   // Day View Date Selector
   const today = getISTDate();
@@ -618,6 +612,43 @@ export const AnalyticsView = () => {
 
   const displayDisciplineData = disciplineEffortData;
 
+  // 4-Pillar Normalized Balance Scores (0–100)
+  let physicalScore = 0;
+  if (totalActiveOutputMins > 0 || scopedActivities.length > 0) {
+    if (timeframe === 'day') {
+      physicalScore = totalActiveOutputMins >= 45 ? 100 : totalActiveOutputMins >= 30 ? 75 : totalActiveOutputMins > 0 ? 50 : 30;
+    } else if (timeframe === 'week') {
+      physicalScore = Math.min(100, Math.max(scopedActivities.length > 0 ? 30 : 0, Math.round((totalActiveOutputMins / 180) * 100)));
+    } else {
+      physicalScore = Math.min(100, Math.max(scopedActivities.length > 0 ? 30 : 0, Math.round((totalActiveOutputMins / 700) * 100)));
+    }
+  }
+
+  const executionScore = scopedTasks.length > 0 ? taskCompletionPct : 100;
+
+  let financialScore = 100;
+  if (safeDailyRate > 0) {
+    if (actualDailyRate <= safeDailyRate) {
+      const savingsRatio = (safeDailyRate - actualDailyRate) / safeDailyRate;
+      financialScore = Math.min(100, 80 + Math.round(savingsRatio * 20));
+    } else {
+      financialScore = Math.max(10, 80 - Math.min(70, budgetVariancePct));
+    }
+  } else if (periodLivingExpenses > 0) {
+    financialScore = 80;
+  }
+
+  const disciplineScore = habits.length > 0 ? habitScore : 100;
+  const overallPulseScore = Math.round((physicalScore * 0.25) + (disciplineScore * 0.25) + (financialScore * 0.25) + (executionScore * 0.25));
+
+  const PILLAR_TABS = [
+    { id: 'all', label: 'Overview', icon: Compass },
+    { id: 'finance', label: 'Financial Runway', icon: Wallet },
+    { id: 'habits', label: 'Habits & Routines', icon: Flame },
+    { id: 'vitality', label: 'Physical Vitality', icon: Activity },
+    { id: 'execution', label: 'Execution & Goals', icon: CheckSquare }
+  ];
+
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       
@@ -768,769 +799,1089 @@ export const AnalyticsView = () => {
         </div>
       </div>
 
-      {/* 📊 2. HIGH-DENSITY, CONTEXTUAL METRIC CARDS (What the numbers mean) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
-        
-        {/* 1. Financial Velocity & Burn Rate Card */}
-        <div className="glass-card-dark rounded-xl p-4 border border-slate-200 dark:border-slate-800 space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">Financial Velocity & Runway</span>
-            <Wallet className="w-4 h-4 text-emerald-500" />
+      {/* 🎯 2. UNIFIED 4-PILLAR EXECUTIVE SCORECARD */}
+      <div className="glass-panel-dark rounded-2xl p-5 border border-slate-200 dark:border-slate-800 space-y-3 shadow-lg">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800 pb-2.5">
+          <div className="flex items-center space-x-2">
+            <span className="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+              <Compass className="w-4 h-4 text-indigo-500" />
+              <span>4-Pillar Executive Scorecard</span>
+            </span>
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold border border-indigo-500/20">
+              Pulse Health: {overallPulseScore}%
+            </span>
           </div>
 
-          <div>
-            <div className="flex items-baseline space-x-1.5">
-              <span className="text-xl font-extrabold text-slate-900 dark:text-slate-100 font-mono">
-                ₹{actualDailyRate.toLocaleString('en-IN')}<span className="text-xs font-normal text-slate-400">/day</span>
-              </span>
-              <span className="text-[10px] text-slate-400 font-mono">
-                (Safe: ₹{Math.round(safeDailyRate).toLocaleString('en-IN')})
-              </span>
-            </div>
-
-            <div className="mt-1 flex items-center gap-1.5">
-              <span className={`text-[10px] font-extrabold px-1.5 py-0.2 rounded font-mono ${
-                isUnderBudget
-                  ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
-                  : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20'
-              }`}>
-                {isUnderBudget ? `Under by ${Math.abs(budgetVariancePct)}%` : `Over by ${budgetVariancePct}%`}
-              </span>
-              <span className="text-[10px] text-slate-500 font-mono">
-                (₹{Math.max(0, budgetBufferRemaining).toLocaleString('en-IN')} buffer)
-              </span>
-            </div>
+          <div className="text-[11px] font-mono text-slate-400">
+            Operating Archetype: <span className="font-extrabold text-slate-900 dark:text-white">{userArchetype.icon} {userArchetype.name}</span>
           </div>
         </div>
 
-        {/* 2. Habit Reliability & Consistency Index */}
-        <div className="glass-card-dark rounded-xl p-4 border border-slate-200 dark:border-slate-800 space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">Habit Consistency Index</span>
-            <Flame className="w-4 h-4 text-amber-500" />
-          </div>
-
-          <div>
-            <div className="flex items-baseline space-x-1.5">
-              <span className="text-xl font-extrabold text-amber-600 dark:text-amber-400 font-mono">
-                {habitScore}%
-              </span>
-              <span className="text-[10px] font-bold text-amber-500">
-                {habitRating}
-              </span>
-            </div>
-            <p className="text-[10px] text-slate-500 mt-1 font-medium">{habitDeltaText}</p>
-          </div>
-        </div>
-
-        {/* 3. Physical & Mental Output Gauge */}
-        <div className="glass-card-dark rounded-xl p-4 border border-slate-200 dark:border-slate-800 space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">Physical & Learning Output</span>
-            <Activity className="w-4 h-4 text-cyan-500" />
-          </div>
-
-          <div>
-            <div className="flex items-baseline space-x-1.5">
-              <span className="text-xl font-extrabold text-cyan-600 dark:text-cyan-400 font-mono">
-                {totalActiveOutputMins} <span className="text-xs font-normal">mins</span>
-              </span>
-              <span className="text-[10px] text-slate-400 font-mono">
-                ({runningTargetPct}% Cardio Target)
-              </span>
-            </div>
-            <p className="text-[10px] text-slate-500 mt-1">
-              {totalRunningKm.toFixed(1)}km run • {totalGymSessions} workouts • {totalPagesRead}p read
-            </p>
-          </div>
-        </div>
-
-        {/* 4. To-Do Execution Velocity Card */}
-        <div className="glass-card-dark rounded-xl p-4 border border-slate-200 dark:border-slate-800 space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">To-Do Execution Velocity</span>
-            <CheckSquare className="w-4 h-4 text-emerald-500" />
-          </div>
-
-          <div>
-            <div className="flex items-baseline space-x-1.5">
-              <span className="text-xl font-extrabold text-emerald-600 dark:text-emerald-400 font-mono">
-                {taskCompletionPct}%
-              </span>
-              <span className="text-[10px] font-mono text-slate-400">
-                ({completedScopedTasks.length}/{scopedTasks.length} Done)
-              </span>
-            </div>
-            <div className="flex items-center gap-1.5 mt-1 text-[10px] font-mono">
-              <span className="text-rose-500 font-bold">{highPriorityTasks.length - highPriorityCompleted} High</span>
-              <span>•</span>
-              <span className="text-amber-500 font-bold">{medPriorityTasks.length - medPriorityCompleted} Med</span>
-              <span>•</span>
-              <span className="text-emerald-600 font-bold">{completedScopedTasks.length} Done</span>
-            </div>
-          </div>
-        </div>
-
-        {/* 5. Strategic Goal Velocity Breakdown */}
-        <div className="glass-card-dark rounded-xl p-4 border border-slate-200 dark:border-slate-800 space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">Goal Completion Velocity</span>
-            <Compass className="w-4 h-4 text-indigo-500" />
-          </div>
-
-          <div>
-            <div className="flex items-baseline space-x-1.5">
-              <span className="text-xl font-extrabold text-indigo-600 dark:text-indigo-400 font-mono">
-                {goalsOnTrackCount} / {goals.length}
-              </span>
-              <span className="text-[10px] font-bold text-emerald-500">On Track</span>
-            </div>
-            <div className="flex items-center gap-1.5 mt-1 text-[10px] font-mono">
-              <span className="text-emerald-600 font-bold">{goalsOnTrackCount} Track</span>
-              <span>•</span>
-              <span className="text-amber-500 font-bold">{goalsNeedsFocusCount} Focus</span>
-              <span>•</span>
-              <span className="text-rose-500 font-bold">{goalsAtRiskCount} Risk</span>
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-      {/* 🧠 3. SMART PULSE INTELLIGENCE: MULTI-PILLAR PATTERNS & OPERATING ARCHETYPE */}
-      <SmartPulseIntelligence
-        timeframe={timeframe}
-        selectedDate={selectedDate}
-        activeWeekBadge={activeWeekBadge}
-        selectedMonthName={MONTH_NAMES_FULL[selectedMonth - 1]}
-        selectedYear={selectedYear}
-        // Financials
-        periodIncome={periodIncome}
-        periodLivingExpenses={periodLivingExpenses}
-        periodGrossExpenses={periodGrossExpenses}
-        periodInvested={periodInvested}
-        leftoverSurplus={leftoverSurplus}
-        actualDailyRate={actualDailyRate}
-        safeDailyRate={safeDailyRate}
-        budgetBufferRemaining={budgetBufferRemaining}
-        budgetVariancePct={budgetVariancePct}
-        topCategory={topCategory}
-        topCategoryAmount={topCategoryAmount}
-        topCategoryPct={topCategoryPct}
-        // Habits
-        habitScore={habitScore}
-        habitRating={habitRating}
-        lowestHabit={lowestHabit}
-        lowestHabitCount={lowestHabitCount}
-        lowestHabitPossibleDays={lowestHabitPossibleDays}
-        habits={habits}
-        isHabitDoneOn={isHabitDoneOn}
-        // Activity
-        totalRunningKm={totalRunningKm}
-        totalGymSessions={totalGymSessions}
-        totalVolumeLiftedKg={totalVolumeLiftedKg}
-        totalPagesRead={totalPagesRead}
-        totalActiveOutputMins={totalActiveOutputMins}
-        scopedActivities={scopedActivities}
-        // Tasks & Goals
-        scopedTasks={scopedTasks}
-        tasksCompletionRate={taskCompletionPct}
-        highPriorityTasks={highPriorityTasks}
-        highPriorityCompleted={highPriorityCompleted}
-        goalsOnTrackCount={goalsOnTrackCount}
-        goalsNeedsFocusCount={goalsNeedsFocusCount}
-        goalsAtRiskCount={goalsAtRiskCount}
-        // Journal
-        journalEntries={journalEntries}
-        currency={dashboard?.currency || '₹'}
-      />
-
-      {/* 📈 4. DYNAMIC X-AXIS FINANCIAL TRAJECTORY GRAPH */}
-      <div className="glass-panel-dark rounded-2xl p-5 border border-slate-200 dark:border-slate-800 space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
-          <div>
-            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-              <Wallet className="w-4 h-4 text-emerald-500" />
-              <span>
-                {timeframe === 'day'
-                  ? 'Daily Expense Tracker'
-                  : timeframe === 'week'
-                  ? 'Weekly Expense Tracker'
-                  : 'Monthly Expense Tracker'}
-              </span>
-            </h3>
-          </div>
-
-          <div className="flex items-center space-x-3 text-xs font-mono">
-            {timeframe === 'month' && (
-              <>
-                <div className="flex items-center space-x-1.5">
-                  <span className="w-2.5 h-0.5 bg-rose-500 inline-block" />
-                  <span className="text-slate-500">Budget Cap</span>
-                </div>
-                <div className="flex items-center space-x-1.5">
-                  <span className="w-2.5 h-0.5 border-t-2 border-dashed border-amber-500 inline-block" />
-                  <span className="text-slate-500">Ideal Run-Rate</span>
-                </div>
-              </>
-            )}
-            {timeframe === 'week' && (
-              <div className="flex items-center space-x-1.5">
-                <span className="w-2.5 h-0.5 border-t-2 border-dashed border-amber-500 inline-block" />
-                <span className="text-slate-500">7-Day Safe Avg</span>
-              </div>
-            )}
-            <div className="flex items-center space-x-1.5">
-              <span className="w-2.5 h-1.5 bg-emerald-500 rounded inline-block" />
-              <span className="text-slate-500 font-bold">Actual Spend</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Dynamic Multi-Scale Financial Chart */}
-        <div className="h-64 w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            {timeframe === 'week' ? (
-              <BarChart data={financeChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? '#334155' : '#e2e8f0'} opacity={0.5} />
-                <XAxis dataKey="label" tick={{ fontSize: 10, fill: theme === 'dark' ? '#94a3b8' : '#64748b' }} />
-                <YAxis tick={{ fontSize: 10, fill: theme === 'dark' ? '#94a3b8' : '#64748b' }} tickFormatter={v => `₹${v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v}`} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: theme === 'dark' ? '#0f172a' : '#ffffff',
-                    borderColor: theme === 'dark' ? '#1e293b' : '#cbd5e1',
-                    borderRadius: '0.75rem',
-                    fontSize: '11px'
-                  }}
-                  formatter={(val, name) => [`₹${Number(val).toLocaleString('en-IN')}`, name === 'actualSpend' ? 'Daily Spend' : 'Safe Daily Avg']}
-                />
-                <Bar dataKey="actualSpend" fill="#10b981" radius={[6, 6, 0, 0]} name="Daily Spend" />
-                {safeDailyRate > 0 && (
-                  <Line type="monotone" dataKey="safePaceAvg" stroke="#f59e0b" strokeWidth={1.5} strokeDasharray="3 3" dot={false} name="Safe Daily Avg" />
-                )}
-              </BarChart>
-            ) : (
-              <AreaChart data={financeChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="spendGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.4} />
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0.0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? '#334155' : '#e2e8f0'} opacity={0.5} />
-                <XAxis
-                  dataKey="label"
-                  tick={{ fontSize: 10, fill: theme === 'dark' ? '#94a3b8' : '#64748b' }}
-                  interval={timeframe === 'month' ? 4 : 0}
-                />
-                <YAxis tick={{ fontSize: 10, fill: theme === 'dark' ? '#94a3b8' : '#64748b' }} tickFormatter={v => `₹${v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v}`} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: theme === 'dark' ? '#0f172a' : '#ffffff',
-                    borderColor: theme === 'dark' ? '#1e293b' : '#cbd5e1',
-                    borderRadius: '0.75rem',
-                    fontSize: '11px'
-                  }}
-                  formatter={(val, name) => [
-                    `₹${Number(val).toLocaleString('en-IN')}`,
-                    name === 'actualSpend' ? 'Actual Cumulative Spend' : name === 'idealPace' ? 'Ideal Daily Pace' : name === 'burnAllowance' ? 'Intra-Day Allowance' : 'Monthly Budget Cap'
-                  ]}
-                />
-                {timeframe === 'month' && monthlyBudgetCap > 0 && (
-                  <Line type="monotone" dataKey="budgetCap" stroke="#f43f5e" strokeWidth={1.5} strokeDasharray="4 4" dot={false} name="Budget Cap" />
-                )}
-                {timeframe === 'month' && monthlyBudgetCap > 0 && (
-                  <Line type="monotone" dataKey="idealPace" stroke="#f59e0b" strokeWidth={1.5} strokeDasharray="2 2" dot={false} name="Ideal Linear Pace" />
-                )}
-                {timeframe === 'day' && dailyTargetBurn > 0 && (
-                  <Line type="monotone" dataKey="burnAllowance" stroke="#f59e0b" strokeWidth={1.5} strokeDasharray="2 2" dot={false} name="Burn Allowance" />
-                )}
-                <Area type="monotone" dataKey="actualSpend" stroke="#10b981" strokeWidth={2.5} fill="url(#spendGrad)" name="Actual Cumulative Spend" connectNulls={false} />
-              </AreaChart>
-            )}
-          </ResponsiveContainer>
-        </div>
-
-        {/* Capital Flow Breakdown Bar */}
-        <div className="p-3 bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-slate-200 dark:border-slate-800 space-y-2">
-          <div className="flex items-center justify-between text-xs">
-            <span className="font-bold text-slate-800 dark:text-slate-200">Capital Flow Allocation</span>
-            <span className="font-mono text-slate-500 text-[11px]">Period Inflow: ₹{periodIncome.toLocaleString('en-IN')}</span>
-          </div>
-
-          <div className="w-full h-2 bg-slate-200 dark:bg-slate-950 rounded-full overflow-hidden flex">
-            <div
-              className="bg-rose-500 transition-all duration-300"
-              style={{ width: `${periodIncome > 0 ? Math.min(100, Math.round((periodExpenses / periodIncome) * 100)) : 0}%` }}
-              title={`Expenses: ₹${periodExpenses}`}
-            />
-            <div
-              className="bg-indigo-500 transition-all duration-300"
-              style={{ width: `${periodIncome > 0 ? Math.min(100, Math.round((periodInvested / periodIncome) * 100)) : 0}%` }}
-              title={`Investments: ₹${periodInvested}`}
-            />
-            <div
-              className="bg-emerald-500 transition-all duration-300"
-              style={{ width: `${periodIncome > 0 ? Math.max(0, Math.round((leftoverSurplus / periodIncome) * 100)) : 0}%` }}
-              title={`Surplus: ₹${leftoverSurplus}`}
-            />
-          </div>
-
-          <div className="flex flex-wrap items-center justify-between text-[10px] font-mono text-slate-500 pt-0.5">
-            <span>Expenses: ₹{periodExpenses.toLocaleString('en-IN')}</span>
-            <span>Investments: ₹{periodInvested.toLocaleString('en-IN')}</span>
-            <span>Leftover Surplus: ₹{Math.max(0, leftoverSurplus).toLocaleString('en-IN')}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* 🏋️ 5. ACTIVITY & PHYSICAL OUTPUT PULSE SECTION */}
-      <div className="glass-panel-dark rounded-2xl p-5 border border-slate-200 dark:border-slate-800 space-y-4">
-        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
-          <div>
-            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-              <Activity className="w-4 h-4 text-cyan-500" />
-              <span>Activity Pulse</span>
-            </h3>
-          </div>
-
-          <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-lg bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20">
-            {scopedActivities.length} Session{scopedActivities.length !== 1 ? 's' : ''} in Scope
-          </span>
-        </div>
-
-        {/* 4 Discipline Summary Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          
-          {/* 1. Cardio / Running */}
-          <div className="bg-slate-50 dark:bg-slate-900/60 rounded-xl p-3.5 border border-slate-200 dark:border-slate-800 space-y-1">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-slate-500">🏃 Cardio / Running</span>
-              <span className="text-[10px] font-mono text-slate-400">{runningActs.length} runs</span>
+          {/* 1. Vitality */}
+          <div
+            onClick={() => setActiveTab('vitality')}
+            className={`p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border transition cursor-pointer space-y-2 group ${
+              activeTab === 'vitality' ? 'border-cyan-500 ring-1 ring-cyan-500/30' : 'border-slate-200 dark:border-slate-800 hover:border-cyan-500/40'
+            }`}
+          >
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-bold text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
+                <Activity className="w-3.5 h-3.5 text-cyan-500" /> Vitality
+              </span>
+              <span className="text-lg font-black font-mono text-cyan-600 dark:text-cyan-400">
+                {physicalScore}%
+              </span>
             </div>
-            <p className="text-lg font-extrabold text-sky-600 dark:text-sky-400 font-mono">
-              {totalRunningKm.toFixed(1)} <span className="text-xs font-normal">km</span>
-            </p>
-            <p className="text-[10px] text-slate-500 flex justify-between">
-              <span>Avg Pace: {avgRunningPace > 0 ? `${avgRunningPace} min/km` : '—'}</span>
-              <span>{totalRunningMins} mins</span>
-            </p>
-          </div>
-
-          {/* 2. Gym / Strength */}
-          <div className="bg-slate-50 dark:bg-slate-900/60 rounded-xl p-3.5 border border-slate-200 dark:border-slate-800 space-y-1">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-slate-500">🏋️ Gym & Strength</span>
-              <span className="text-[10px] font-mono text-slate-400">{totalGymSessions} workouts</span>
+            <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-cyan-500 rounded-full transition-all duration-500"
+                style={{ width: `${physicalScore}%` }}
+              />
             </div>
-            <p className="text-lg font-extrabold text-rose-600 dark:text-rose-400 font-mono">
-              {totalVolumeLiftedKg.toLocaleString('en-IN')} <span className="text-xs font-normal">kg</span>
-            </p>
-            <p className="text-[10px] text-slate-500 flex justify-between">
-              <span>Tonnage Volume</span>
-              <span>{totalGymMins} mins</span>
-            </p>
-          </div>
-
-          {/* 3. Swimming & Sports */}
-          <div className="bg-slate-50 dark:bg-slate-900/60 rounded-xl p-3.5 border border-slate-200 dark:border-slate-800 space-y-1">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-slate-500">🏊 Swim & Sports</span>
-              <span className="text-[10px] font-mono text-slate-400">{swimActs.length + sportsActs.length} logs</span>
-            </div>
-            <p className="text-lg font-extrabold text-cyan-600 dark:text-cyan-400 font-mono">
-              {totalSwimLaps} <span className="text-xs font-normal">laps</span>
-            </p>
-            <p className="text-[10px] text-slate-500 flex justify-between">
-              <span>Sports: {totalSportsHours} hrs</span>
-              <span>{totalSwimMins} mins</span>
-            </p>
-          </div>
-
-          {/* 4. Reading & Learning */}
-          <div className="bg-slate-50 dark:bg-slate-900/60 rounded-xl p-3.5 border border-slate-200 dark:border-slate-800 space-y-1">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-slate-500">📚 Books & Learning</span>
-              <span className="text-[10px] font-mono text-slate-400">{readingActs.length} sessions</span>
-            </div>
-            <p className="text-lg font-extrabold text-purple-600 dark:text-purple-400 font-mono">
-              {totalPagesRead} <span className="text-xs font-normal">pages</span>
-            </p>
-            <p className="text-[10px] text-slate-500 flex justify-between">
-              <span>Deep Study</span>
-              <span>{totalLearningMins} mins</span>
-            </p>
-          </div>
-
-        </div>
-
-        {/* Discipline Distribution Chart */}
-        <div className="p-3 bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-slate-200 dark:border-slate-800 space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
-              Discipline Effort Allocation (% of active minutes in scope)
-            </span>
-            <span className="text-xs font-mono font-bold text-slate-500 dark:text-slate-400">
-              Total: {totalActiveOutputMins}m
-            </span>
-          </div>
-
-          {displayDisciplineData.length > 0 ? (
-            <div className="space-y-3">
-              {/* Stacked Percentage Bar */}
-              <div className="h-2 w-full rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden flex">
-                {displayDisciplineData.map((item, idx) => {
-                  const pct = totalActiveOutputMins > 0 ? ((item.mins / totalActiveOutputMins) * 100).toFixed(1) : 0;
-                  return (
-                    <div
-                      key={idx}
-                      style={{ width: `${pct}%`, backgroundColor: item.color }}
-                      title={`${item.name}: ${item.mins}m (${pct}%)`}
-                      className="h-full transition-all duration-300"
-                    />
-                  );
-                })}
+            <div className="space-y-0.5 text-[10px]">
+              <div className="flex justify-between font-mono text-slate-500">
+                <span>{totalActiveOutputMins}m active</span>
+                <span>{totalRunningKm.toFixed(1)}km run</span>
               </div>
-
-              {/* Grid of disciplines */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-                {displayDisciplineData.map((item, idx) => {
-                  const pct = totalActiveOutputMins > 0 ? Math.round((item.mins / totalActiveOutputMins) * 100) : 0;
-                  return (
-                    <div key={idx} className="p-2.5 rounded-lg bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs">
-                      <div className="flex items-center space-x-2 min-w-0">
-                        <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
-                        <span className="font-bold text-slate-700 dark:text-slate-300 truncate">{item.name}</span>
-                      </div>
-                      <span className="font-mono font-extrabold text-slate-900 dark:text-slate-100 shrink-0 ml-2">
-                        {item.mins}m ({pct}%)
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          ) : (
-            <div className="p-4 rounded-lg bg-white dark:bg-slate-950 border border-dashed border-slate-200 dark:border-slate-800 text-center">
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                No activity logs recorded for this timeframe. Log runs, gym workouts, swimming, sports, or study in <span className="font-semibold text-slate-700 dark:text-slate-300">Activity Pulse</span> to see effort allocation.
+              <p className="text-slate-400 truncate font-mono">
+                {totalGymSessions} workouts • {totalPagesRead}p read
               </p>
             </div>
-          )}
-        </div>
-      </div>
+          </div>
 
-      {/* ⚡ 6. DYNAMIC X-AXIS HABIT ADHERENCE GRAPH */}
-      <div className="glass-panel-dark rounded-2xl p-5 border border-slate-200 dark:border-slate-800 space-y-4">
-        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
-          <div>
-            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-              <Flame className="w-4 h-4 text-amber-500" />
-              <span>
-                {timeframe === 'day'
-                  ? 'Daily Habit Tracker'
-                  : timeframe === 'week'
-                  ? 'Weekly Habit Tracker'
-                  : 'Monthly Habit Tracker'}
+          {/* 2. Discipline */}
+          <div
+            onClick={() => setActiveTab('habits')}
+            className={`p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border transition cursor-pointer space-y-2 group ${
+              activeTab === 'habits' ? 'border-amber-500 ring-1 ring-amber-500/30' : 'border-slate-200 dark:border-slate-800 hover:border-amber-500/40'
+            }`}
+          >
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-bold text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
+                <Flame className="w-3.5 h-3.5 text-amber-500" /> Discipline
               </span>
-            </h3>
-          </div>
-          <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-            {habitScore}% Score
-          </span>
-        </div>
-
-        <div className="h-44 w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={habitChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? '#334155' : '#e2e8f0'} opacity={0.5} />
-              <XAxis dataKey="label" tick={{ fontSize: 10, fill: theme === 'dark' ? '#94a3b8' : '#64748b' }} />
-              <YAxis domain={[0, 100]} tick={{ fontSize: 10, fill: theme === 'dark' ? '#94a3b8' : '#64748b' }} tickFormatter={v => `${v}%`} />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: theme === 'dark' ? '#0f172a' : '#ffffff',
-                  borderColor: theme === 'dark' ? '#1e293b' : '#cbd5e1',
-                  borderRadius: '0.75rem',
-                  fontSize: '11px'
-                }}
-                formatter={(val, name, props) => [`${val}% (${props.payload.doneCount} routines)`, 'Adherence']}
-              />
-              <Bar dataKey="completionPct" fill="#f59e0b" radius={[6, 6, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      {/* 📋 7. TO-DO LIST & TASK EXECUTION */}
-      <div className="glass-panel-dark rounded-2xl p-5 border border-slate-200 dark:border-slate-800 space-y-4">
-        
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-3">
-          <div>
-            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-              <CheckSquare className="w-4 h-4 text-emerald-500" />
-              <span>
-                {timeframe === 'day'
-                  ? 'Daily To-Do List'
-                  : timeframe === 'week'
-                  ? 'Weekly To-Do List'
-                  : 'Monthly To-Do List'}
+              <span className="text-lg font-black font-mono text-amber-600 dark:text-amber-400">
+                {disciplineScore}%
               </span>
-            </h3>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-              {taskCompletionPct}% Score
-            </span>
-
-            {/* Filter Tabs: All | Pending | Completed */}
-            <div className="flex items-center space-x-1 bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-200 dark:border-slate-800 text-xs">
-              <button
-                onClick={() => setTaskTabFilter('all')}
-                className={`px-2.5 py-1 rounded-lg font-bold transition cursor-pointer ${
-                  taskTabFilter === 'all'
-                    ? 'bg-emerald-600 text-white shadow-sm'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                }`}
-              >
-                All ({scopedTasks.length})
-              </button>
-              <button
-                onClick={() => setTaskTabFilter('pending')}
-                className={`px-2.5 py-1 rounded-lg font-bold transition cursor-pointer ${
-                  taskTabFilter === 'pending'
-                    ? 'bg-emerald-600 text-white shadow-sm'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                }`}
-              >
-                Pending ({pendingScopedTasks.length})
-              </button>
-              <button
-                onClick={() => setTaskTabFilter('completed')}
-                className={`px-2.5 py-1 rounded-lg font-bold transition cursor-pointer ${
-                  taskTabFilter === 'completed'
-                    ? 'bg-emerald-600 text-white shadow-sm'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                }`}
-              >
-                Completed ({completedScopedTasks.length})
-              </button>
             </div>
-          </div>
-        </div>
-
-        {/* Priority Execution Breakdown Bar */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div className="bg-slate-50 dark:bg-slate-900/60 rounded-xl p-3 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block" />
-              <span className="text-xs font-bold text-slate-700 dark:text-slate-300">High Priority</span>
-            </div>
-            <span className="text-xs font-mono font-bold text-rose-600 dark:text-rose-400">
-              {highPriorityCompleted} / {highPriorityTasks.length}
-            </span>
-          </div>
-
-          <div className="bg-slate-50 dark:bg-slate-900/60 rounded-xl p-3 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block" />
-              <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Medium Priority</span>
-            </div>
-            <span className="text-xs font-mono font-bold text-amber-600 dark:text-amber-400">
-              {medPriorityCompleted} / {medPriorityTasks.length}
-            </span>
-          </div>
-
-          <div className="bg-slate-50 dark:bg-slate-900/60 rounded-xl p-3 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-cyan-500 inline-block" />
-              <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Low Priority</span>
-            </div>
-            <span className="text-xs font-mono font-bold text-cyan-600 dark:text-cyan-400">
-              {lowPriorityCompleted} / {lowPriorityTasks.length}
-            </span>
-          </div>
-        </div>
-
-        {/* Task Progress Bar */}
-        <div className="space-y-1">
-          <div className="flex items-center justify-between text-[11px] font-mono text-slate-400">
-            <span>Execution Completion</span>
-            <span>{taskCompletionPct}%</span>
-          </div>
-          <div className="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
-            <div
-              className="bg-emerald-500 h-full transition-all duration-500 rounded-full"
-              style={{ width: `${taskCompletionPct}%` }}
-            />
-          </div>
-        </div>
-
-        {/* Task List Feed */}
-        {displayTasks.length === 0 ? (
-          <div className="text-center p-6 bg-slate-50 dark:bg-slate-900/30 rounded-xl border border-slate-200 dark:border-slate-800/60 text-xs text-slate-500 italic">
-            {taskTabFilter === 'completed'
-              ? 'No completed tasks in this timeframe yet.'
-              : taskTabFilter === 'pending'
-              ? 'No pending tasks in this timeframe. Everything is complete!'
-              : 'No tasks scheduled in this timeframe.'}
-          </div>
-        ) : (
-          <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
-            {displayTasks.map(task => (
+            <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
               <div
-                key={task.id}
-                onClick={() => toggleTaskComplete(task.id)}
-                className={`flex items-center justify-between p-3 rounded-xl border transition cursor-pointer group ${
-                  task.completed
-                    ? 'bg-slate-50/50 dark:bg-slate-900/20 border-slate-200/50 dark:border-slate-800/40 opacity-70'
-                    : 'bg-white dark:bg-slate-900/60 border-slate-200 dark:border-slate-800 hover:border-emerald-500/40 shadow-sm'
-                }`}
-              >
-                <div className="flex items-center space-x-3 min-w-0">
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleTaskComplete(task.id);
-                    }}
-                    className={`p-1 rounded-lg transition shrink-0 ${
-                      task.completed
-                        ? 'bg-emerald-500 text-white'
-                        : 'text-slate-400 hover:text-emerald-500 hover:bg-emerald-500/10'
-                    }`}
-                  >
-                    <Check className="w-3.5 h-3.5" />
-                  </button>
+                className="h-full bg-amber-500 rounded-full transition-all duration-500"
+                style={{ width: `${disciplineScore}%` }}
+              />
+            </div>
+            <div className="space-y-0.5 text-[10px]">
+              <div className="flex justify-between font-mono text-slate-500">
+                <span>{habitRating}</span>
+                <span>{topStreak}d streak</span>
+              </div>
+              <p className="text-slate-400 truncate font-mono">
+                {habitDeltaText}
+              </p>
+            </div>
+          </div>
 
-                  <div className="min-w-0">
-                    <p className={`text-xs font-medium truncate ${
-                      task.completed ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-900 dark:text-slate-100'
-                    }`}>
-                      {task.title}
-                    </p>
-
-                    <div className="flex flex-wrap items-center gap-1.5 mt-0.5 text-[10px]">
-                      {task.category && (
-                        <span className="text-slate-400 font-mono">{task.category}</span>
-                      )}
-                      {task.dueDate && (
-                        <span className="text-slate-400 font-mono">• Due: {task.dueDate}</span>
-                      )}
-                      {task.linkedGoalTitle && (
-                        <span className="text-indigo-500 dark:text-indigo-400 font-mono">• 🧭 {task.linkedGoalTitle}</span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Priority Badge */}
-                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${
-                  task.priority === 'high'
-                    ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20'
-                    : task.priority === 'medium'
-                    ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20'
-                    : 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20'
-                }`}>
-                  {task.priority === 'high' ? '🔴 High' : task.priority === 'medium' ? '🟡 Medium' : '🔵 Low'}
+          {/* 3. Cashflow */}
+          <div
+            onClick={() => setActiveTab('finance')}
+            className={`p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border transition cursor-pointer space-y-2 group ${
+              activeTab === 'finance' ? 'border-emerald-500 ring-1 ring-emerald-500/30' : 'border-slate-200 dark:border-slate-800 hover:border-emerald-500/40'
+            }`}
+          >
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-bold text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
+                <Wallet className="w-3.5 h-3.5 text-emerald-500" /> Cashflow
+              </span>
+              <span className="text-lg font-black font-mono text-emerald-600 dark:text-emerald-400">
+                {financialScore}%
+              </span>
+            </div>
+            <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-emerald-500 rounded-full transition-all duration-500"
+                style={{ width: `${financialScore}%` }}
+              />
+            </div>
+            <div className="space-y-0.5 text-[10px]">
+              <div className="flex justify-between font-mono">
+                <span className="text-slate-900 dark:text-slate-200 font-bold">₹{actualDailyRate.toLocaleString('en-IN')}/day</span>
+                <span className={isUnderBudget ? 'text-emerald-500 font-bold' : 'text-rose-500 font-bold'}>
+                  {isUnderBudget ? `-${Math.abs(budgetVariancePct)}%` : `+${budgetVariancePct}%`}
                 </span>
               </div>
-            ))}
+              <p className="text-slate-400 truncate font-mono">
+                Safe: ₹{Math.round(safeDailyRate).toLocaleString('en-IN')}/d (₹{Math.max(0, budgetBufferRemaining).toLocaleString('en-IN')} buffer)
+              </p>
+            </div>
           </div>
-        )}
 
+          {/* 4. Execution */}
+          <div
+            onClick={() => setActiveTab('execution')}
+            className={`p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border transition cursor-pointer space-y-2 group ${
+              activeTab === 'execution' ? 'border-indigo-500 ring-1 ring-indigo-500/30' : 'border-slate-200 dark:border-slate-800 hover:border-indigo-500/40'
+            }`}
+          >
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-bold text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
+                <CheckSquare className="w-3.5 h-3.5 text-indigo-500" /> Execution
+              </span>
+              <span className="text-lg font-black font-mono text-indigo-600 dark:text-indigo-400">
+                {executionScore}%
+              </span>
+            </div>
+            <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-indigo-500 rounded-full transition-all duration-500"
+                style={{ width: `${executionScore}%` }}
+              />
+            </div>
+            <div className="space-y-0.5 text-[10px]">
+              <div className="flex justify-between font-mono text-slate-500">
+                <span>{completedScopedTasks.length}/{scopedTasks.length} tasks done</span>
+                <span className="text-emerald-600 dark:text-emerald-400 font-bold">{goalsOnTrackCount}/{goals.length} goals</span>
+              </div>
+              <p className="text-slate-400 truncate font-mono">
+                {highPriorityTasks.length - highPriorityCompleted} High Priority pending
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* 🎯 8. CONSOLIDATED STRATEGIC GOAL PROGRESS & MILESTONES */}
-      <div className="glass-panel-dark rounded-2xl p-5 border border-slate-200 dark:border-slate-800 space-y-4">
-        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
-          <div>
-            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-              <Compass className="w-4 h-4 text-indigo-500" />
-              <span>Goal Progress</span>
-            </h3>
-          </div>
-          <span className="text-xs font-mono font-bold text-slate-500">
-            {goals.length} Active Objectives
-          </span>
-        </div>
+      {/* 🧭 3. PILLAR SEGMENT NAVIGATION TABS */}
+      <div className="flex items-center space-x-1.5 overflow-x-auto pb-1 scrollbar-none">
+        {PILLAR_TABS.map((tab) => {
+          const Icon = tab.icon;
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center space-x-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer ${
+                isActive
+                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                  : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:border-slate-300 dark:hover:border-slate-700'
+              }`}
+            >
+              <Icon className="w-3.5 h-3.5" />
+              <span>{tab.label}</span>
+            </button>
+          );
+        })}
+      </div>
 
-        {goals.length === 0 ? (
-          <p className="text-xs text-slate-500 italic text-center p-6">No goals defined yet.</p>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {(goals || []).map((g) => {
-              const currentAmt = Number(g.currentAmount ?? g.current_amount ?? 0) || 0;
-              const targetAmt = Number(g.targetAmount ?? g.target_amount ?? 1) || 1;
-              const pct = targetAmt > 0 ? Math.min(100, Math.round((currentAmt / targetAmt) * 100)) : 0;
-              const deadlineStr = g.deadline || g.targetDate || g.target_date || todayStr;
-              const daysLeft = getISTDateDiffDays(deadlineStr, todayStr);
-              const isAhead = pct >= 50;
-              const subGoals = g.subGoals || g.sub_goals || [];
-              const completedSubs = subGoals.filter(s => s.completed).length;
+      {/* 🌟 4. TABBED CONTENT ROUTER */}
 
-              return (
+      {/* TAB A: OVERVIEW */}
+      {activeTab === 'all' && (
+        <div className="space-y-6 animate-in fade-in duration-150">
+          {/* Smart Pulse Intelligence */}
+          <SmartPulseIntelligence
+            timeframe={timeframe}
+            selectedDate={selectedDate}
+            activeWeekBadge={activeWeekBadge}
+            selectedMonthName={MONTH_NAMES_FULL[selectedMonth - 1]}
+            selectedYear={selectedYear}
+            periodIncome={periodIncome}
+            periodLivingExpenses={periodLivingExpenses}
+            periodGrossExpenses={periodGrossExpenses}
+            periodInvested={periodInvested}
+            leftoverSurplus={leftoverSurplus}
+            actualDailyRate={actualDailyRate}
+            safeDailyRate={safeDailyRate}
+            budgetBufferRemaining={budgetBufferRemaining}
+            budgetVariancePct={budgetVariancePct}
+            topCategory={topCategory}
+            topCategoryAmount={topCategoryAmount}
+            topCategoryPct={topCategoryPct}
+            habitScore={habitScore}
+            habitRating={habitRating}
+            lowestHabit={lowestHabit}
+            lowestHabitCount={lowestHabitCount}
+            lowestHabitPossibleDays={lowestHabitPossibleDays}
+            habits={habits}
+            isHabitDoneOn={isHabitDoneOn}
+            totalRunningKm={totalRunningKm}
+            totalGymSessions={totalGymSessions}
+            totalVolumeLiftedKg={totalVolumeLiftedKg}
+            totalPagesRead={totalPagesRead}
+            totalActiveOutputMins={totalActiveOutputMins}
+            scopedActivities={scopedActivities}
+            scopedTasks={scopedTasks}
+            tasksCompletionRate={taskCompletionPct}
+            highPriorityTasks={highPriorityTasks}
+            highPriorityCompleted={highPriorityCompleted}
+            goalsOnTrackCount={goalsOnTrackCount}
+            goalsNeedsFocusCount={goalsNeedsFocusCount}
+            goalsAtRiskCount={goalsAtRiskCount}
+            journalEntries={journalEntries}
+            currency={dashboard?.currency || '₹'}
+          />
+
+          {/* Financial Trajectory Section */}
+          <div className="glass-panel-dark rounded-2xl p-5 border border-slate-200 dark:border-slate-800 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                  <Wallet className="w-4 h-4 text-emerald-500" />
+                  <span>
+                    {timeframe === 'day'
+                      ? 'Daily Expense Tracker'
+                      : timeframe === 'week'
+                      ? 'Weekly Expense Tracker'
+                      : 'Monthly Expense Tracker'}
+                  </span>
+                </h3>
+              </div>
+
+              <div className="flex items-center space-x-3 text-xs font-mono">
+                {timeframe === 'month' && (
+                  <>
+                    <div className="flex items-center space-x-1.5">
+                      <span className="w-2.5 h-0.5 bg-rose-500 inline-block" />
+                      <span className="text-slate-500">Budget Cap</span>
+                    </div>
+                    <div className="flex items-center space-x-1.5">
+                      <span className="w-2.5 h-0.5 border-t-2 border-dashed border-amber-500 inline-block" />
+                      <span className="text-slate-500">Ideal Run-Rate</span>
+                    </div>
+                  </>
+                )}
+                {timeframe === 'week' && (
+                  <div className="flex items-center space-x-1.5">
+                    <span className="w-2.5 h-0.5 border-t-2 border-dashed border-amber-500 inline-block" />
+                    <span className="text-slate-500">7-Day Safe Avg</span>
+                  </div>
+                )}
+                <div className="flex items-center space-x-1.5">
+                  <span className="w-2.5 h-1.5 bg-emerald-500 rounded inline-block" />
+                  <span className="text-slate-500 font-bold">Actual Spend</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Dynamic Multi-Scale Financial Chart */}
+            <div className="h-64 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                {timeframe === 'week' ? (
+                  <BarChart data={financeChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? '#334155' : '#e2e8f0'} opacity={0.5} />
+                    <XAxis dataKey="label" tick={{ fontSize: 10, fill: theme === 'dark' ? '#94a3b8' : '#64748b' }} />
+                    <YAxis tick={{ fontSize: 10, fill: theme === 'dark' ? '#94a3b8' : '#64748b' }} tickFormatter={v => `₹${v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v}`} />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: theme === 'dark' ? '#0f172a' : '#ffffff',
+                        borderColor: theme === 'dark' ? '#1e293b' : '#cbd5e1',
+                        borderRadius: '0.75rem',
+                        fontSize: '11px'
+                      }}
+                      formatter={(val, name) => [`₹${Number(val).toLocaleString('en-IN')}`, name === 'actualSpend' ? 'Daily Spend' : 'Safe Daily Avg']}
+                    />
+                    <Bar dataKey="actualSpend" fill="#10b981" radius={[6, 6, 0, 0]} name="Daily Spend" />
+                    {safeDailyRate > 0 && (
+                      <Line type="monotone" dataKey="safePaceAvg" stroke="#f59e0b" strokeWidth={1.5} strokeDasharray="3 3" dot={false} name="Safe Daily Avg" />
+                    )}
+                  </BarChart>
+                ) : (
+                  <AreaChart data={financeChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="spendGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.4} />
+                        <stop offset="95%" stopColor="#10b981" stopOpacity={0.0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? '#334155' : '#e2e8f0'} opacity={0.5} />
+                    <XAxis
+                      dataKey="label"
+                      tick={{ fontSize: 10, fill: theme === 'dark' ? '#94a3b8' : '#64748b' }}
+                      interval={timeframe === 'month' ? 4 : 0}
+                    />
+                    <YAxis tick={{ fontSize: 10, fill: theme === 'dark' ? '#94a3b8' : '#64748b' }} tickFormatter={v => `₹${v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v}`} />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: theme === 'dark' ? '#0f172a' : '#ffffff',
+                        borderColor: theme === 'dark' ? '#1e293b' : '#cbd5e1',
+                        borderRadius: '0.75rem',
+                        fontSize: '11px'
+                      }}
+                      formatter={(val, name) => [
+                        `₹${Number(val).toLocaleString('en-IN')}`,
+                        name === 'actualSpend' ? 'Actual Cumulative Spend' : name === 'idealPace' ? 'Ideal Daily Pace' : name === 'burnAllowance' ? 'Intra-Day Allowance' : 'Monthly Budget Cap'
+                      ]}
+                    />
+                    {timeframe === 'month' && monthlyBudgetCap > 0 && (
+                      <Line type="monotone" dataKey="budgetCap" stroke="#f43f5e" strokeWidth={1.5} strokeDasharray="4 4" dot={false} name="Budget Cap" />
+                    )}
+                    {timeframe === 'month' && monthlyBudgetCap > 0 && (
+                      <Line type="monotone" dataKey="idealPace" stroke="#f59e0b" strokeWidth={1.5} strokeDasharray="2 2" dot={false} name="Ideal Linear Pace" />
+                    )}
+                    {timeframe === 'day' && dailyTargetBurn > 0 && (
+                      <Line type="monotone" dataKey="burnAllowance" stroke="#f59e0b" strokeWidth={1.5} strokeDasharray="2 2" dot={false} name="Burn Allowance" />
+                    )}
+                    <Area type="monotone" dataKey="actualSpend" stroke="#10b981" strokeWidth={2.5} fill="url(#spendGrad)" name="Actual Cumulative Spend" connectNulls={false} />
+                  </AreaChart>
+                )}
+              </ResponsiveContainer>
+            </div>
+
+            {/* Capital Flow Breakdown Bar */}
+            <div className="p-3 bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-slate-200 dark:border-slate-800 space-y-2">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-bold text-slate-800 dark:text-slate-200">Capital Flow Allocation</span>
+                <span className="font-mono text-slate-500 text-[11px]">Period Inflow: ₹{periodIncome.toLocaleString('en-IN')}</span>
+              </div>
+
+              <div className="w-full h-2 bg-slate-200 dark:bg-slate-950 rounded-full overflow-hidden flex">
                 <div
-                  key={g.id || g.title}
-                  className="p-3.5 bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-slate-200 dark:border-slate-800 space-y-2.5"
+                  className="bg-rose-500 transition-all duration-300"
+                  style={{ width: `${periodIncome > 0 ? Math.min(100, Math.round((periodExpenses / periodIncome) * 100)) : 0}%` }}
+                  title={`Expenses: ₹${periodExpenses}`}
+                />
+                <div
+                  className="bg-indigo-500 transition-all duration-300"
+                  style={{ width: `${periodIncome > 0 ? Math.min(100, Math.round((periodInvested / periodIncome) * 100)) : 0}%` }}
+                  title={`Investments: ₹${periodInvested}`}
+                />
+                <div
+                  className="bg-emerald-500 transition-all duration-300"
+                  style={{ width: `${periodIncome > 0 ? Math.max(0, Math.round((leftoverSurplus / periodIncome) * 100)) : 0}%` }}
+                  title={`Surplus: ₹${leftoverSurplus}`}
+                />
+              </div>
+
+              <div className="flex flex-wrap items-center justify-between text-[10px] font-mono text-slate-500 pt-0.5">
+                <span>Expenses: ₹{periodExpenses.toLocaleString('en-IN')}</span>
+                <span>Investments: ₹{periodInvested.toLocaleString('en-IN')}</span>
+                <span>Leftover Surplus: ₹{Math.max(0, leftoverSurplus).toLocaleString('en-IN')}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* 2-Column Grid: Habit Tracker + Activity Effort Distribution */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Habit Adherence Graph */}
+            <div className="glass-panel-dark rounded-2xl p-5 border border-slate-200 dark:border-slate-800 space-y-4 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                    <Flame className="w-4 h-4 text-amber-500" />
+                    <span>Habit Rhythm Adherence</span>
+                  </h3>
+                  <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                    {habitScore}% Score
+                  </span>
+                </div>
+
+                <div className="h-44 w-full mt-4">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={habitChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? '#334155' : '#e2e8f0'} opacity={0.5} />
+                      <XAxis dataKey="label" tick={{ fontSize: 10, fill: theme === 'dark' ? '#94a3b8' : '#64748b' }} />
+                      <YAxis domain={[0, 100]} tick={{ fontSize: 10, fill: theme === 'dark' ? '#94a3b8' : '#64748b' }} tickFormatter={v => `${v}%`} />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: theme === 'dark' ? '#0f172a' : '#ffffff',
+                          borderColor: theme === 'dark' ? '#1e293b' : '#cbd5e1',
+                          borderRadius: '0.75rem',
+                          fontSize: '11px'
+                        }}
+                        formatter={(val, name, props) => [`${val}% (${props.payload.doneCount} routines)`, 'Adherence']}
+                      />
+                      <Bar dataKey="completionPct" fill="#f59e0b" radius={[6, 6, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-[11px]">
+                <span className="text-slate-500 font-mono">{habitDeltaText}</span>
+                <button
+                  onClick={() => navigate('/habits')}
+                  className="font-bold text-amber-600 dark:text-amber-400 hover:underline flex items-center gap-1 cursor-pointer"
                 >
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100">{g.title}</h4>
-                      <div className="flex items-center space-x-1.5 text-[10px] text-slate-500 mt-0.5">
-                        <span className="px-1.5 py-0.2 rounded bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-semibold border border-indigo-500/20">
-                          {g.category || 'General'}
-                        </span>
-                        <span>•</span>
-                        <span>{g.horizon === 'short' ? '⚡ Short-Term' : '🏔️ Long-Term'}</span>
-                        <span>•</span>
-                        <span className="font-mono">{daysLeft} days left</span>
-                      </div>
+                  <span>Habits Hub</span>
+                  <ArrowRight className="w-3 h-3" />
+                </button>
+              </div>
+            </div>
+
+            {/* Activity Effort Allocation */}
+            <div className="glass-panel-dark rounded-2xl p-5 border border-slate-200 dark:border-slate-800 space-y-4 flex flex-col justify-between">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                    <Activity className="w-4 h-4 text-cyan-500" />
+                    <span>Discipline Effort Allocation</span>
+                  </h3>
+                  <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-lg bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20">
+                    {totalActiveOutputMins}m Total
+                  </span>
+                </div>
+
+                {displayDisciplineData.length > 0 ? (
+                  <div className="space-y-3 pt-2">
+                    {/* Stacked Percentage Bar */}
+                    <div className="h-2.5 w-full rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden flex">
+                      {displayDisciplineData.map((item, idx) => {
+                        const pct = totalActiveOutputMins > 0 ? ((item.mins / totalActiveOutputMins) * 100).toFixed(1) : 0;
+                        return (
+                          <div
+                            key={idx}
+                            style={{ width: `${pct}%`, backgroundColor: item.color }}
+                            title={`${item.name}: ${item.mins}m (${pct}%)`}
+                            className="h-full transition-all duration-300"
+                          />
+                        );
+                      })}
                     </div>
 
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
-                      isAhead
-                        ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-                        : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
-                    }`}>
-                      {pct}%
+                    {/* Consolidated Discipline Chips Grid */}
+                    <div className="grid grid-cols-2 gap-2 pt-1">
+                      {displayDisciplineData.map((item, idx) => {
+                        const pct = totalActiveOutputMins > 0 ? Math.round((item.mins / totalActiveOutputMins) * 100) : 0;
+                        return (
+                          <div key={idx} className="p-2 rounded-lg bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs">
+                            <div className="flex items-center space-x-1.5 min-w-0">
+                              <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
+                              <span className="font-semibold text-slate-700 dark:text-slate-300 truncate text-[11px]">{item.name}</span>
+                            </div>
+                            <span className="font-mono font-bold text-slate-900 dark:text-slate-100 shrink-0 ml-1 text-[11px]">
+                              {item.mins}m ({pct}%)
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-6 rounded-lg bg-slate-50 dark:bg-slate-900/40 border border-dashed border-slate-200 dark:border-slate-800 text-center my-auto">
+                    <p className="text-xs text-slate-500">No activity logs recorded for this timeframe.</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-[11px]">
+                <span className="text-slate-500 font-mono">{scopedActivities.length} sessions in scope</span>
+                <button
+                  onClick={() => navigate('/activity')}
+                  className="font-bold text-cyan-600 dark:text-cyan-400 hover:underline flex items-center gap-1 cursor-pointer"
+                >
+                  <span>Activity Hub</span>
+                  <ArrowRight className="w-3 h-3" />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Execution Velocity & Goal Feasibility Matrix */}
+          <div className="glass-panel-dark rounded-2xl p-5 border border-slate-200 dark:border-slate-800 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                <CheckSquare className="w-4 h-4 text-emerald-500" />
+                <span>Execution Throughput & Strategic Feasibility</span>
+              </h3>
+              <span className="text-xs font-mono font-bold text-slate-500">
+                {taskCompletionPct}% Tasks • {goalsOnTrackCount}/{goals.length} Goals
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Task Velocity Card */}
+              <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-3 flex flex-col justify-between">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200">To-Do Execution Breakdown</span>
+                    <span className="text-[11px] font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                      {completedScopedTasks.length}/{scopedTasks.length} Completed
                     </span>
                   </div>
 
-                  {/* Progress Bar */}
-                  <div className="space-y-1">
-                    <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-950 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-indigo-500 rounded-full transition-all duration-300"
-                        style={{ width: `${pct}%` }}
-                      />
+                  <div className="w-full bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+                    <div
+                      className="bg-emerald-500 h-full transition-all duration-500 rounded-full"
+                      style={{ width: `${taskCompletionPct}%` }}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-1.5 pt-1 text-[11px] font-mono">
+                    <div className="p-1.5 rounded-lg bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-center">
+                      <span className="text-rose-500 font-bold block">{highPriorityCompleted}/{highPriorityTasks.length}</span>
+                      <span className="text-[9px] text-slate-400">High Pri</span>
                     </div>
-                    
-                    <div className="flex justify-between text-[10px] font-mono text-slate-500">
-                      <span>{g.unit === '₹' ? `₹${Number(g.currentAmount).toLocaleString('en-IN')}` : `${g.currentAmount} ${g.unit}`}</span>
-                      <span>{g.unit === '₹' ? `₹${Number(g.targetAmount).toLocaleString('en-IN')}` : `${g.targetAmount} ${g.unit}`}</span>
+                    <div className="p-1.5 rounded-lg bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-center">
+                      <span className="text-amber-500 font-bold block">{medPriorityCompleted}/{medPriorityTasks.length}</span>
+                      <span className="text-[9px] text-slate-400">Med Pri</span>
+                    </div>
+                    <div className="p-1.5 rounded-lg bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-center">
+                      <span className="text-cyan-500 font-bold block">{lowPriorityCompleted}/{lowPriorityTasks.length}</span>
+                      <span className="text-[9px] text-slate-400">Low Pri</span>
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => navigate('/tasks')}
+                  className="w-full py-2 px-3 rounded-xl bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer mt-2"
+                >
+                  <span>Manage Tasks & Action Board</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              {/* Goal Feasibility Card */}
+              <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-3 flex flex-col justify-between">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Goal Viability Status</span>
+                    <span className="text-[11px] font-mono font-bold text-indigo-600 dark:text-indigo-400">
+                      {goals.length} Strategic Goals
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-1.5 text-[11px] font-mono">
+                    <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-center">
+                      <span className="text-emerald-600 dark:text-emerald-400 font-bold text-sm block">{goalsOnTrackCount}</span>
+                      <span className="text-[9px] text-emerald-600/80 uppercase font-semibold">On Track</span>
+                    </div>
+                    <div className="p-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-center">
+                      <span className="text-amber-600 dark:text-amber-400 font-bold text-sm block">{goalsNeedsFocusCount}</span>
+                      <span className="text-[9px] text-amber-600/80 uppercase font-semibold">Pacing</span>
+                    </div>
+                    <div className="p-2 rounded-lg bg-rose-500/10 border border-rose-500/20 text-center">
+                      <span className="text-rose-600 dark:text-rose-400 font-bold text-sm block">{goalsAtRiskCount}</span>
+                      <span className="text-[9px] text-rose-600/80 uppercase font-semibold">At Risk</span>
                     </div>
                   </div>
 
-                  {/* Sub-Goals Counter */}
-                  {subGoals.length > 0 && (
-                    <div className="text-[10px] text-slate-500 flex items-center justify-between pt-1 border-t border-slate-200 dark:border-slate-800">
-                      <span className="flex items-center gap-1">
-                        <Layers className="w-3 h-3 text-indigo-500" />
-                        <span>Milestones:</span>
-                      </span>
-                      <span className="font-mono font-bold text-indigo-600 dark:text-indigo-400">
-                        {completedSubs} of {subGoals.length} completed
-                      </span>
-                    </div>
-                  )}
+                  <p className="text-[10px] text-slate-400 leading-tight pt-1">
+                    Track milestone completion velocity and automated feasibility forecasts in the dedicated Goals Hub.
+                  </p>
                 </div>
-              );
-            })}
+
+                <button
+                  onClick={() => navigate('/goals')}
+                  className="w-full py-2 px-3 rounded-xl bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-700 dark:text-indigo-300 border border-indigo-500/20 text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer mt-2"
+                >
+                  <span>Manage Objectives & Milestones</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
+
+      {/* TAB B: FINANCIAL RUNWAY */}
+      {activeTab === 'finance' && (
+        <div className="space-y-6 animate-in fade-in duration-150">
+          <div className="glass-panel-dark rounded-2xl p-5 border border-slate-200 dark:border-slate-800 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                  <Wallet className="w-4 h-4 text-emerald-500" />
+                  <span>Financial Velocity & Cash Runway</span>
+                </h3>
+              </div>
+              <div className="flex items-center space-x-3 text-xs font-mono">
+                {timeframe === 'month' && (
+                  <>
+                    <div className="flex items-center space-x-1.5">
+                      <span className="w-2.5 h-0.5 bg-rose-500 inline-block" />
+                      <span className="text-slate-500">Budget Cap</span>
+                    </div>
+                    <div className="flex items-center space-x-1.5">
+                      <span className="w-2.5 h-0.5 border-t-2 border-dashed border-amber-500 inline-block" />
+                      <span className="text-slate-500">Ideal Run-Rate</span>
+                    </div>
+                  </>
+                )}
+                <div className="flex items-center space-x-1.5">
+                  <span className="w-2.5 h-1.5 bg-emerald-500 rounded inline-block" />
+                  <span className="text-slate-500 font-bold">Actual Spend</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="h-72 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                {timeframe === 'week' ? (
+                  <BarChart data={financeChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? '#334155' : '#e2e8f0'} opacity={0.5} />
+                    <XAxis dataKey="label" tick={{ fontSize: 10, fill: theme === 'dark' ? '#94a3b8' : '#64748b' }} />
+                    <YAxis tick={{ fontSize: 10, fill: theme === 'dark' ? '#94a3b8' : '#64748b' }} tickFormatter={v => `₹${v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v}`} />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: theme === 'dark' ? '#0f172a' : '#ffffff',
+                        borderColor: theme === 'dark' ? '#1e293b' : '#cbd5e1',
+                        borderRadius: '0.75rem',
+                        fontSize: '11px'
+                      }}
+                      formatter={(val, name) => [`₹${Number(val).toLocaleString('en-IN')}`, name === 'actualSpend' ? 'Daily Spend' : 'Safe Daily Avg']}
+                    />
+                    <Bar dataKey="actualSpend" fill="#10b981" radius={[6, 6, 0, 0]} name="Daily Spend" />
+                    {safeDailyRate > 0 && (
+                      <Line type="monotone" dataKey="safePaceAvg" stroke="#f59e0b" strokeWidth={1.5} strokeDasharray="3 3" dot={false} name="Safe Daily Avg" />
+                    )}
+                  </BarChart>
+                ) : (
+                  <AreaChart data={financeChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="spendGradTab" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.4} />
+                        <stop offset="95%" stopColor="#10b981" stopOpacity={0.0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? '#334155' : '#e2e8f0'} opacity={0.5} />
+                    <XAxis
+                      dataKey="label"
+                      tick={{ fontSize: 10, fill: theme === 'dark' ? '#94a3b8' : '#64748b' }}
+                      interval={timeframe === 'month' ? 4 : 0}
+                    />
+                    <YAxis tick={{ fontSize: 10, fill: theme === 'dark' ? '#94a3b8' : '#64748b' }} tickFormatter={v => `₹${v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v}`} />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: theme === 'dark' ? '#0f172a' : '#ffffff',
+                        borderColor: theme === 'dark' ? '#1e293b' : '#cbd5e1',
+                        borderRadius: '0.75rem',
+                        fontSize: '11px'
+                      }}
+                      formatter={(val, name) => [
+                        `₹${Number(val).toLocaleString('en-IN')}`,
+                        name === 'actualSpend' ? 'Actual Cumulative Spend' : name === 'idealPace' ? 'Ideal Daily Pace' : name === 'burnAllowance' ? 'Intra-Day Allowance' : 'Monthly Budget Cap'
+                      ]}
+                    />
+                    {timeframe === 'month' && monthlyBudgetCap > 0 && (
+                      <Line type="monotone" dataKey="budgetCap" stroke="#f43f5e" strokeWidth={1.5} strokeDasharray="4 4" dot={false} name="Budget Cap" />
+                    )}
+                    {timeframe === 'month' && monthlyBudgetCap > 0 && (
+                      <Line type="monotone" dataKey="idealPace" stroke="#f59e0b" strokeWidth={1.5} strokeDasharray="2 2" dot={false} name="Ideal Linear Pace" />
+                    )}
+                    {timeframe === 'day' && dailyTargetBurn > 0 && (
+                      <Line type="monotone" dataKey="burnAllowance" stroke="#f59e0b" strokeWidth={1.5} strokeDasharray="2 2" dot={false} name="Burn Allowance" />
+                    )}
+                    <Area type="monotone" dataKey="actualSpend" stroke="#10b981" strokeWidth={2.5} fill="url(#spendGradTab)" name="Actual Cumulative Spend" connectNulls={false} />
+                  </AreaChart>
+                )}
+              </ResponsiveContainer>
+            </div>
+
+            {/* Capital Flow Breakdown Bar */}
+            <div className="p-3 bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-slate-200 dark:border-slate-800 space-y-2">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-bold text-slate-800 dark:text-slate-200">Capital Flow Allocation</span>
+                <span className="font-mono text-slate-500 text-[11px]">Period Inflow: ₹{periodIncome.toLocaleString('en-IN')}</span>
+              </div>
+
+              <div className="w-full h-2 bg-slate-200 dark:bg-slate-950 rounded-full overflow-hidden flex">
+                <div
+                  className="bg-rose-500 transition-all duration-300"
+                  style={{ width: `${periodIncome > 0 ? Math.min(100, Math.round((periodExpenses / periodIncome) * 100)) : 0}%` }}
+                  title={`Expenses: ₹${periodExpenses}`}
+                />
+                <div
+                  className="bg-indigo-500 transition-all duration-300"
+                  style={{ width: `${periodIncome > 0 ? Math.min(100, Math.round((periodInvested / periodIncome) * 100)) : 0}%` }}
+                  title={`Investments: ₹${periodInvested}`}
+                />
+                <div
+                  className="bg-emerald-500 transition-all duration-300"
+                  style={{ width: `${periodIncome > 0 ? Math.max(0, Math.round((leftoverSurplus / periodIncome) * 100)) : 0}%` }}
+                  title={`Surplus: ₹${leftoverSurplus}`}
+                />
+              </div>
+
+              <div className="flex flex-wrap items-center justify-between text-[10px] font-mono text-slate-500 pt-0.5">
+                <span>Expenses: ₹{periodExpenses.toLocaleString('en-IN')}</span>
+                <span>Investments: ₹{periodInvested.toLocaleString('en-IN')}</span>
+                <span>Leftover Surplus: ₹{Math.max(0, leftoverSurplus).toLocaleString('en-IN')}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Financial Diagnostics Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="glass-card-dark rounded-xl p-4 border border-slate-200 dark:border-slate-800 space-y-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Burn Pacing</span>
+              <p className="text-lg font-black font-mono text-slate-900 dark:text-slate-100">
+                ₹{actualDailyRate.toLocaleString('en-IN')}<span className="text-xs font-normal text-slate-400">/day</span>
+              </p>
+              <p className="text-xs text-slate-500 font-mono">
+                Safe Ceiling: ₹{Math.round(safeDailyRate).toLocaleString('en-IN')}/day
+              </p>
+            </div>
+
+            <div className="glass-card-dark rounded-xl p-4 border border-slate-200 dark:border-slate-800 space-y-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Budget Buffer</span>
+              <p className="text-lg font-black font-mono text-emerald-600 dark:text-emerald-400">
+                ₹{Math.max(0, budgetBufferRemaining).toLocaleString('en-IN')}
+              </p>
+              <p className="text-xs text-slate-500">
+                {isUnderBudget ? 'Under planned allocation' : 'Allocation limit exceeded'}
+              </p>
+            </div>
+
+            <div className="glass-card-dark rounded-xl p-4 border border-slate-200 dark:border-slate-800 space-y-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Top Outlay Driver</span>
+              <p className="text-lg font-black text-slate-900 dark:text-slate-100 truncate">
+                {topCategory}
+              </p>
+              <p className="text-xs text-slate-500 font-mono">
+                ₹{topCategoryAmount.toLocaleString('en-IN')} ({topCategoryPct}% of total outlays)
+              </p>
+            </div>
+          </div>
+
+          <div className="text-center">
+            <button
+              onClick={() => navigate('/finance')}
+              className="inline-flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-md transition cursor-pointer"
+            >
+              <span>Manage Transactions in Finance Hub</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* TAB C: HABITS & ROUTINES */}
+      {activeTab === 'habits' && (
+        <div className="space-y-6 animate-in fade-in duration-150">
+          <div className="glass-panel-dark rounded-2xl p-5 border border-slate-200 dark:border-slate-800 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                  <Flame className="w-4 h-4 text-amber-500" />
+                  <span>Habit Adherence Tracking</span>
+                </h3>
+              </div>
+              <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                {habitScore}% Overall Score
+              </span>
+            </div>
+
+            <div className="h-64 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={habitChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? '#334155' : '#e2e8f0'} opacity={0.5} />
+                  <XAxis dataKey="label" tick={{ fontSize: 10, fill: theme === 'dark' ? '#94a3b8' : '#64748b' }} />
+                  <YAxis domain={[0, 100]} tick={{ fontSize: 10, fill: theme === 'dark' ? '#94a3b8' : '#64748b' }} tickFormatter={v => `${v}%`} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: theme === 'dark' ? '#0f172a' : '#ffffff',
+                      borderColor: theme === 'dark' ? '#1e293b' : '#cbd5e1',
+                      borderRadius: '0.75rem',
+                      fontSize: '11px'
+                    }}
+                    formatter={(val, name, props) => [`${val}% (${props.payload.doneCount} routines)`, 'Adherence']}
+                  />
+                  <Bar dataKey="completionPct" fill="#f59e0b" radius={[6, 6, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="glass-card-dark rounded-xl p-4 border border-slate-200 dark:border-slate-800 space-y-1.5">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Consistency Rating</span>
+              <p className="text-base font-bold text-amber-500">{habitRating}</p>
+              <p className="text-xs text-slate-500">{habitDeltaText}</p>
+            </div>
+
+            <div className="glass-card-dark rounded-xl p-4 border border-slate-200 dark:border-slate-800 space-y-1.5">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Streak Health</span>
+              <p className="text-base font-bold text-slate-900 dark:text-slate-100 font-mono">
+                {topStreak}d <span className="text-xs font-normal text-slate-500">top</span> • {avgHabitStreak}d <span className="text-xs font-normal text-slate-500">avg</span>
+              </p>
+              <p className="text-xs text-slate-500">Across {habits.length} active registered routines</p>
+            </div>
+
+            <div className="glass-card-dark rounded-xl p-4 border border-slate-200 dark:border-slate-800 space-y-1.5">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Lowest Adherence Nudge</span>
+              <p className="text-base font-bold text-slate-900 dark:text-slate-100 truncate">
+                {lowestHabit ? lowestHabit.name : 'All Habits On Track'}
+              </p>
+              <p className="text-xs text-slate-500">
+                {lowestHabit ? `${lowestHabitCount}/${lowestHabitPossibleDays} check-ins logged` : 'Zero habit friction detected'}
+              </p>
+            </div>
+          </div>
+
+          <div className="text-center">
+            <button
+              onClick={() => navigate('/habits')}
+              className="inline-flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold shadow-md transition cursor-pointer"
+            >
+              <span>Manage Routines in Habits Hub</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* TAB D: PHYSICAL VITALITY */}
+      {activeTab === 'vitality' && (
+        <div className="space-y-6 animate-in fade-in duration-150">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="bg-slate-50 dark:bg-slate-900/60 rounded-xl p-4 border border-slate-200 dark:border-slate-800 space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-600 dark:text-slate-400">🏃 Cardio / Running</span>
+                <span className="text-[10px] font-mono text-slate-400">{runningActs.length} runs</span>
+              </div>
+              <p className="text-xl font-extrabold text-sky-600 dark:text-sky-400 font-mono">
+                {totalRunningKm.toFixed(1)} <span className="text-xs font-normal">km</span>
+              </p>
+              <p className="text-xs text-slate-500 flex justify-between">
+                <span>Avg Pace: {avgRunningPace > 0 ? `${avgRunningPace} min/km` : '—'}</span>
+                <span>{totalRunningMins} mins</span>
+              </p>
+            </div>
+
+            <div className="bg-slate-50 dark:bg-slate-900/60 rounded-xl p-4 border border-slate-200 dark:border-slate-800 space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-600 dark:text-slate-400">🏋️ Gym & Strength</span>
+                <span className="text-[10px] font-mono text-slate-400">{totalGymSessions} sessions</span>
+              </div>
+              <p className="text-xl font-extrabold text-rose-600 dark:text-rose-400 font-mono">
+                {totalVolumeLiftedKg.toLocaleString('en-IN')} <span className="text-xs font-normal">kg</span>
+              </p>
+              <p className="text-xs text-slate-500 flex justify-between">
+                <span>Tonnage Volume</span>
+                <span>{totalGymMins} mins</span>
+              </p>
+            </div>
+
+            <div className="bg-slate-50 dark:bg-slate-900/60 rounded-xl p-4 border border-slate-200 dark:border-slate-800 space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-600 dark:text-slate-400">🏊 Swim & Sports</span>
+                <span className="text-[10px] font-mono text-slate-400">{swimActs.length + sportsActs.length} logs</span>
+              </div>
+              <p className="text-xl font-extrabold text-cyan-600 dark:text-cyan-400 font-mono">
+                {totalSwimLaps} <span className="text-xs font-normal">laps</span>
+              </p>
+              <p className="text-xs text-slate-500 flex justify-between">
+                <span>Sports: {totalSportsHours} hrs</span>
+                <span>{totalSwimMins} mins</span>
+              </p>
+            </div>
+
+            <div className="bg-slate-50 dark:bg-slate-900/60 rounded-xl p-4 border border-slate-200 dark:border-slate-800 space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-600 dark:text-slate-400">📚 Books & Learning</span>
+                <span className="text-[10px] font-mono text-slate-400">{readingActs.length} logs</span>
+              </div>
+              <p className="text-xl font-extrabold text-purple-600 dark:text-purple-400 font-mono">
+                {totalPagesRead} <span className="text-xs font-normal">pages</span>
+              </p>
+              <p className="text-xs text-slate-500 flex justify-between">
+                <span>Deep Study</span>
+                <span>{totalLearningMins} mins</span>
+              </p>
+            </div>
+          </div>
+
+          <div className="glass-panel-dark rounded-2xl p-5 border border-slate-200 dark:border-slate-800 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                <Activity className="w-4 h-4 text-cyan-500" />
+                <span>Effort Distribution by Discipline</span>
+              </h3>
+              <span className="text-xs font-mono font-bold text-slate-500">
+                {totalActiveOutputMins} Mins Total Output
+              </span>
+            </div>
+
+            {displayDisciplineData.length > 0 ? (
+              <div className="space-y-4">
+                <div className="h-3 w-full rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden flex">
+                  {displayDisciplineData.map((item, idx) => {
+                    const pct = totalActiveOutputMins > 0 ? ((item.mins / totalActiveOutputMins) * 100).toFixed(1) : 0;
+                    return (
+                      <div
+                        key={idx}
+                        style={{ width: `${pct}%`, backgroundColor: item.color }}
+                        title={`${item.name}: ${item.mins}m (${pct}%)`}
+                        className="h-full transition-all duration-300"
+                      />
+                    );
+                  })}
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
+                  {displayDisciplineData.map((item, idx) => {
+                    const pct = totalActiveOutputMins > 0 ? Math.round((item.mins / totalActiveOutputMins) * 100) : 0;
+                    return (
+                      <div key={idx} className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs">
+                        <div className="flex items-center space-x-2 min-w-0">
+                          <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
+                          <span className="font-bold text-slate-700 dark:text-slate-300 truncate">{item.name}</span>
+                        </div>
+                        <span className="font-mono font-bold text-slate-900 dark:text-slate-100 shrink-0 ml-1">
+                          {item.mins}m ({pct}%)
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
+              <div className="p-8 rounded-lg bg-slate-50 dark:bg-slate-900/40 border border-dashed border-slate-200 dark:border-slate-800 text-center">
+                <p className="text-xs text-slate-500">No activity logs recorded in this timeframe.</p>
+              </div>
+            )}
+          </div>
+
+          <div className="text-center">
+            <button
+              onClick={() => navigate('/activity')}
+              className="inline-flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold shadow-md transition cursor-pointer"
+            >
+              <span>Log Training in Activity Pulse</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* TAB E: EXECUTION & GOALS */}
+      {activeTab === 'execution' && (
+        <div className="space-y-6 animate-in fade-in duration-150">
+          <div className="glass-panel-dark rounded-2xl p-5 border border-slate-200 dark:border-slate-800 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                <CheckSquare className="w-4 h-4 text-emerald-500" />
+                <span>To-Do Execution Velocity</span>
+              </h3>
+              <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                {taskCompletionPct}% Completion Rate
+              </span>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex justify-between text-xs font-mono text-slate-500">
+                <span>Task Execution Progress</span>
+                <span>{completedScopedTasks.length} of {scopedTasks.length} Completed</span>
+              </div>
+              <div className="w-full bg-slate-200 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden">
+                <div
+                  className="bg-emerald-500 h-full transition-all duration-500 rounded-full"
+                  style={{ width: `${taskCompletionPct}%` }}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+              <div className="bg-slate-50 dark:bg-slate-900/60 rounded-xl p-3.5 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block" />
+                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300">High Priority</span>
+                </div>
+                <span className="text-xs font-mono font-bold text-rose-600 dark:text-rose-400">
+                  {highPriorityCompleted} / {highPriorityTasks.length}
+                </span>
+              </div>
+
+              <div className="bg-slate-50 dark:bg-slate-900/60 rounded-xl p-3.5 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block" />
+                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Medium Priority</span>
+                </div>
+                <span className="text-xs font-mono font-bold text-amber-600 dark:text-amber-400">
+                  {medPriorityCompleted} / {medPriorityTasks.length}
+                </span>
+              </div>
+
+              <div className="bg-slate-50 dark:bg-slate-900/60 rounded-xl p-3.5 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-cyan-500 inline-block" />
+                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Low Priority</span>
+                </div>
+                <span className="text-xs font-mono font-bold text-cyan-600 dark:text-cyan-400">
+                  {lowPriorityCompleted} / {lowPriorityTasks.length}
+                </span>
+              </div>
+            </div>
+
+            <div className="p-3 bg-slate-50 dark:bg-slate-900/40 rounded-xl border border-slate-200 dark:border-slate-800/80 flex items-center justify-between text-xs">
+              <span className="text-slate-500">
+                {pendingScopedTasks.length} pending task{pendingScopedTasks.length !== 1 ? 's' : ''} remaining in this horizon.
+              </span>
+              <button
+                onClick={() => navigate('/tasks')}
+                className="font-bold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1 cursor-pointer"
+              >
+                <span>Open Task Manager</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+
+          {/* Strategic Goals Viability Section */}
+          <div className="glass-panel-dark rounded-2xl p-5 border border-slate-200 dark:border-slate-800 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                <Compass className="w-4 h-4 text-indigo-500" />
+                <span>Strategic Objectives Feasibility</span>
+              </h3>
+              <span className="text-xs font-mono font-bold text-slate-500">
+                {goals.length} Active Goals
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-center space-y-1">
+                <span className="text-xl font-black text-emerald-600 dark:text-emerald-400 font-mono block">
+                  {goalsOnTrackCount}
+                </span>
+                <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300 uppercase tracking-wide">
+                  On Track
+                </span>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                  Healthy completion trajectory
+                </p>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-center space-y-1">
+                <span className="text-xl font-black text-amber-600 dark:text-amber-400 font-mono block">
+                  {goalsNeedsFocusCount}
+                </span>
+                <span className="text-xs font-bold text-amber-700 dark:text-amber-300 uppercase tracking-wide">
+                  Requires Acceleration
+                </span>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                  Runway pace needs boost
+                </p>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-center space-y-1">
+                <span className="text-xl font-black text-rose-600 dark:text-rose-400 font-mono block">
+                  {goalsAtRiskCount}
+                </span>
+                <span className="text-xs font-bold text-rose-700 dark:text-rose-300 uppercase tracking-wide">
+                  At Risk
+                </span>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                  Immediate triage required
+                </p>
+              </div>
+            </div>
+
+            <div className="p-3 bg-slate-50 dark:bg-slate-900/40 rounded-xl border border-slate-200 dark:border-slate-800/80 flex items-center justify-between text-xs">
+              <span className="text-slate-500">
+                Explore milestones, prescriptive velocity diagnostics, and predictive radar in Goals Hub.
+              </span>
+              <button
+                onClick={() => navigate('/goals')}
+                className="font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1 cursor-pointer"
+              >
+                <span>Open Goals Hub</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 🚀 DISCIPLINE PROOF OF WORK SHARE MODAL */}
       <DisciplineShareModal
