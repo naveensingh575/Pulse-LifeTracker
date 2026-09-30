@@ -56,6 +56,7 @@ import {
   CheckSquare,
   Share2
 } from 'lucide-react';
+import { SmartPulseIntelligence } from './SmartPulseIntelligence';
 import { DisciplineShareModal } from './DisciplineShareModal';
 import { getOperatingPersonality } from '../../utils/correlationUtils';
 
@@ -962,6 +963,49 @@ export const AnalyticsView = () => {
       {/* TAB A: OVERVIEW */}
       {activeTab === 'all' && (
         <div className="space-y-6 animate-in fade-in duration-150">
+          {/* Smart Pulse Intelligence */}
+          <SmartPulseIntelligence
+            timeframe={timeframe}
+            selectedDate={selectedDate}
+            activeWeekBadge={activeWeekBadge}
+            selectedMonthName={MONTH_NAMES_FULL[selectedMonth - 1]}
+            selectedYear={selectedYear}
+            periodIncome={periodIncome}
+            periodLivingExpenses={periodLivingExpenses}
+            periodGrossExpenses={periodGrossExpenses}
+            periodInvested={periodInvested}
+            leftoverSurplus={leftoverSurplus}
+            actualDailyRate={actualDailyRate}
+            safeDailyRate={safeDailyRate}
+            budgetBufferRemaining={budgetBufferRemaining}
+            budgetVariancePct={budgetVariancePct}
+            topCategory={topCategory}
+            topCategoryAmount={topCategoryAmount}
+            topCategoryPct={topCategoryPct}
+            habitScore={habitScore}
+            habitRating={habitRating}
+            lowestHabit={lowestHabit}
+            lowestHabitCount={lowestHabitCount}
+            lowestHabitPossibleDays={lowestHabitPossibleDays}
+            habits={habits}
+            isHabitDoneOn={isHabitDoneOn}
+            totalRunningKm={totalRunningKm}
+            totalGymSessions={totalGymSessions}
+            totalVolumeLiftedKg={totalVolumeLiftedKg}
+            totalPagesRead={totalPagesRead}
+            totalActiveOutputMins={totalActiveOutputMins}
+            scopedActivities={scopedActivities}
+            scopedTasks={scopedTasks}
+            tasksCompletionRate={taskCompletionPct}
+            highPriorityTasks={highPriorityTasks}
+            highPriorityCompleted={highPriorityCompleted}
+            goalsOnTrackCount={goalsOnTrackCount}
+            goalsNeedsFocusCount={goalsNeedsFocusCount}
+            goalsAtRiskCount={goalsAtRiskCount}
+            journalEntries={journalEntries}
+            currency={dashboard?.currency || '₹'}
+          />
+
           {/* Financial Trajectory Section */}
           <div className="glass-panel-dark rounded-2xl p-5 border border-slate-200 dark:border-slate-800 space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
