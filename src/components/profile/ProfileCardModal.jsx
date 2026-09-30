@@ -24,6 +24,7 @@ import {
   Trash2,
   FileText,
   ChevronRight,
+  ChevronDown,
   User,
   Shield,
   Check,
@@ -246,15 +247,14 @@ export const ProfileCardModal = ({ isOpen, onClose }) => {
               Preferences
             </h4>
 
-            {/* Theme Appearance Switcher */}
+            {/* Theme Switcher */}
             <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3">
               <div className="flex items-center space-x-2.5">
                 <div className="p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300">
                   {theme === 'dark' ? <Moon className="w-4 h-4 text-indigo-400" /> : <Sun className="w-4 h-4 text-amber-500" />}
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-slate-800 dark:text-slate-200">Theme Appearance</p>
-                  <p className="text-[10px] text-slate-500 dark:text-slate-400">Switch between Light & Dark mode</p>
+                  <p className="text-xs font-bold text-slate-800 dark:text-slate-200">Theme</p>
                 </div>
               </div>
 
@@ -287,44 +287,31 @@ export const ProfileCardModal = ({ isOpen, onClose }) => {
               </div>
             </div>
 
-            {/* Global Currency Picker */}
-            <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 space-y-2.5">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2.5">
-                  <div className="p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-indigo-600 dark:text-indigo-400">
-                    <Globe className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-slate-800 dark:text-slate-200">Global Currency</p>
-                    <p className="text-[10px] text-slate-500 dark:text-slate-400">Applied across all finances & budgets</p>
-                  </div>
+            {/* Global Currency Dropdown */}
+            <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3">
+              <div className="flex items-center space-x-2.5">
+                <div className="p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-indigo-600 dark:text-indigo-400">
+                  <Globe className="w-4 h-4" />
                 </div>
-                <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
-                  {currency}
-                </span>
+                <div>
+                  <p className="text-xs font-bold text-slate-800 dark:text-slate-200">Global Currency</p>
+                </div>
               </div>
 
-              {/* Currency Chip Grid */}
-              <div className="grid grid-cols-4 gap-1.5 pt-1">
-                {SUPPORTED_CURRENCIES.map((c) => {
-                  const isSelected = currency === c.symbol;
-                  return (
-                    <button
-                      key={c.code}
-                      type="button"
-                      onClick={() => handleSetCurrency(c.symbol)}
-                      className={`py-2 px-1 rounded-xl text-xs font-bold border transition flex flex-col items-center justify-center cursor-pointer ${
-                        isSelected
-                          ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm shadow-indigo-600/30 ring-2 ring-indigo-600/20'
-                          : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-100/50 dark:hover:bg-slate-800/50'
-                      }`}
-                      title={c.name}
-                    >
-                      <span className="text-sm font-black">{c.symbol}</span>
-                      <span className="text-[9px] uppercase tracking-wider font-mono opacity-80">{c.code}</span>
-                    </button>
-                  );
-                })}
+              <div className="relative">
+                <select
+                  value={currency}
+                  onChange={(e) => handleSetCurrency(e.target.value)}
+                  className="appearance-none bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 font-bold text-xs py-2 pl-3 pr-8 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer shadow-sm min-h-[38px] touch-manipulation"
+                  aria-label="Select Currency"
+                >
+                  {SUPPORTED_CURRENCIES.map((c) => (
+                    <option key={c.code} value={c.symbol} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">
+                      {c.symbol} {c.code} — {c.name}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
             </div>
           </div>

@@ -442,8 +442,8 @@ export const PolicyPage = ({ defaultTab }) => {
               <p className="font-semibold text-slate-900 dark:text-white">Billing Support Contact:</p>
               <p className="text-slate-600 dark:text-slate-400">
                 Email:{" "}
-                <a href="mailto:naveensingh575@gmail.com" className="text-indigo-600 dark:text-indigo-400 font-bold hover:underline">
-                  naveensingh575@gmail.com
+                <a href="mailto:navisingh2100@gmail.com" className="text-indigo-600 dark:text-indigo-400 font-bold hover:underline">
+                  navisingh2100@gmail.com
                 </a>
               </p>
               <p className="text-[11px] text-slate-500">

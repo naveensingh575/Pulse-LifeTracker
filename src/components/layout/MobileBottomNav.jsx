@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useDashboard } from '../../context/DashboardContext';
-import { useAuth } from '../../context/AuthContext';
-import { ProfileCardModal } from '../profile/ProfileCardModal';
 import {
   LayoutDashboard,
   Flame,
@@ -17,21 +15,13 @@ import {
   Plus,
   Sparkles,
   Crown,
-  Shield,
-  ArrowRight,
-  Gift,
-  User,
-  SlidersHorizontal
+  ArrowRight
 } from 'lucide-react';
-import { ReferralModal } from '../referral/ReferralModal';
 
 export const MobileBottomNav = ({ onOpenQuickCapture }) => {
   const [isMoreOpen, setIsMoreOpen] = useState(false);
-  const [showReferralModal, setShowReferralModal] = useState(false);
-  const [showProfileCard, setShowProfileCard] = useState(false);
   const location = useLocation();
-  const { user } = useAuth();
-  const { subscriptionTier, openPricingModal, theme, currency } = useDashboard();
+  const { subscriptionTier, openPricingModal } = useDashboard();
 
   const primaryTabs = [
     { to: '/', label: 'Pulse', icon: LayoutDashboard },
@@ -148,43 +138,6 @@ export const MobileBottomNav = ({ onOpenQuickCapture }) => {
               </button>
             )}
 
-            {/* Profile & Preferences Trigger Card */}
-            <button
-              onClick={() => {
-                setIsMoreOpen(false);
-                setShowProfileCard(true);
-              }}
-              className="w-full p-3 rounded-2xl border border-indigo-200/80 dark:border-indigo-800/60 bg-gradient-to-r from-indigo-50/80 to-purple-50/50 dark:from-indigo-950/40 dark:to-purple-950/30 hover:border-indigo-300 dark:hover:border-indigo-700 flex items-center justify-between text-left transition cursor-pointer"
-            >
-              <div className="flex items-center space-x-2.5 truncate">
-                {user?.avatar ? (
-                  <img
-                    src={user.avatar}
-                    alt={user.name || 'User'}
-                    className="w-9 h-9 rounded-xl object-cover ring-2 ring-indigo-500/30 shrink-0"
-                  />
-                ) : (
-                  <div className="p-2 rounded-xl bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 shrink-0">
-                    <User className="w-5 h-5" />
-                  </div>
-                )}
-                <div className="truncate">
-                  <div className="flex items-center gap-1.5">
-                    <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
-                      {user ? user.name : 'Profile & Preferences'}
-                    </p>
-                    <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 font-mono">
-                      {currency} • {theme === 'dark' ? '🌙 Dark' : '☀️ Light'}
-                    </span>
-                  </div>
-                  <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">
-                    Theme, currency, rate pulse & support
-                  </p>
-                </div>
-              </div>
-              <ArrowRight className="w-4 h-4 text-indigo-500 shrink-0 ml-1" />
-            </button>
-
             {/* Secondary Pillar Grid */}
             <div className="grid grid-cols-2 gap-2.5">
               {secondaryTabs.map((item) => {
@@ -212,35 +165,6 @@ export const MobileBottomNav = ({ onOpenQuickCapture }) => {
                 );
               })}
             </div>
-
-            {/* Invite Friends & Referral Trigger */}
-            <button
-              onClick={() => {
-                setIsMoreOpen(false);
-                setShowReferralModal(true);
-              }}
-              className="w-full p-3 rounded-2xl border border-amber-200 dark:border-amber-800/60 bg-amber-50/60 dark:bg-amber-950/30 hover:bg-amber-100 dark:hover:bg-amber-900/40 flex items-center justify-between text-left transition cursor-pointer"
-            >
-              <div className="flex items-center space-x-2.5">
-                <div className="p-2 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400">
-                  <Gift className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-1.5">
-                    <p className="text-xs font-bold text-slate-900 dark:text-white">
-                      Invite Friends
-                    </p>
-                    <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-700 dark:text-amber-300 uppercase font-mono">
-                      14d Pro
-                    </span>
-                  </div>
-                  <p className="text-[10px] text-slate-500 dark:text-slate-400">
-                    Give 14 days of free Pro access
-                  </p>
-                </div>
-              </div>
-              <ArrowRight className="w-4 h-4 text-amber-500 shrink-0" />
-            </button>
 
             {/* Subscription Trigger */}
             <button
@@ -277,18 +201,6 @@ export const MobileBottomNav = ({ onOpenQuickCapture }) => {
           </div>
         </div>
       )}
-
-      {/* Dedicated Referral & Invite Modal on Mobile */}
-      <ReferralModal
-        isOpen={showReferralModal}
-        onClose={() => setShowReferralModal(false)}
-      />
-
-      {/* Unified Profile & Preferences Modal on Mobile */}
-      <ProfileCardModal
-        isOpen={showProfileCard}
-        onClose={() => setShowProfileCard(false)}
-      />
     </>
   );
 };
