@@ -19,6 +19,12 @@ import {
 } from 'lucide-react';
 import { getISTDate, getISTDateString, getISTDateDiffDays } from '../../utils/dateUtils';
 
+const isCurrencyUnit = (unit) => {
+  if (!unit) return false;
+  const cleaned = String(unit).trim().toLowerCase();
+  return ['₹', '$', '€', '£', '¥', 'cad', 'aud', 'inr', 'usd', 'eur', 'gbp', 'rs', 'rs.', 'rupees'].includes(cleaned);
+};
+
 export const PredictiveFeasibility = () => {
   const {
     goals = [],
@@ -64,10 +70,10 @@ export const PredictiveFeasibility = () => {
       return {
         name: 'The Kinetic Sprinter',
         icon: '⚡',
-        badge: 'High Action & Kinetic Stamina',
+        badge: 'Rapid Sprint Execution',
         color: 'cyan',
-        summary: 'High physical stamina fueling rapid sprint execution',
-        strategyGuide: 'Morning physical momentum transfers directly into needle-moving milestone bursts.'
+        summary: 'High stamina fueling rapid sprint execution',
+        strategyGuide: 'High daily energy fuels focused milestone sprints and momentum.'
       };
     }
     if (avgHabitStreak >= 4 || (habits.length > 0 && overallTaskCompletionRate >= 70)) {
@@ -197,20 +203,38 @@ export const PredictiveFeasibility = () => {
       statusColor = 'amber';
     }
 
+    // Determine effective unit and whether this goal tracks currency
+    const rawUnit = (goal.unit || '').trim();
+    const isFinancialCategory = (goal.category || '').toLowerCase() === 'financial';
+    const isExplicitCurrencyUnit = isCurrencyUnit(rawUnit);
+    // If unit is '₹' on a non-financial goal, it was an unwanted default
+    const isUnwantedRupeeDefault = !isFinancialCategory && (rawUnit === '₹' || rawUnit.toLowerCase() === 'inr' || rawUnit.toLowerCase() === 'rs');
+    const isCurrencyGoal = isFinancialCategory && (isExplicitCurrencyUnit || !rawUnit);
+
+    let displayUnit = rawUnit;
+    if (isCurrencyGoal) {
+      displayUnit = isExplicitCurrencyUnit ? rawUnit : currency;
+    } else if (!rawUnit || isUnwantedRupeeDefault) {
+      displayUnit = '%';
+    }
+
     // Velocity & Runway Diagnostics String
     let velocityText = '';
-    if (isAchieved) {
-      velocityText = `Target reached! ${goal.currentAmount.toLocaleString()} / ${goal.targetAmount.toLocaleString()} ${goal.unit} completed (100%).`;
-    } else if (isOverdue) {
-      velocityText = `Deadline passed ${Math.abs(daysRemaining)} day${Math.abs(daysRemaining) === 1 ? '' : 's'} ago (${goal.deadline}). Gap: ${remainingNeeded.toLocaleString()} ${goal.unit}. Immediate scope triage needed.`;
-    } else if (isDueToday) {
-      velocityText = `Deadline is TODAY! Remaining gap: ${remainingNeeded.toLocaleString()} ${goal.unit}. Final push required.`;
-    } else {
-      const paceStr = goal.category === 'Financial'
-        ? `${currency}${Math.round(requiredDailyPace).toLocaleString()}/day (${currency}${Math.round(requiredWeeklyPace).toLocaleString()}/wk)`
-        : `~${requiredDailyPace.toFixed(1)} ${goal.unit}/day (~${Math.round(requiredWeeklyPace)} ${goal.unit}/wk)`;
+    const unitSymbolPrefix = isCurrencyGoal ? displayUnit : '';
+    const unitSymbolSuffix = isCurrencyGoal ? '' : ` ${displayUnit}`;
 
-      velocityText = `Remaining: ${remainingNeeded.toLocaleString()} ${goal.unit} across ${daysRemaining} days runway (${goal.deadline}). Required pace: ${paceStr}.`;
+    if (isAchieved) {
+      velocityText = `Target reached! ${unitSymbolPrefix}${goal.currentAmount.toLocaleString()}${unitSymbolSuffix} / ${unitSymbolPrefix}${goal.targetAmount.toLocaleString()}${unitSymbolSuffix} completed (100%).`;
+    } else if (isOverdue) {
+      velocityText = `Deadline passed ${Math.abs(daysRemaining)} day${Math.abs(daysRemaining) === 1 ? '' : 's'} ago (${goal.deadline || 'Overdue'}). Gap: ${unitSymbolPrefix}${remainingNeeded.toLocaleString()}${unitSymbolSuffix}. Immediate scope triage needed.`;
+    } else if (isDueToday) {
+      velocityText = `Deadline is TODAY! Remaining gap: ${unitSymbolPrefix}${remainingNeeded.toLocaleString()}${unitSymbolSuffix}. Final push required.`;
+    } else {
+      const paceStr = isCurrencyGoal
+        ? `${displayUnit}${Math.round(requiredDailyPace).toLocaleString()}/day (${displayUnit}${Math.round(requiredWeeklyPace).toLocaleString()}/wk)`
+        : `~${requiredDailyPace.toFixed(1)}${unitSymbolSuffix}/day (~${Math.round(requiredWeeklyPace)}${unitSymbolSuffix}/wk)`;
+
+      velocityText = `Remaining: ${unitSymbolPrefix}${remainingNeeded.toLocaleString()}${unitSymbolSuffix} across ${daysRemaining} days runway (${goal.deadline || 'Scheduled'}). Required pace: ${paceStr}.`;
     }
 
     // 4. PRESCRIBED ACTION STEPS (PRACTICAL & PERSONALIZED)
@@ -227,9 +251,11 @@ export const PredictiveFeasibility = () => {
     } else if (nextPendingTask) {
       suggestions.push(`Complete scheduled task: "${nextPendingTask.title}" (Priority: ${nextPendingTask.priority || 'high'})`);
     } else {
-      if (goal.category === 'Financial') {
-        suggestions.push(`Set up weekly transfer of ${currency}${Math.round(Math.max(500, requiredWeeklyPace)).toLocaleString()} toward '${goal.title}'`);
-      } else if (goal.category === 'Health') {
+      if (isCurrencyGoal) {
+        suggestions.push(`Set up weekly transfer of ${displayUnit}${Math.round(Math.max(500, requiredWeeklyPace)).toLocaleString()} toward '${goal.title}'`);
+      } else if (goal.category === 'Financial') {
+        suggestions.push(`Advance key milestones to gain ~${Math.max(1, Math.round(requiredWeeklyPace))}${unitSymbolSuffix}/week toward '${goal.title}'`);
+      } else if (goal.category === 'Health' || goal.category === 'Fitness') {
         suggestions.push(`Schedule 3 targeted training sessions in calendar for '${goal.title}' this week`);
       } else if (goal.category === 'Skill') {
         suggestions.push(`Break '${goal.title}' into next 3 concrete study modules and log 1st session`);
@@ -243,24 +269,25 @@ export const PredictiveFeasibility = () => {
       suggestions.push(`Document key lessons learned and compound this win into your next personal milestone`);
     } else if (isOverdue) {
       suggestions.push(`Extend deadline by ${Math.max(14, Math.round(remainingNeeded / Math.max(1, requiredDailyPace)))} days or re-scope target to match realistic pace`);
-    } else if (goal.category === 'Financial') {
+    } else if (isCurrencyGoal) {
       const weeklyAllocation = Math.round(requiredWeeklyPace);
-      suggestions.push(`Allocate ${currency}${weeklyAllocation.toLocaleString()}/week to reach ${currency}${Number(goal.targetAmount).toLocaleString()} on schedule`);
-    } else if (goal.category === 'Health') {
-      const sessionsPerWeek = Math.max(2, Math.min(6, Math.ceil(requiredWeeklyPace / (goal.unit.toLowerCase().includes('km') ? 5 : 1))));
-      suggestions.push(`Maintain ~${sessionsPerWeek} active sessions per week to hit ${goal.targetAmount} ${goal.unit} by ${goal.deadline}`);
+      suggestions.push(`Allocate ${displayUnit}${weeklyAllocation.toLocaleString()}/week to reach ${displayUnit}${Number(goal.targetAmount).toLocaleString()} on schedule`);
+    } else if (goal.category === 'Health' || goal.category === 'Fitness') {
+      const isKm = (displayUnit || '').toLowerCase().includes('km');
+      const sessionsPerWeek = Math.max(2, Math.min(6, Math.ceil(requiredWeeklyPace / (isKm ? 5 : 1))));
+      suggestions.push(`Maintain ~${sessionsPerWeek} active sessions per week to hit ${goal.targetAmount}${unitSymbolSuffix} by ${goal.deadline || 'deadline'}`);
     } else if (goal.category === 'Skill') {
       const hoursOrModulesWeekly = Math.max(1, Math.round(requiredWeeklyPace));
-      suggestions.push(`Dedicate ${hoursOrModulesWeekly} ${goal.unit || 'modules'}/week (~45 min daily focus) to finish by ${goal.deadline}`);
+      suggestions.push(`Dedicate ${hoursOrModulesWeekly} ${displayUnit || 'modules'}/week (~45 min daily focus) to finish by ${goal.deadline || 'deadline'}`);
     } else {
-      suggestions.push(`Pace at ~${Math.max(1, Math.round(requiredWeeklyPace))} ${goal.unit}/week across remaining ${daysRemaining} days`);
+      suggestions.push(`Pace at ~${Math.max(1, Math.round(requiredWeeklyPace))}${unitSymbolSuffix}/week across remaining ${daysRemaining} days`);
     }
 
     // STEP 3: Personality-Anchored Practical Strategy (understands user's previous data & operating archetype)
     if (userProfile.name === 'The Systematic Compounder') {
       suggestions.push(`[Strategy: Compounder] Anchor '${goal.title}' to your highest streak daily habit for effortless consistency`);
     } else if (userProfile.name === 'The Kinetic Sprinter') {
-      suggestions.push(`[Strategy: Kinetic] Tackle the hardest step for '${goal.title}' right after your morning physical workout`);
+      suggestions.push(`[Strategy: Focus] Tackle the highest-impact sub-goal or task for '${goal.title}' during your peak daily energy window`);
     } else if (userProfile.name === 'The Focused Architect') {
       suggestions.push(`[Strategy: Architect] Schedule a 60-min deep work block on calendar; turn off notifications to clear next milestone`);
     } else if (userProfile.name === 'The High-Velocity Pivotter') {
@@ -271,6 +298,7 @@ export const PredictiveFeasibility = () => {
 
     return {
       ...goal,
+      unit: displayUnit,
       daysRemaining,
       remainingNeeded,
       requiredDailyPace,
@@ -289,58 +317,16 @@ export const PredictiveFeasibility = () => {
   return (
     <div className="glass-panel-dark rounded-2xl p-5 border border-indigo-500/30 space-y-4 shadow-xl">
       
-      {/* 🌟 1. HEADER & BEHAVIORAL OPERATING PROFILE BANNER */}
-      <div className="space-y-3 border-b border-slate-200 dark:border-slate-800 pb-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <div className="flex items-center space-x-2">
-            <div className="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 shadow-sm">
-              <Brain className="w-4 h-4 text-indigo-500" />
-            </div>
-            <div>
-              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
-                <span>Goal Advisory Engine</span>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 font-bold">
-                  AI Prescriptive Run-Rate
-                </span>
-              </h3>
-            </div>
+      {/* 🌟 1. HEADER */}
+      <div className="border-b border-slate-200 dark:border-slate-800 pb-3">
+        <div className="flex items-center space-x-2">
+          <div className="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 shadow-sm">
+            <Brain className="w-4 h-4 text-indigo-500" />
           </div>
-        </div>
-
-        {/* Operating Personality Snapshot */}
-        <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-3">
-          <div className="flex items-center space-x-2.5">
-            <span className="text-2xl p-1.5 bg-white dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
-              {userProfile.icon}
-            </span>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-extrabold text-slate-900 dark:text-white">
-                  {userProfile.name}
-                </span>
-                <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 uppercase font-mono border border-indigo-500/20">
-                  {userProfile.badge}
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-tight mt-0.5">
-                {userProfile.strategyGuide}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3 shrink-0 text-[10px] font-mono border-t md:border-t-0 md:border-l border-slate-200 dark:border-slate-800 pt-2 md:pt-0 md:pl-4">
-            <div className="text-center">
-              <span className="text-slate-400 block text-[9px] uppercase font-bold">Task Rate</span>
-              <span className="font-extrabold text-indigo-600 dark:text-indigo-400">{overallTaskCompletionRate}%</span>
-            </div>
-            <div className="text-center">
-              <span className="text-slate-400 block text-[9px] uppercase font-bold">Habit Streak</span>
-              <span className="font-extrabold text-emerald-600 dark:text-emerald-400">{avgHabitStreak}d avg</span>
-            </div>
-            <div className="text-center">
-              <span className="text-slate-400 block text-[9px] uppercase font-bold">Active Mins</span>
-              <span className="font-extrabold text-cyan-600 dark:text-cyan-400">{totalActiveMins}m</span>
-            </div>
+          <div>
+            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+              <span>Goal Advisory Engine</span>
+            </h3>
           </div>
         </div>
       </div>

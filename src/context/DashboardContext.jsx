@@ -144,6 +144,14 @@ const normalizeGoal = (g) => {
     g.currentAmount !== undefined ? g.currentAmount : (g.current_amount ?? 0)
   );
 
+  const isFinancial = (g.category || '').toLowerCase() === 'financial';
+  let unit = g.unit;
+  if (!unit) {
+    unit = isFinancial ? '₹' : '%';
+  } else if (!isFinancial && unit === '₹') {
+    unit = '%';
+  }
+
   return {
     ...g,
     id: g.id,
@@ -151,9 +159,9 @@ const normalizeGoal = (g) => {
     horizon: g.horizon || (g.deadline && getISTDateDiffDays(getISTDateString(), g.deadline) > 90 ? 'long' : 'short'),
     targetAmount,
     currentAmount,
-    unit: g.unit || '₹',
-    deadline: g.deadline,
-    category: g.category || 'Financial',
+    unit,
+    deadline: g.deadline || g.targetDate || g.target_date || '',
+    category: g.category || 'General',
     color: g.color || 'indigo',
     icon: g.icon || 'Target',
     subGoals
