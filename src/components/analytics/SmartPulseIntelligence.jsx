@@ -184,23 +184,8 @@ export const SmartPulseIntelligence = ({
           <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 shadow-sm">
             <Brain className="w-4 h-4" />
           </div>
-          <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-            <span>Smart Pulse Intelligence</span>
-            {quotaStatus && (
-              <button
-                onClick={() => !quotaStatus.isPremium && openPricingModal?.()}
-                className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border transition-all ${
-                  quotaStatus.isPremium
-                    ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/30'
-                    : quotaStatus.aiRuns?.isLimitReached
-                      ? 'bg-purple-500/20 text-purple-700 dark:text-purple-300 border-purple-500/40 hover:bg-purple-500/30 cursor-pointer'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'
-                }`}
-                title={quotaStatus.isPremium ? 'Unlimited Monthly AI Intelligence Runs' : `${quotaStatus.aiRuns?.remaining ?? 3} AI deep-dive runs left this month.`}
-              >
-                {quotaStatus.isPremium ? '✨ Unlimited AI Runs' : `${quotaStatus.aiRuns?.current ?? 0} / ${quotaStatus.aiRuns?.max ?? 3} Monthly AI Runs`}
-              </button>
-            )}
+          <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+            Smart Pulse Intelligence
           </h3>
         </div>
       </div>
