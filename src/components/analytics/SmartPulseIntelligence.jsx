@@ -238,9 +238,6 @@ export const SmartPulseIntelligence = ({
               <span className="text-xs font-extrabold text-slate-900 dark:text-white flex items-center gap-1.5">
                 Cross-Domain Correlation Engine
               </span>
-              <p className="text-[10px] text-slate-500 dark:text-slate-400">
-                Live behavioral linkages across physical energy, execution velocity, and financial discipline
-              </p>
             </div>
           </div>
         <div className="flex items-center space-x-2">
@@ -311,7 +308,7 @@ export const SmartPulseIntelligence = ({
           <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/60 pb-2">
             <span className="text-xs font-extrabold text-slate-900 dark:text-white flex items-center gap-1.5">
               <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
-              <span>Where Lagging (Friction Points)</span>
+              <span>Where Lagging</span>
             </span>
             <span className="text-[10px] font-mono font-bold text-slate-400">
               {frictionPoints.length} Identified
@@ -356,7 +353,7 @@ export const SmartPulseIntelligence = ({
           <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/60 pb-2">
             <span className="text-xs font-extrabold text-slate-900 dark:text-white flex items-center gap-1.5">
               <TrendingUp className="w-3.5 h-3.5 text-indigo-500" />
-              <span>What Can Improve (Tactical Upgrades)</span>
+              <span>What Can Improve</span>
             </span>
             <span className="text-[10px] font-mono font-bold text-slate-400">
               High Leverage

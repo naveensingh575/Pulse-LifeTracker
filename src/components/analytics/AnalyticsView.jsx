@@ -803,10 +803,6 @@ export const AnalyticsView = () => {
               Pulse Health: {overallPulseScore}%
             </span>
           </div>
-
-          <div className="text-[11px] font-mono text-slate-400">
-            Operating Archetype: <span className="font-extrabold text-slate-900 dark:text-white">{userArchetype.icon} {userArchetype.name}</span>
-          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
