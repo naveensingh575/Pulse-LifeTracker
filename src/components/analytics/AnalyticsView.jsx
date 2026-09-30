@@ -400,11 +400,6 @@ export const AnalyticsView = () => {
   const lowPriorityTasks = scopedTasks.filter(t => t.priority === 'low');
   const lowPriorityCompleted = lowPriorityTasks.filter(t => t.completed).length;
 
-  const displayTasks = scopedTasks.filter(task => {
-    if (taskTabFilter === 'pending') return !task.completed;
-    if (taskTabFilter === 'completed') return task.completed;
-    return true;
-  });
 
   // Top Habit Streak & Operating Archetype Calculation for Proof of Work
   const topStreak = habits.length > 0 ? Math.max(0, ...habits.map(h => Number(h.streak) || 0)) : 0;
