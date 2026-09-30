@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useDashboard } from '../../context/DashboardContext';
 import {
   getISTDateString,
@@ -55,8 +54,7 @@ import {
   Sun,
   CalendarDays,
   CheckSquare,
-  Share2,
-  ArrowRight
+  Share2
 } from 'lucide-react';
 import { SmartPulseIntelligence } from './SmartPulseIntelligence';
 import { DisciplineShareModal } from './DisciplineShareModal';
@@ -71,7 +69,6 @@ const DISCIPLINE_COLORS = {
 };
 
 export const AnalyticsView = () => {
-  const navigate = useNavigate();
   const dashboard = useDashboard() || {};
   const {
     transactions = [],
@@ -1192,13 +1189,7 @@ export const AnalyticsView = () => {
 
               <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-[11px]">
                 <span className="text-slate-500 font-mono">{habitDeltaText}</span>
-                <button
-                  onClick={() => navigate('/habits')}
-                  className="font-bold text-amber-600 dark:text-amber-400 hover:underline flex items-center gap-1 cursor-pointer"
-                >
-                  <span>Habits Hub</span>
-                  <ArrowRight className="w-3 h-3" />
-                </button>
+                <span className="font-mono text-slate-400 text-[10px]">{habits.length} habits tracked</span>
               </div>
             </div>
 
@@ -1259,13 +1250,7 @@ export const AnalyticsView = () => {
 
               <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-[11px]">
                 <span className="text-slate-500 font-mono">{scopedActivities.length} sessions in scope</span>
-                <button
-                  onClick={() => navigate('/activity')}
-                  className="font-bold text-cyan-600 dark:text-cyan-400 hover:underline flex items-center gap-1 cursor-pointer"
-                >
-                  <span>Activity Hub</span>
-                  <ArrowRight className="w-3 h-3" />
-                </button>
+                <span className="font-mono text-slate-400 text-[10px]">{Math.round(totalActiveOutputMins / 60)}h total output</span>
               </div>
             </div>
           </div>
@@ -1314,15 +1299,11 @@ export const AnalyticsView = () => {
                       <span className="text-[9px] text-slate-400">Low Pri</span>
                     </div>
                   </div>
+                  <div className="pt-2 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-400 font-mono">
+                    <span>Horizon Backlog</span>
+                    <span className="font-bold text-slate-600 dark:text-slate-300">{pendingScopedTasks.length} pending</span>
+                  </div>
                 </div>
-
-                <button
-                  onClick={() => navigate('/tasks')}
-                  className="w-full py-2 px-3 rounded-xl bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer mt-2"
-                >
-                  <span>Manage Tasks & Action Board</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
               </div>
 
               {/* Goal Feasibility Card */}
@@ -1351,17 +1332,14 @@ export const AnalyticsView = () => {
                   </div>
 
                   <p className="text-[10px] text-slate-400 leading-tight pt-1">
-                    Track milestone completion velocity and automated feasibility forecasts in the dedicated Goals Hub.
+                    Automated milestone trajectory and feasibility forecast based on current pace.
                   </p>
                 </div>
 
-                <button
-                  onClick={() => navigate('/goals')}
-                  className="w-full py-2 px-3 rounded-xl bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-700 dark:text-indigo-300 border border-indigo-500/20 text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer mt-2"
-                >
-                  <span>Manage Objectives & Milestones</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
+                <div className="pt-2 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-400 font-mono">
+                  <span>Tracked Targets</span>
+                  <span className="font-bold text-indigo-600 dark:text-indigo-400">{goalsOnTrackCount} on track</span>
+                </div>
               </div>
             </div>
           </div>
@@ -1527,16 +1505,6 @@ export const AnalyticsView = () => {
               </p>
             </div>
           </div>
-
-          <div className="text-center">
-            <button
-              onClick={() => navigate('/finance')}
-              className="inline-flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-md transition cursor-pointer"
-            >
-              <span>Manage Transactions in Finance Hub</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          </div>
         </div>
       )}
 
@@ -1601,16 +1569,6 @@ export const AnalyticsView = () => {
                 {lowestHabit ? `${lowestHabitCount}/${lowestHabitPossibleDays} check-ins logged` : 'Zero habit friction detected'}
               </p>
             </div>
-          </div>
-
-          <div className="text-center">
-            <button
-              onClick={() => navigate('/habits')}
-              className="inline-flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold shadow-md transition cursor-pointer"
-            >
-              <span>Manage Routines in Habits Hub</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
           </div>
         </div>
       )}
@@ -1726,16 +1684,6 @@ export const AnalyticsView = () => {
               </div>
             )}
           </div>
-
-          <div className="text-center">
-            <button
-              onClick={() => navigate('/activity')}
-              className="inline-flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold shadow-md transition cursor-pointer"
-            >
-              <span>Log Training in Activity Pulse</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          </div>
         </div>
       )}
 
@@ -1798,17 +1746,13 @@ export const AnalyticsView = () => {
               </div>
             </div>
 
-            <div className="p-3 bg-slate-50 dark:bg-slate-900/40 rounded-xl border border-slate-200 dark:border-slate-800/80 flex items-center justify-between text-xs">
+            <div className="p-3 bg-slate-50 dark:bg-slate-900/40 rounded-xl border border-slate-200 dark:border-slate-800/80 flex items-center justify-between text-xs font-mono">
               <span className="text-slate-500">
-                {pendingScopedTasks.length} pending task{pendingScopedTasks.length !== 1 ? 's' : ''} remaining in this horizon.
+                Pending Execution Horizon
               </span>
-              <button
-                onClick={() => navigate('/tasks')}
-                className="font-bold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1 cursor-pointer"
-              >
-                <span>Open Task Manager</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
+              <span className="font-bold text-slate-700 dark:text-slate-300">
+                {pendingScopedTasks.length} pending task{pendingScopedTasks.length !== 1 ? 's' : ''}
+              </span>
             </div>
           </div>
 
@@ -1862,17 +1806,13 @@ export const AnalyticsView = () => {
               </div>
             </div>
 
-            <div className="p-3 bg-slate-50 dark:bg-slate-900/40 rounded-xl border border-slate-200 dark:border-slate-800/80 flex items-center justify-between text-xs">
+            <div className="p-3 bg-slate-50 dark:bg-slate-900/40 rounded-xl border border-slate-200 dark:border-slate-800/80 flex items-center justify-between text-xs font-mono">
               <span className="text-slate-500">
-                Explore milestones, prescriptive velocity diagnostics, and predictive radar in Goals Hub.
+                Strategic Milestone Health
               </span>
-              <button
-                onClick={() => navigate('/goals')}
-                className="font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1 cursor-pointer"
-              >
-                <span>Open Goals Hub</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
+              <span className="font-bold text-indigo-600 dark:text-indigo-400">
+                {goalsOnTrackCount} of {goals.length} on track
+              </span>
             </div>
           </div>
         </div>
