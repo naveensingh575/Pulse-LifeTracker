@@ -15,7 +15,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useDashboard } from '../../context/DashboardContext';
 import { triggerHaptic } from '../../utils/hapticUtils';
 
-const SUPPORT_EMAIL = 'navisingh2100@gmail.com';
+const SUPPORT_EMAIL = 'Navisingh2100@gmail.com';
 
 const INQUIRY_CATEGORIES = [
   { id: 'feedback', label: 'General Feedback' },
@@ -148,31 +148,48 @@ ${getFullFormattedBody()}`;
 
     try {
       const payload = {
-        name: user?.name || 'Pulse Operator',
-        email: userEmail.trim(),
-        category: currentCategoryObj.label,
-        subject: subject.trim() || `[Pulse - ${currentCategoryObj.label}]`,
-        message: message.trim(),
-        diagnostics: JSON.stringify(diagnosticDetails, null, 2),
-        _subject: subject.trim() || `[Pulse Support] ${currentCategoryObj.label}`,
-        _captcha: 'false',
-        _template: 'table'
+        _subject: `⚡ Pulse Support: [${currentCategoryObj.label}] ${subject.trim() || 'Inquiry'}`,
+        Sender_Name: user?.name || 'Pulse Operator',
+        Sender_Email: userEmail.trim(),
+        Category: currentCategoryObj.label,
+        Subject: subject.trim() || `[Pulse - ${currentCategoryObj.label}]`,
+        Message: message.trim(),
+        Diagnostics: JSON.stringify(diagnosticDetails, null, 2),
+        Target_Email: SUPPORT_EMAIL,
+        Submitted_At: new Date().toISOString(),
+        _template: 'table',
+        _captcha: 'false'
       };
 
-      await fetch(`https://formsubmit.co/ajax/${SUPPORT_EMAIL}`, {
+      // 1. Silent Background Email Dispatch via FormSubmit AJAX (matching Haryanvi wedding project pattern)
+      const formSubmitPromise = fetch(`https://formsubmit.co/ajax/${SUPPORT_EMAIL}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
         body: JSON.stringify(payload)
+      }).catch((err) => {
+        console.warn('FormSubmit background dispatch notice:', err);
       });
+
+      // 2. Silent Background Serverless API (/api/support) matching /api/rsvp in Haryanvi wedding project
+      const apiPromise = fetch('/api/support', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      }).catch((err) => {
+        console.warn('Support API route notice:', err);
+      });
+
+      await Promise.allSettled([formSubmitPromise, apiPromise]);
 
       setSubmitSuccess(true);
       triggerHaptic('success');
     } catch (err) {
       console.error('Support dispatch error:', err);
-      // Still show success confirmation so user experience is smooth
       setSubmitSuccess(true);
       triggerHaptic('success');
     } finally {
@@ -425,9 +442,17 @@ ${getFullFormattedBody()}`;
               </button>
             </div>
 
-            <p className="text-[11px] text-center text-slate-400 dark:text-slate-500">
-              Typical response time: within 24 hours • navisingh2100@gmail.com
-            </p>
+            <div className="pt-1 text-center space-y-1">
+              <a
+                href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(subject || `[Pulse - ${currentCategoryObj.label}]`)}&body=${encodeURIComponent(getFullFormattedBody())}`}
+                className="text-[11px] text-indigo-600 dark:text-indigo-400 hover:underline font-medium inline-flex items-center gap-1"
+              >
+                <span>Or open in your email client</span>
+              </a>
+              <p className="text-[11px] text-slate-400 dark:text-slate-500">
+                Typical response time: within 24 hours • {SUPPORT_EMAIL}
+              </p>
+            </div>
           </>
         )}
 
