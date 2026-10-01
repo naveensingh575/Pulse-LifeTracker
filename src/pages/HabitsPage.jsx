@@ -587,14 +587,9 @@ export const HabitsPage = () => {
                     title={`${formatISTDisplayDate(cell.dateStr)}: ${stats.completed}/${stats.total} habits (${stats.percentage}%)`}
                   >
                     <div className="flex items-center justify-between">
-                      <span className={`text-xs font-mono font-bold ${cell.isToday ? 'underline font-extrabold' : ''}`}>
+                      <span className={`text-xs font-mono font-bold ${cell.isToday ? 'underline font-extrabold text-indigo-600 dark:text-indigo-400' : ''}`}>
                         {cell.dayNumber}
                       </span>
-                      {cell.isToday && (
-                        <span className="text-[8px] font-bold px-1 py-0.2 rounded bg-indigo-600 text-white uppercase leading-none">
-                          Today
-                        </span>
-                      )}
                     </div>
 
                     {cell.isCurrentMonth && stats.total > 0 && (
@@ -603,7 +598,7 @@ export const HabitsPage = () => {
                           {stats.completed}/{stats.total}
                         </span>
                         <span className="hidden sm:inline font-mono font-bold text-[9px]">
-                          {stats.percentage > 0 ? `${stats.percentage}%` : ''}
+                          {stats.percentage}%
                         </span>
                       </div>
                     )}
