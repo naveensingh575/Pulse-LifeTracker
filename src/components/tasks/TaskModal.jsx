@@ -47,15 +47,23 @@ export const TaskModal = ({ isOpen, onClose, initialCategory = 'Work', initialTa
 
   if (!isOpen) return null;
 
-  // Quick date setter helper
-  const setQuickDate = (offsetDays) => {
+  const tomorrowStr = (() => {
     const [y, m, d] = todayStr.split('-').map(Number);
-    const date = new Date(y, m - 1, d + offsetDays);
+    const date = new Date(y, m - 1, d + 1);
     const ny = date.getFullYear();
     const nm = String(date.getMonth() + 1).padStart(2, '0');
     const nd = String(date.getDate()).padStart(2, '0');
-    setDueDate(`${ny}-${nm}-${nd}`);
-  };
+    return `${ny}-${nm}-${nd}`;
+  })();
+
+  const nextWeekStr = (() => {
+    const [y, m, d] = todayStr.split('-').map(Number);
+    const date = new Date(y, m - 1, d + 7);
+    const ny = date.getFullYear();
+    const nm = String(date.getMonth() + 1).padStart(2, '0');
+    const nd = String(date.getDate()).padStart(2, '0');
+    return `${ny}-${nm}-${nd}`;
+  })();
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -127,9 +135,6 @@ export const TaskModal = ({ isOpen, onClose, initialCategory = 'Work', initialTa
               <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
                 {initialTask ? 'Edit Action Task' : 'Create New Action Task'}
               </h3>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                {initialTask ? 'Modify task details and recurrence' : 'Capture clear action, due date, and repeatability'}
-              </p>
             </div>
           </div>
 
@@ -222,29 +227,49 @@ export const TaskModal = ({ isOpen, onClose, initialCategory = 'Work', initialTa
                 <Calendar className="w-3.5 h-3.5 text-indigo-500" />
                 <span>Due Date:</span>
               </label>
-              <div className="flex items-center space-x-1">
+              <div className="flex items-center space-x-1.5">
                 <button
                   type="button"
-                  onClick={() => setQuickDate(0)}
-                  className={`px-2 py-0.5 rounded-lg text-[10px] font-semibold transition cursor-pointer ${
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setDueDate(todayStr);
+                  }}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer active:scale-95 ${
                     dueDate === todayStr
-                      ? 'bg-indigo-600 text-white shadow-sm'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
+                      ? 'bg-indigo-600 text-white shadow-sm ring-1 ring-indigo-500'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                   }`}
                 >
                   Today
                 </button>
                 <button
                   type="button"
-                  onClick={() => setQuickDate(1)}
-                  className="px-2 py-0.5 rounded-lg text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 cursor-pointer transition"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setDueDate(tomorrowStr);
+                  }}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer active:scale-95 ${
+                    dueDate === tomorrowStr
+                      ? 'bg-indigo-600 text-white shadow-sm ring-1 ring-indigo-500'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                  }`}
                 >
                   Tomorrow
                 </button>
                 <button
                   type="button"
-                  onClick={() => setQuickDate(7)}
-                  className="px-2 py-0.5 rounded-lg text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 cursor-pointer transition"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setDueDate(nextWeekStr);
+                  }}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer active:scale-95 ${
+                    dueDate === nextWeekStr
+                      ? 'bg-indigo-600 text-white shadow-sm ring-1 ring-indigo-500'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                  }`}
                 >
                   +1 Wk
                 </button>

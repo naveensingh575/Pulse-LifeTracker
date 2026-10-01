@@ -182,15 +182,9 @@ export const TasksPage = () => {
             <CheckSquare className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
           <div>
-            <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-              Action Tasks
-              <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-mono">
-                {tasks.filter(t => !t.completed).length} open
-              </span>
+            <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100">
+              To-Do List
             </h2>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 hidden sm:block">
-              Organize priorities, schedule recurring actions, and execute daily.
-            </p>
           </div>
         </div>
 
