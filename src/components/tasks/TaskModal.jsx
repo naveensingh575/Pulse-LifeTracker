@@ -3,17 +3,16 @@ import { useDashboard } from '../../context/DashboardContext';
 import {
   X,
   CheckSquare,
-  Briefcase,
-  ShoppingBag,
-  User,
-  Zap,
   Calendar,
   FileText,
   Plus,
-  AlertCircle,
   Edit2,
-  ChevronDown
+  ChevronDown,
+  RotateCw,
+  Sparkles
 } from 'lucide-react';
+import { RECURRENCE_OPTIONS, cleanNotes } from '../../utils/taskUtils';
+import { getISTDateString } from '../../utils/dateUtils';
 
 export const TaskModal = ({ isOpen, onClose, initialCategory = 'Work', initialTask = null, onSave = null }) => {
   const { addTask, updateTask } = useDashboard();
@@ -21,7 +20,10 @@ export const TaskModal = ({ isOpen, onClose, initialCategory = 'Work', initialTa
   const [category, setCategory] = useState(initialCategory);
   const [priority, setPriority] = useState('medium');
   const [dueDate, setDueDate] = useState('');
+  const [repeat, setRepeat] = useState('none');
   const [notes, setNotes] = useState('');
+
+  const todayStr = getISTDateString();
 
   useEffect(() => {
     if (isOpen) {
@@ -29,19 +31,31 @@ export const TaskModal = ({ isOpen, onClose, initialCategory = 'Work', initialTa
         setTitle(initialTask.title || '');
         setCategory(initialTask.category || 'Work');
         setPriority(initialTask.priority || 'medium');
-        setDueDate(initialTask.dueDate || new Date().toISOString().split('T')[0]);
-        setNotes(initialTask.notes || '');
+        setDueDate(initialTask.dueDate || todayStr);
+        setRepeat(initialTask.repeat || 'none');
+        setNotes(cleanNotes(initialTask.notes || ''));
       } else {
         setTitle('');
         setCategory(initialCategory || 'Work');
         setPriority('medium');
-        setDueDate(new Date().toISOString().split('T')[0]);
+        setDueDate(todayStr);
+        setRepeat('none');
         setNotes('');
       }
     }
-  }, [isOpen, initialCategory, initialTask]);
+  }, [isOpen, initialCategory, initialTask, todayStr]);
 
   if (!isOpen) return null;
+
+  // Quick date setter helper
+  const setQuickDate = (offsetDays) => {
+    const [y, m, d] = todayStr.split('-').map(Number);
+    const date = new Date(y, m - 1, d + offsetDays);
+    const ny = date.getFullYear();
+    const nm = String(date.getMonth() + 1).padStart(2, '0');
+    const nd = String(date.getDate()).padStart(2, '0');
+    setDueDate(`${ny}-${nm}-${nd}`);
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -51,7 +65,8 @@ export const TaskModal = ({ isOpen, onClose, initialCategory = 'Work', initialTa
       title: title.trim(),
       category,
       priority,
-      dueDate: dueDate || new Date().toISOString().split('T')[0],
+      dueDate: dueDate || todayStr,
+      repeat: repeat || 'none',
       notes: notes.trim(),
     };
 
@@ -99,8 +114,8 @@ export const TaskModal = ({ isOpen, onClose, initialCategory = 'Work', initialTa
         onClick={onClose}
       />
 
-      {/* Modal Card: FIXED at top-20 on mobile, centered on sm */}
-      <div className="fixed top-20 sm:top-1/2 left-4 right-4 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 z-50 max-w-lg mx-auto w-[calc(100%-2rem)] sm:w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-5 sm:p-6 space-y-4 text-slate-900 dark:text-slate-100 animate-in zoom-in-95 duration-150 max-h-[calc(100vh-6rem)] overflow-y-auto">
+      {/* Modal Card: FIXED at top-16 on mobile, centered on sm */}
+      <div className="fixed top-14 sm:top-1/2 left-3 right-3 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 z-50 max-w-lg mx-auto w-[calc(100%-1.5rem)] sm:w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-5 sm:p-6 space-y-4 text-slate-900 dark:text-slate-100 animate-in zoom-in-95 duration-150 max-h-[calc(100vh-4.5rem)] overflow-y-auto">
         
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 shrink-0">
@@ -112,17 +127,20 @@ export const TaskModal = ({ isOpen, onClose, initialCategory = 'Work', initialTa
               <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
                 {initialTask ? 'Edit Action Task' : 'Create New Action Task'}
               </h3>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                {initialTask ? 'Modify task details and recurrence' : 'Capture clear action, due date, and repeatability'}
+              </p>
             </div>
           </div>
 
           <button
             onClick={onClose}
             className="p-1 rounded-lg text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 transition cursor-pointer"
+            aria-label="Close modal"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
-
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -138,7 +156,7 @@ export const TaskModal = ({ isOpen, onClose, initialCategory = 'Work', initialTa
               placeholder="e.g., Finalize Q3 Budget Deck or Buy Grocery Items"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs font-medium focus:outline-none focus:border-indigo-500 transition"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs font-medium focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition shadow-inner"
               autoFocus
             />
           </div>
@@ -187,7 +205,7 @@ export const TaskModal = ({ isOpen, onClose, initialCategory = 'Work', initialTa
                     className={`p-2 rounded-xl border text-[11px] font-bold transition text-center cursor-pointer ${
                       isSelected
                         ? `${p.color} border-current shadow-sm`
-                        : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400'
+                        : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                     }`}
                   >
                     {p.badge}
@@ -197,18 +215,90 @@ export const TaskModal = ({ isOpen, onClose, initialCategory = 'Work', initialTa
             </div>
           </div>
 
-          {/* Due Date & Time */}
+          {/* Due Date with Quick Date Shortcut Pills */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1">
-              <Calendar className="w-3.5 h-3.5 text-indigo-500" />
-              <span>Due Date:</span>
-            </label>
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                <Calendar className="w-3.5 h-3.5 text-indigo-500" />
+                <span>Due Date:</span>
+              </label>
+              <div className="flex items-center space-x-1">
+                <button
+                  type="button"
+                  onClick={() => setQuickDate(0)}
+                  className={`px-2 py-0.5 rounded-lg text-[10px] font-semibold transition cursor-pointer ${
+                    dueDate === todayStr
+                      ? 'bg-indigo-600 text-white shadow-sm'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
+                  }`}
+                >
+                  Today
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setQuickDate(1)}
+                  className="px-2 py-0.5 rounded-lg text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 cursor-pointer transition"
+                >
+                  Tomorrow
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setQuickDate(7)}
+                  className="px-2 py-0.5 rounded-lg text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 cursor-pointer transition"
+                >
+                  +1 Wk
+                </button>
+              </div>
+            </div>
             <input
               type="date"
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
               className="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs font-mono focus:outline-none focus:border-indigo-500"
             />
+          </div>
+
+          {/* Repeatability / Recurrence Selector */}
+          <div className="space-y-1.5 p-3 rounded-xl bg-slate-50/80 dark:bg-slate-950/60 border border-slate-200/80 dark:border-slate-800/80">
+            <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center justify-between">
+              <span className="flex items-center gap-1.5">
+                <RotateCw className="w-3.5 h-3.5 text-indigo-500" />
+                <span>Repeat / Recurrence:</span>
+              </span>
+              {repeat !== 'none' && (
+                <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded-full border border-indigo-500/20">
+                  Recurring Task
+                </span>
+              )}
+            </label>
+
+            <div className="relative flex items-center">
+              <select
+                value={repeat}
+                onChange={(e) => setRepeat(e.target.value)}
+                className="w-full px-3.5 pr-8 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs font-semibold focus:outline-none focus:border-indigo-500 transition cursor-pointer appearance-none"
+              >
+                {RECURRENCE_OPTIONS.map((opt) => (
+                  <option key={opt.key} value={opt.key} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
+                    {opt.emoji} {opt.label}
+                  </option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute right-3 flex items-center text-slate-400">
+                <ChevronDown className="w-4 h-4" />
+              </div>
+            </div>
+
+            {repeat !== 'none' ? (
+              <p className="text-[11px] text-indigo-600 dark:text-indigo-400 flex items-center gap-1 pt-1 font-medium">
+                <Sparkles className="w-3 h-3 shrink-0" />
+                <span>When checked off, the next task instance is automatically scheduled.</span>
+              </p>
+            ) : (
+              <p className="text-[10px] text-slate-400 dark:text-slate-500 pt-0.5">
+                One-time task. Select Daily, Weekdays, Weekly, or Monthly to repeat automatically.
+              </p>
+            )}
           </div>
 
           {/* Notes / Subtasks */}
@@ -237,7 +327,7 @@ export const TaskModal = ({ isOpen, onClose, initialCategory = 'Work', initialTa
             </button>
             <button
               type="submit"
-              className="flex items-center space-x-1.5 px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-lg shadow-indigo-600/25 transition cursor-pointer"
+              className="flex items-center space-x-1.5 px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-lg shadow-indigo-600/25 transition cursor-pointer active:scale-95"
             >
               {initialTask ? <Edit2 className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
               <span>{initialTask ? 'Save Task' : 'Add Task'}</span>
@@ -248,5 +338,3 @@ export const TaskModal = ({ isOpen, onClose, initialCategory = 'Work', initialTa
     </>
   );
 };
-
-

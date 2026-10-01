@@ -73,6 +73,7 @@ export function generateBackupPayload({
         completed: Boolean(t.completed),
         completedAt: t.completedAt,
         linkedGoalTitle: t.linkedGoalTitle,
+        repeat: t.repeat || 'none',
         notes: t.notes
       })),
       transactions: transactions.map(tx => ({

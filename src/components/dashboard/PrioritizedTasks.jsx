@@ -7,10 +7,12 @@ import {
   ArrowRight,
   Plus,
   Zap,
-  Target
+  Target,
+  RotateCw
 } from 'lucide-react';
 import { checkAndCelebrateTasks } from '../../utils/celebrationUtils';
 import { getISTDateString } from '../../utils/dateUtils';
+import { extractRepeat } from '../../utils/taskUtils';
 
 export const PrioritizedTasks = () => {
   const { tasks, toggleTask, addTask } = useDashboard();
@@ -135,6 +137,11 @@ export const PrioritizedTasks = () => {
               </div>
 
               <div className="flex items-center space-x-1.5 shrink-0">
+                {extractRepeat(task) !== 'none' && (
+                  <span className="p-1 rounded text-cyan-600 dark:text-cyan-400 bg-cyan-500/10 border border-cyan-500/20" title={`Repeats ${extractRepeat(task)}`}>
+                    <RotateCw className="w-2.5 h-2.5" />
+                  </span>
+                )}
                 {task.priority === 'high' && (
                   <span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
                     Urgent

@@ -21,6 +21,7 @@ import { validatePromoCode, PLAN_TIERS } from '../utils/pricingUtils';
 import { getQuotaStatus, getCurrentMonthKey, FREE_TIER_LIMITS } from '../utils/featureGating';
 import { getGuestDemoData } from '../utils/demoData';
 import { getUserReferralCode, getReferralRewardTier, fetchReferralStats } from '../utils/referralUtils';
+import { calculateNextDueDate, extractRepeat, formatNotesWithRepeat, cleanNotes } from '../utils/taskUtils';
 
 export const SUPPORTED_CURRENCIES = [
   { symbol: '$', code: 'USD', name: 'US Dollar ($)' },
@@ -694,7 +695,8 @@ export const DashboardProvider = ({ children }) => {
         completed: Boolean(t.completed),
         completedAt: t.completed_at,
         linkedGoalTitle: t.linked_goal_title,
-        notes: t.notes || ''
+        repeat: extractRepeat(t),
+        notes: cleanNotes(t.notes)
       }));
       setTasks(processedTasks);
 
@@ -1344,9 +1346,12 @@ export const DashboardProvider = ({ children }) => {
   // --- Task Board Operations ---
   const addTask = async (newTask) => {
     const taskDueDate = newTask.dueDate || getISTDateString();
+    const taskRepeat = newTask.repeat || 'none';
+    const rawNotes = cleanNotes(newTask.notes || '');
+    const notesWithRepeat = formatNotesWithRepeat(rawNotes, taskRepeat);
 
     if (userId) {
-      const { data, error } = await supabase.from('tasks').insert({
+      const basePayload = {
         user_id: userId,
         title: newTask.title.trim(),
         priority: newTask.priority || 'medium',
@@ -1354,19 +1359,42 @@ export const DashboardProvider = ({ children }) => {
         due_date: taskDueDate,
         completed: false,
         linked_goal_title: newTask.linkedGoalTitle || null,
-        notes: newTask.notes || ''
-      }).select().single();
+        notes: notesWithRepeat
+      };
 
-      if (!error && data) {
+      let insertedItem = null;
+      try {
+        const { data, error } = await supabase.from('tasks').insert({
+          ...basePayload,
+          repeat: taskRepeat
+        }).select().single();
+
+        if (error) {
+          // If repeat column doesn't exist in Supabase schema, insert basePayload (encoded in notes)
+          const fallbackRes = await supabase.from('tasks').insert(basePayload).select().single();
+          if (!fallbackRes.error && fallbackRes.data) {
+            insertedItem = { ...fallbackRes.data, repeat: taskRepeat };
+          } else {
+            console.error('[PULSE Supabase addTask fallback Error]:', fallbackRes.error);
+          }
+        } else if (data) {
+          insertedItem = data;
+        }
+      } catch (err) {
+        console.error('[PULSE Supabase addTask Error]:', err);
+      }
+
+      if (insertedItem) {
         setTasks(prev => [{
-          id: data.id,
-          title: data.title,
-          priority: data.priority,
-          category: data.category,
-          dueDate: data.due_date,
+          id: insertedItem.id,
+          title: insertedItem.title,
+          priority: insertedItem.priority,
+          category: insertedItem.category,
+          dueDate: insertedItem.due_date,
           completed: false,
-          linkedGoalTitle: data.linked_goal_title,
-          notes: data.notes || ''
+          linkedGoalTitle: insertedItem.linked_goal_title,
+          repeat: insertedItem.repeat || taskRepeat,
+          notes: cleanNotes(insertedItem.notes || '')
         }, ...prev]);
       }
     } else {
@@ -1374,7 +1402,9 @@ export const DashboardProvider = ({ children }) => {
         ...newTask,
         id: `k-${Date.now()}`,
         completed: false,
-        dueDate: taskDueDate
+        dueDate: taskDueDate,
+        repeat: taskRepeat,
+        notes: rawNotes
       }, ...prev]);
     }
   };
@@ -1392,7 +1422,10 @@ export const DashboardProvider = ({ children }) => {
     const category = updatedTask.category || 'Work';
     const dueDate = updatedTask.dueDate || updatedTask.due_date || getISTDateString();
     const linkedGoalTitle = updatedTask.linkedGoalTitle !== undefined ? updatedTask.linkedGoalTitle : (updatedTask.linked_goal_title || null);
-    const notes = updatedTask.notes || '';
+    const existingTask = tasks.find(t => t.id === taskId);
+    const repeat = updatedTask.repeat !== undefined ? updatedTask.repeat : (existingTask?.repeat || 'none');
+    const rawNotes = cleanNotes(updatedTask.notes !== undefined ? updatedTask.notes : (existingTask?.notes || ''));
+    const notesWithRepeat = formatNotesWithRepeat(rawNotes, repeat);
 
     setTasks(prev =>
       prev.map(t => {
@@ -1404,23 +1437,33 @@ export const DashboardProvider = ({ children }) => {
           category,
           dueDate,
           linkedGoalTitle,
-          notes
+          repeat,
+          notes: rawNotes
         };
       })
     );
 
     if (userId) {
-      const { error } = await supabase.from('tasks').update({
+      const baseUpdate = {
         title,
         priority,
         category,
         due_date: dueDate,
         linked_goal_title: linkedGoalTitle || null,
-        notes
-      }).eq('id', taskId).eq('user_id', userId);
+        notes: notesWithRepeat
+      };
 
-      if (error) {
-        console.error('[PULSE Supabase updateTask Error]:', error);
+      try {
+        const { error } = await supabase.from('tasks').update({
+          ...baseUpdate,
+          repeat
+        }).eq('id', taskId).eq('user_id', userId);
+
+        if (error) {
+          await supabase.from('tasks').update(baseUpdate).eq('id', taskId).eq('user_id', userId);
+        }
+      } catch (err) {
+        console.error('[PULSE Supabase updateTask Error]:', err);
       }
     }
   };
@@ -1434,12 +1477,29 @@ export const DashboardProvider = ({ children }) => {
 
   const toggleTaskComplete = async (taskId) => {
     let nextComp = false;
+    let taskToSpawn = null;
     const todayStr = getISTDateString();
+
+    const targetTask = tasks.find(t => t.id === taskId);
+    if (targetTask) {
+      nextComp = !targetTask.completed;
+      if (nextComp && targetTask.repeat && targetTask.repeat !== 'none') {
+        const nextDue = calculateNextDueDate(targetTask.dueDate || todayStr, targetTask.repeat);
+        taskToSpawn = {
+          title: targetTask.title,
+          category: targetTask.category || 'Work',
+          priority: targetTask.priority || 'medium',
+          dueDate: nextDue,
+          linkedGoalTitle: targetTask.linkedGoalTitle || null,
+          repeat: targetTask.repeat,
+          notes: targetTask.notes || ''
+        };
+      }
+    }
 
     setTasks(prev =>
       prev.map(t => {
         if (t.id === taskId) {
-          nextComp = !t.completed;
           return {
             ...t,
             completed: nextComp,
@@ -1459,6 +1519,11 @@ export const DashboardProvider = ({ children }) => {
 
     // Tactile feedback on Android when task is checked off
     if (nextComp) triggerHaptic('medium');
+
+    // If recurring task was checked off, automatically spawn the next recurrence instance!
+    if (taskToSpawn) {
+      await addTask(taskToSpawn);
+    }
   };
 
   const deleteTask = async (taskId) => {
@@ -1918,6 +1983,9 @@ export const DashboardProvider = ({ children }) => {
         }
 
         for (const t of finalTasks) {
+          const taskRepeat = extractRepeat(t);
+          const taskNotes = cleanNotes(t.notes || '');
+          const taskNotesWithRepeat = formatNotesWithRepeat(taskNotes, taskRepeat);
           const taskPayload = {
             user_id: userId,
             title: t.title,
@@ -1927,12 +1995,19 @@ export const DashboardProvider = ({ children }) => {
             completed: Boolean(t.completed),
             completed_at: t.completedAt,
             linked_goal_title: t.linkedGoalTitle,
-            notes: t.notes || ''
+            notes: taskNotesWithRepeat
           };
           if (t.id && !t.id.startsWith('task-')) {
             taskPayload.id = t.id;
           }
-          await supabase.from('tasks').upsert(taskPayload);
+          try {
+            const { error: upsertErr } = await supabase.from('tasks').upsert({ ...taskPayload, repeat: taskRepeat });
+            if (upsertErr) {
+              await supabase.from('tasks').upsert(taskPayload);
+            }
+          } catch {
+            await supabase.from('tasks').upsert(taskPayload);
+          }
         }
 
         for (const tx of finalTx) {
