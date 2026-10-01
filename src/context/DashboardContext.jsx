@@ -1103,27 +1103,32 @@ export const DashboardProvider = ({ children }) => {
     }
   };
 
-  // Overall financial calculations
-  const totalSpent = transactions
+  // Current month's financial calculations (strictly isolated to currentISTMonthKey)
+  const currentISTDateObj = getISTDate();
+  const currentMonthTransactions = transactions.filter(
+    t => t.date && t.date.startsWith(currentISTMonthKey)
+  );
+
+  const totalSpent = currentMonthTransactions
     .filter(t => t.type === 'expense')
     .reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0);
 
-  const totalLivingSpent = transactions
+  const totalLivingSpent = currentMonthTransactions
     .filter(isLivingBudgetExpense)
     .reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0);
 
-  const totalIncome = transactions
+  const totalIncome = currentMonthTransactions
     .filter(t => t.type === 'income')
     .reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0);
 
-  const totalInvested = transactions
+  const totalInvested = currentMonthTransactions
     .filter(t => t.type === 'investment')
     .reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0);
 
   const remainingBalance = monthlyBudget - totalLivingSpent;
-  const daysInMonth = 31;
-  const currentDayOfMonth = getISTDate().getDate();
-  const daysRemaining = daysInMonth - currentDayOfMonth;
+  const daysInMonth = new Date(currentISTDateObj.getFullYear(), currentISTDateObj.getMonth() + 1, 0).getDate();
+  const currentDayOfMonth = currentISTDateObj.getDate();
+  const daysRemaining = Math.max(0, daysInMonth - currentDayOfMonth);
   const dailyBurnRate = currentDayOfMonth > 0 ? (totalLivingSpent / currentDayOfMonth) : 0;
   const targetDailyBurn = daysInMonth > 0 ? (monthlyBudget / daysInMonth) : 0;
 
