@@ -156,7 +156,7 @@ export const ChangePasswordModal = ({ isOpen, onClose }) => {
                 Password Changed!
               </h4>
               <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xs mx-auto">
-                Your new password has been updated in Supabase cloud. You can now use it the next time you sign in.
+                Your new password has been updated. You can now use it the next time you sign in.
               </p>
             </div>
 
