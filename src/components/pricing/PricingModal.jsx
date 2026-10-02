@@ -161,7 +161,7 @@ export const PricingModal = () => {
 
       {/* Modal Card: FIXED below top bezel (top-16) on mobile, centered on sm, with whitespace below */}
       <div
-        className="fixed top-16 sm:top-1/2 left-3 right-3 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 z-[100] max-w-4xl mx-auto w-[calc(100%-1.5rem)] sm:w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-3xl p-5 sm:p-8 shadow-2xl space-y-6 max-h-[calc(100dvh-8rem)] sm:max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-150"
+        className="fixed top-16 sm:top-1/2 left-3 right-3 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 z-[100] max-w-4xl mx-auto w-auto sm:w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-3xl p-5 sm:p-8 shadow-2xl space-y-6 max-h-[calc(100dvh-8rem)] sm:max-h-[90vh] overflow-y-auto overflow-x-hidden overscroll-x-none animate-in zoom-in-95 duration-150"
       >
 
         {/* Close Button */}

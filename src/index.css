@@ -90,3 +90,30 @@ html:not(.dark) .glass-card-dark {
     font-size: 16px !important;
   }
 }
+
+/* Date & Calendar inputs containment on mobile: prevent horizontal blowout and sliding */
+input[type="date"] {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  display: block;
+}
+
+input[type="date"]::-webkit-date-and-time-value {
+  text-align: left;
+  min-height: 1.25rem;
+  width: 100%;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.8;
+  margin-left: auto;
+  max-width: 24px;
+  flex-shrink: 0;
+}
+
+input[type="date"]::-webkit-inner-spin-button {
+  display: none;
+  -webkit-appearance: none;
+}

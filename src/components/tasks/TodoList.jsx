@@ -108,11 +108,11 @@ export const TodoList = () => {
             className="w-full px-3 py-1.5 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-cyan-500"
           />
 
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             <select
               value={newTaskPriority}
               onChange={e => setNewTaskPriority(e.target.value)}
-              className="px-2 py-1.5 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-xs text-slate-900 dark:text-slate-100"
+              className="w-full min-w-0 px-2 py-1.5 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-xs text-slate-900 dark:text-slate-100"
             >
               <option value="high">🔴 High (Do Today)</option>
               <option value="medium">🟡 Medium (This Week)</option>
@@ -122,7 +122,7 @@ export const TodoList = () => {
             <select
               value={newTaskCategory}
               onChange={e => setNewTaskCategory(e.target.value)}
-              className="px-2 py-1.5 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-xs text-slate-900 dark:text-slate-100"
+              className="w-full min-w-0 px-2 py-1.5 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-xs text-slate-900 dark:text-slate-100"
             >
               <option value="Work">Work</option>
               <option value="Finance">Finance</option>
@@ -135,7 +135,7 @@ export const TodoList = () => {
               type="date"
               value={newTaskDueDate}
               onChange={e => setNewTaskDueDate(e.target.value)}
-              className="px-2 py-1.5 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-xs text-slate-900 dark:text-slate-100"
+              className="w-full min-w-0 max-w-full box-border px-2 py-1.5 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-xs text-slate-900 dark:text-slate-100 block"
             />
           </div>
 

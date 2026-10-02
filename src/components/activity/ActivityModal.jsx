@@ -399,8 +399,8 @@ export const ActivityModal = ({ isOpen, onClose, onSave, initialData = null }) =
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-xl glass-panel-dark bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-200 overflow-x-hidden">
+      <div className="relative w-full max-w-xl glass-panel-dark bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col max-h-[90vh] min-w-0 overflow-x-hidden overscroll-x-none">
         
         {/* Modal Header */}
         <div className="flex items-center justify-between p-5 border-b border-slate-200 dark:border-slate-800/80">
@@ -423,7 +423,7 @@ export const ActivityModal = ({ isOpen, onClose, onSave, initialData = null }) =
         </div>
 
         {/* Modal Body */}
-        <form onSubmit={handleSubmit} className="p-5 space-y-4 overflow-y-auto flex-1">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-5 space-y-4 overflow-y-auto overflow-x-hidden overscroll-x-none flex-1 min-w-0">
           
           {/* Discipline Category Tabs (5 Distinct Disciplines) */}
           <div className="space-y-1.5">
@@ -489,13 +489,13 @@ export const ActivityModal = ({ isOpen, onClose, onSave, initialData = null }) =
                 className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500"
               />
             </div>
-            <div className="space-y-1">
+            <div className="space-y-1 min-w-0">
               <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Log Date</label>
               <input
                 type="date"
                 value={date}
                 onChange={e => setDate(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500 font-mono"
+                className="w-full min-w-0 max-w-full box-border px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500 font-mono block"
               />
             </div>
           </div>

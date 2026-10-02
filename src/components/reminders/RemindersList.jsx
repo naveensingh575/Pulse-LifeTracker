@@ -71,13 +71,13 @@ export const RemindersList = () => {
             />
           </div>
 
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             <input
               type="date"
               required
               value={formData.date}
               onChange={e => setFormData({ ...formData, date: e.target.value })}
-              className="px-2.5 py-1.5 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-amber-500"
+              className="w-full min-w-0 max-w-full box-border px-2.5 py-1.5 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-amber-500 block"
             />
             <input
               type="text"

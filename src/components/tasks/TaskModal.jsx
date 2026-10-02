@@ -104,8 +104,8 @@ export const TaskModal = ({ isOpen, onClose, initialCategory = 'Work', initialTa
         onClick={onClose}
       />
 
-      {/* Modal Card: FIXED at top-16 on mobile, centered on sm */}
-      <div className="fixed top-14 sm:top-1/2 left-3 right-3 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 z-50 max-w-lg mx-auto w-[calc(100%-1.5rem)] sm:w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-5 sm:p-6 space-y-4 text-slate-900 dark:text-slate-100 animate-in zoom-in-95 duration-150 max-h-[calc(100vh-4.5rem)] overflow-y-auto">
+      {/* Modal Card: FIXED at top-14 on mobile, centered on sm */}
+      <div className="fixed top-14 sm:top-1/2 left-3 right-3 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 z-50 max-w-lg mx-auto w-auto sm:w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-5 sm:p-6 space-y-4 text-slate-900 dark:text-slate-100 animate-in zoom-in-95 duration-150 max-h-[calc(100vh-4.5rem)] overflow-y-auto overflow-x-hidden overscroll-x-none">
         
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 shrink-0">
@@ -202,16 +202,16 @@ export const TaskModal = ({ isOpen, onClose, initialCategory = 'Work', initialTa
           </div>
 
           {/* Due Date */}
-          <div className="space-y-1.5">
+          <div className="space-y-1.5 min-w-0">
             <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1">
-              <Calendar className="w-3.5 h-3.5 text-indigo-500" />
+              <Calendar className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
               <span>Due Date:</span>
             </label>
             <input
               type="date"
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
-              className="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs font-mono focus:outline-none focus:border-indigo-500"
+              className="w-full min-w-0 max-w-full box-border px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs font-mono focus:outline-none focus:border-indigo-500 block"
             />
           </div>
 

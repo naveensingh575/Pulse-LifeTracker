@@ -599,7 +599,7 @@ export const HabitsPage = () => {
           />
 
           {/* Modal Card: FIXED at top of screen on mobile (top-20), centered on sm */}
-          <div className="fixed top-20 sm:top-1/2 left-4 right-4 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 z-50 max-w-sm mx-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-4 shadow-2xl text-slate-900 dark:text-slate-100 animate-in zoom-in-95 duration-150 max-h-[calc(100vh-6rem)] overflow-y-auto">
+          <div className="fixed top-20 sm:top-1/2 left-4 right-4 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 z-50 max-w-sm mx-auto w-auto sm:w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-4 shadow-2xl text-slate-900 dark:text-slate-100 animate-in zoom-in-95 duration-150 max-h-[calc(100vh-6rem)] overflow-y-auto overflow-x-hidden overscroll-x-none">
             <div className="flex items-center justify-between">
               <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
                 <Plus className="w-4 h-4 text-amber-500" />
@@ -702,9 +702,9 @@ export const HabitsPage = () => {
                 </p>
               </div>
 
-              <div>
+              <div className="space-y-1 min-w-0">
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1">
-                  <CalendarIcon className="w-3.5 h-3.5 text-amber-500" />
+                  <CalendarIcon className="w-3.5 h-3.5 text-amber-500 shrink-0" />
                   <span>Start Tracking From</span>
                 </label>
                 <input
@@ -712,7 +712,7 @@ export const HabitsPage = () => {
                   required
                   value={newHabitStartDate}
                   onChange={e => setNewHabitStartDate(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:border-amber-500 font-mono"
+                  className="w-full min-w-0 max-w-full box-border px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs sm:text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:border-amber-500 font-mono block"
                 />
                 <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">
                   Defaults to Today ({getISTDateString()}). Prior dates won't count against your completion %.

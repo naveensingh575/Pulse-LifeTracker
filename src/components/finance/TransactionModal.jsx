@@ -99,7 +99,7 @@ export const TransactionModal = ({ isOpen, onClose, onSave, initialData }) => {
       />
 
       {/* Modal Card: FIXED at top-20 on mobile, centered on sm */}
-      <div className="fixed top-20 sm:top-1/2 left-4 right-4 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 z-50 max-w-md mx-auto w-[calc(100%-2rem)] sm:w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden text-slate-900 dark:text-slate-100 animate-in zoom-in-95 duration-150 max-h-[calc(100vh-6rem)] flex flex-col">
+      <div className="fixed top-20 sm:top-1/2 left-4 right-4 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 z-50 max-w-md mx-auto w-auto sm:w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden text-slate-900 dark:text-slate-100 animate-in zoom-in-95 duration-150 max-h-[calc(100vh-6rem)] flex flex-col overflow-x-hidden overscroll-x-none">
         
         {/* Header */}
         <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 shrink-0">
@@ -112,7 +112,7 @@ export const TransactionModal = ({ isOpen, onClose, onSave, initialData }) => {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-5 sm:p-6 space-y-4 overflow-y-auto">
+        <form onSubmit={handleSubmit} className="p-5 sm:p-6 space-y-4 overflow-y-auto overflow-x-hidden overscroll-x-none">
 
           
           {/* 3-Way Transaction Type Toggle */}
@@ -248,8 +248,8 @@ export const TransactionModal = ({ isOpen, onClose, onSave, initialData }) => {
           )}
 
           {/* Amount & Date */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="min-w-0">
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                 Amount ({currency})
               </label>
@@ -261,19 +261,19 @@ export const TransactionModal = ({ isOpen, onClose, onSave, initialData }) => {
                 placeholder="1500.00"
                 value={formData.amount}
                 onChange={e => setFormData({ ...formData, amount: e.target.value })}
-                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:border-emerald-500 font-mono font-bold"
+                className="w-full min-w-0 max-w-full box-border px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:border-emerald-500 font-mono font-bold block"
               />
             </div>
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Date
+            <div className="min-w-0">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1">
+                <span>Date</span>
               </label>
               <input
                 type="date"
                 required
                 value={formData.date}
                 onChange={e => setFormData({ ...formData, date: e.target.value })}
-                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:border-emerald-500 font-mono"
+                className="w-full min-w-0 max-w-full box-border px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:border-emerald-500 font-mono block"
               />
             </div>
           </div>

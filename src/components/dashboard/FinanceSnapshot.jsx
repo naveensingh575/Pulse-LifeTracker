@@ -171,8 +171,8 @@ export const FinanceSnapshot = () => {
 
       {/* Lightweight Quick Expense Modal */}
       {isQuickExpenseOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="w-full max-w-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-4 shadow-2xl text-slate-900 dark:text-slate-100">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-150 overflow-x-hidden">
+          <div className="w-full max-w-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-4 shadow-2xl text-slate-900 dark:text-slate-100 min-w-0 overflow-x-hidden overscroll-x-none">
             <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
               <h4 className="text-sm font-bold flex items-center gap-1.5">
                 <span className="text-emerald-500 font-extrabold text-base">{currency}</span>
