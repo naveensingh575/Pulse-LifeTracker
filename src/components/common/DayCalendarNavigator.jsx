@@ -55,36 +55,56 @@ export const DayCalendarNavigator = ({
     }
   };
 
+  const dateInputRef = React.useRef(null);
+
+  const handleDateContainerClick = () => {
+    if (dateInputRef.current) {
+      if (typeof dateInputRef.current.showPicker === 'function') {
+        try {
+          dateInputRef.current.showPicker();
+        } catch {
+          dateInputRef.current.focus();
+        }
+      } else {
+        dateInputRef.current.focus();
+      }
+    }
+  };
+
   const currentStyle = colorStyles[accentColor] || colorStyles.indigo;
 
   return (
     <div className={`flex flex-wrap items-center gap-2 ${className}`}>
       {/* Sleek Integrated Calendar Pill */}
-      <div className="flex items-center space-x-1 bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-200 dark:border-slate-800 text-xs">
+      <div className="inline-flex items-center space-x-1 bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-200 dark:border-slate-800 text-xs">
         <button
           type="button"
           onClick={() => shiftDay(-1)}
-          className="p-1.5 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 cursor-pointer transition"
+          className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 cursor-pointer transition shrink-0"
           title="Previous Day"
           aria-label="Previous Day"
         >
           <ChevronLeft className="w-3.5 h-3.5" />
         </button>
 
-        <div className="flex items-center space-x-1.5 px-2 py-0.5">
-          <CalendarIcon className={`w-3.5 h-3.5 ${currentStyle.icon}`} />
+        <div
+          onClick={handleDateContainerClick}
+          className="h-7 flex items-center space-x-1.5 px-2 rounded-lg hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition shrink-0 cursor-pointer"
+        >
+          <CalendarIcon className={`w-3.5 h-3.5 shrink-0 ${currentStyle.icon}`} />
           <input
+            ref={dateInputRef}
             type="date"
             value={currentDate}
             onChange={(e) => onDateChange(e.target.value)}
-            className="bg-transparent text-xs font-mono font-bold text-slate-900 dark:text-slate-100 focus:outline-none cursor-pointer"
+            className="day-calendar-date-input font-mono font-bold text-slate-900 dark:text-slate-100 focus:outline-none cursor-pointer"
           />
         </div>
 
         <button
           type="button"
           onClick={() => shiftDay(1)}
-          className="p-1.5 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 cursor-pointer transition"
+          className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 cursor-pointer transition shrink-0"
           title="Next Day"
           aria-label="Next Day"
         >
@@ -95,7 +115,7 @@ export const DayCalendarNavigator = ({
           <button
             type="button"
             onClick={() => onDateChange(todayStr)}
-            className={`px-2.5 py-1 ml-1 rounded-lg font-bold text-[11px] transition cursor-pointer ${currentStyle.todayBtn}`}
+            className={`h-7 px-2.5 flex items-center justify-center rounded-lg font-bold text-[11px] leading-none transition cursor-pointer shrink-0 ${currentStyle.todayBtn}`}
             title="Jump to Today"
           >
             Today
