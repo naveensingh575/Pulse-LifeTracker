@@ -198,13 +198,15 @@ ${getFullFormattedBody()}`;
   };
 
   return (
-    <div
-      className="fixed inset-0 z-[70] bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-in fade-in duration-200"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
-      <div className="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-7 space-y-5 max-h-[92vh] overflow-y-auto animate-in zoom-in-95 duration-200">
+    <>
+      {/* Backdrop: Clicking closes modal */}
+      <div
+        className="fixed inset-0 z-[70] bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-200"
+        onClick={onClose}
+      />
+
+      {/* Modal Card: FIXED below top bezel (top-16) on mobile, centered on sm, with whitespace below */}
+      <div className="fixed top-16 sm:top-1/2 left-3 right-3 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 z-[70] max-w-lg mx-auto w-auto sm:w-full bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-5 sm:p-7 space-y-5 max-h-[calc(100dvh-8rem)] sm:max-h-[90vh] overflow-y-auto overflow-x-hidden overscroll-x-none animate-in zoom-in-95 duration-200">
         
         {/* Header */}
         <div className="flex items-start justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
@@ -457,6 +459,6 @@ ${getFullFormattedBody()}`;
         )}
 
       </div>
-    </div>
+    </>
   );
 };
