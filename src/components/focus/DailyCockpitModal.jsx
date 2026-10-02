@@ -104,45 +104,48 @@ export const DailyCockpitModal = ({ isOpen, onClose }) => {
   return (
     <div
       onClick={handleDismissToday}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-md animate-in fade-in duration-200"
+      className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 backdrop-blur-md animate-in fade-in duration-200 overflow-x-hidden"
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl p-6 sm:p-7 space-y-5 animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto"
+        className="relative w-full max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90dvh] sm:max-h-[90vh] min-w-0 overflow-x-hidden overscroll-x-none animate-in zoom-in-95 duration-200 text-slate-900 dark:text-slate-100"
       >
-        {/* Close & Quick-Dismiss Buttons */}
-        <div className="absolute top-5 right-5 flex items-center gap-1.5">
-          <button
-            onClick={handleDismissToday}
-            className="text-[11px] font-semibold text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 px-2 py-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
-            title="Don't open automatically again today"
-          >
-            Don't show again today
-          </button>
-          <button
-            onClick={handleDismissToday}
-            className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
-            title="Close"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-
-        {/* Top Header Badge */}
-        <div className="flex items-center space-x-2">
-          <span className="px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
-            <Zap className="w-3 h-3 text-indigo-500 fill-indigo-500" />
-            <span>30-Second Daily Cockpit</span>
-          </span>
-          {maxStreak > 0 && (
-            <span className="px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 text-[10px] font-bold flex items-center gap-1 font-mono">
-              <Flame className="w-3 h-3 text-amber-500 fill-amber-500" />
-              <span>{maxStreak}d Top Streak</span>
+        {/* Pinned Header */}
+        <div className="flex items-center justify-between p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 shrink-0">
+          <div className="flex items-center space-x-2">
+            <span className="px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
+              <Zap className="w-3 h-3 text-indigo-500 fill-indigo-500" />
+              <span>30-Second Daily Cockpit</span>
             </span>
-          )}
+            {maxStreak > 0 && (
+              <span className="px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 text-[10px] font-bold flex items-center gap-1 font-mono">
+                <Flame className="w-3 h-3 text-amber-500 fill-amber-500" />
+                <span>{maxStreak}d Streak</span>
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={handleDismissToday}
+              className="hidden sm:inline-flex text-[11px] font-semibold text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 px-2 py-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+              title="Don't open automatically again today"
+            >
+              Don't show today
+            </button>
+            <button
+              onClick={handleDismissToday}
+              className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+              title="Close"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
-        {/* Hero Greeting */}
+        {/* Scrollable Body */}
+        <div className="p-4 sm:p-6 space-y-5 overflow-y-auto overflow-x-hidden overscroll-x-none flex-1 min-w-0">
+          {/* Hero Greeting */}
         <div className="space-y-1">
           <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
             <GreetingIcon className="w-6 h-6 text-amber-500" />
@@ -268,6 +271,7 @@ export const DailyCockpitModal = ({ isOpen, onClose }) => {
               <span>Open 30s Check-In automatically on first visit each day</span>
             </label>
           </div>
+        </div>
         </div>
 
       </div>

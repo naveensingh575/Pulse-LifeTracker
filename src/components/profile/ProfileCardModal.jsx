@@ -143,17 +143,18 @@ export const ProfileCardModal = ({ isOpen, onClose }) => {
 
   return (
     <>
-      {/* Backdrop: Clicking closes modal */}
+      {/* Outer Centered Backdrop Wrapper */}
       <div
-        className="fixed inset-0 z-50 bg-slate-950/65 backdrop-blur-sm animate-in fade-in duration-200"
         onClick={onClose}
-      />
-
-      {/* Modal Card: FIXED below top bezel (top-16) on mobile, centered on sm, with whitespace below */}
-      <div className="fixed top-16 sm:top-1/2 left-3 right-3 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 z-50 max-w-lg mx-auto w-auto sm:w-full bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-5 sm:p-7 space-y-6 max-h-[calc(100dvh-8rem)] sm:max-h-[90vh] overflow-y-auto overflow-x-hidden overscroll-x-none animate-in zoom-in-95 duration-200">
+        className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-200 overflow-x-hidden"
+      >
+        <div
+          onClick={(e) => e.stopPropagation()}
+          className="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col max-h-[90dvh] sm:max-h-[90vh] min-w-0 overflow-x-hidden overscroll-x-none animate-in zoom-in-95 duration-200 text-slate-900 dark:text-slate-100"
+        >
           
-          {/* Header Bar */}
-          <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+          {/* Pinned Header Bar */}
+          <div className="flex items-center justify-between p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 shrink-0">
             <div className="flex items-center space-x-2">
               <div className="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-pulse" />
               <h2 className="text-sm font-black uppercase tracking-wider text-slate-800 dark:text-slate-200">
@@ -168,6 +169,9 @@ export const ProfileCardModal = ({ isOpen, onClose }) => {
               <X className="w-4 h-4" />
             </button>
           </div>
+
+          {/* Scrollable Body */}
+          <div className="p-4 sm:p-6 space-y-6 overflow-y-auto overflow-x-hidden overscroll-x-none flex-1 min-w-0">
 
           {/* 1. Identity & Membership Card */}
           <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-50 to-indigo-50/30 dark:from-slate-950/80 dark:to-indigo-950/20 border border-slate-200/80 dark:border-slate-800">
@@ -702,8 +706,9 @@ export const ProfileCardModal = ({ isOpen, onClose }) => {
               Pulse Life Tracker v1.0.0 • Private & Encrypted
             </p>
           </div>
-
         </div>
+      </div>
+    </div>
 
       {/* Child Modals */}
       <AvatarUploadModal

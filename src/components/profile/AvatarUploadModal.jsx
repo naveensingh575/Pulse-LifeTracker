@@ -219,18 +219,17 @@ export const AvatarUploadModal = ({ isOpen, onClose }) => {
   };
 
   return (
-    <>
-      {/* Backdrop */}
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-[80] flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 backdrop-blur-sm animate-in fade-in duration-200 overflow-x-hidden"
+    >
       <div
-        className="fixed inset-0 z-[80] bg-slate-950/75 backdrop-blur-sm animate-in fade-in duration-200"
-        onClick={onClose}
-      />
-
-      {/* Modal Dialog: Safe from top bezel on mobile, centered on desktop */}
-      <div className="fixed top-16 sm:top-1/2 left-3 right-3 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 z-[80] max-w-md mx-auto w-auto sm:w-full bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-5 sm:p-6 space-y-4 max-h-[calc(100dvh-8rem)] sm:max-h-[90vh] overflow-y-auto overflow-x-hidden overscroll-x-none animate-in zoom-in-95 duration-200">
+        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col max-h-[90dvh] sm:max-h-[90vh] min-w-0 overflow-x-hidden overscroll-x-none animate-in zoom-in-95 duration-200 text-slate-900 dark:text-slate-100"
+      >
         
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+        {/* Pinned Header */}
+        <div className="flex items-center justify-between p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 shrink-0">
           <div className="flex items-center space-x-2.5">
             <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
               <Camera className="w-4 h-4" />
@@ -253,6 +252,9 @@ export const AvatarUploadModal = ({ isOpen, onClose }) => {
             <X className="w-4 h-4" />
           </button>
         </div>
+
+        {/* Scrollable Body */}
+        <div className="p-4 sm:p-5 space-y-4 overflow-y-auto overflow-x-hidden overscroll-x-none flex-1 min-w-0">
 
         {/* Live Preview Display */}
         <div className="flex items-center justify-center py-2">
@@ -460,8 +462,9 @@ export const AvatarUploadModal = ({ isOpen, onClose }) => {
             )}
           </button>
         </div>
+        </div>
 
       </div>
-    </>
+    </div>
   );
 };

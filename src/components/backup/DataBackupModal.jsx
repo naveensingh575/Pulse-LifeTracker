@@ -194,41 +194,45 @@ export const DataBackupModal = ({ isOpen, onClose }) => {
   return (
     <div
       onClick={onClose}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-md animate-in fade-in duration-200"
+      className="fixed inset-0 z-[80] flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 backdrop-blur-md animate-in fade-in duration-200 overflow-x-hidden"
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl p-5 sm:p-7 space-y-5 animate-in zoom-in-95 duration-200 max-h-[calc(100dvh-5rem)] sm:max-h-[90vh] overflow-y-auto overflow-x-hidden overscroll-x-none"
+        className="relative w-full max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90dvh] sm:max-h-[90vh] min-w-0 overflow-x-hidden overscroll-x-none animate-in zoom-in-95 duration-200 text-slate-900 dark:text-slate-100"
       >
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute top-5 right-5 p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer z-10"
-        >
-          <X className="w-4 h-4" />
-        </button>
-
-        {/* Modal Header */}
-        <div className="flex items-center space-x-3 pr-8 sm:pr-0">
-          <div className="p-3 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 shrink-0">
-            <HardDrive className="w-6 h-6" />
+        {/* Pinned Header */}
+        <div className="flex items-center justify-between p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 shrink-0">
+          <div className="flex items-center space-x-3">
+            <div className="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 shrink-0">
+              <HardDrive className="w-5 h-5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                <span>Data Backup & Restore</span>
+                {hasProAccess ? (
+                  <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[10px] font-bold leading-none text-center whitespace-nowrap">
+                    Pro Active
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 text-[10px] font-bold leading-none gap-1 whitespace-nowrap">
+                    <Crown className="w-3 h-3 text-amber-500 shrink-0" />
+                    <span>Pro Feature</span>
+                  </span>
+                )}
+              </h3>
+            </div>
           </div>
-          <div className="min-w-0 flex-1">
-            <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-slate-100 flex items-center gap-2 flex-wrap sm:flex-nowrap">
-              <span>Data Backup & Restore</span>
-              {hasProAccess ? (
-                <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[10px] font-bold leading-none text-center whitespace-nowrap">
-                  Pro Active
-                </span>
-              ) : (
-                <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 text-[10px] font-bold leading-none gap-1 whitespace-nowrap">
-                  <Crown className="w-3 h-3 text-amber-500 shrink-0" />
-                  <span>Pro Feature</span>
-                </span>
-              )}
-            </h3>
-          </div>
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+            aria-label="Close modal"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
+
+        {/* Scrollable Body */}
+        <div className="p-4 sm:p-6 space-y-5 overflow-y-auto overflow-x-hidden overscroll-x-none flex-1 min-w-0">
 
         {/* Tabs: Export vs Restore */}
         <div className="flex p-1 bg-slate-100 dark:bg-slate-950 rounded-2xl border border-slate-200/80 dark:border-slate-800">
@@ -566,6 +570,7 @@ export const DataBackupModal = ({ isOpen, onClose }) => {
             )}
           </div>
         )}
+        </div>
 
       </div>
     </div>

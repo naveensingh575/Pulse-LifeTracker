@@ -152,33 +152,27 @@ export const PricingModal = () => {
   };
 
   return (
-    <>
-      {/* Backdrop: Clicking closes modal */}
+    <div
+      onClick={closePricingModal}
+      className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 dark:bg-slate-950/85 backdrop-blur-md animate-in fade-in duration-200 overflow-x-hidden"
+    >
       <div
-        className="fixed inset-0 z-[100] bg-slate-950/75 dark:bg-slate-950/85 backdrop-blur-md animate-in fade-in duration-150"
-        onClick={closePricingModal}
-      />
-
-      {/* Modal Card: FIXED below top bezel (top-16) on mobile, centered on sm, with whitespace below */}
-      <div
-        className="fixed top-16 sm:top-1/2 left-3 right-3 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 z-[100] max-w-4xl mx-auto w-auto sm:w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-3xl p-5 sm:p-8 shadow-2xl space-y-6 max-h-[calc(100dvh-8rem)] sm:max-h-[90vh] overflow-y-auto overflow-x-hidden overscroll-x-none animate-in zoom-in-95 duration-150"
+        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-4xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90dvh] sm:max-h-[90vh] min-w-0 overflow-x-hidden overscroll-x-none animate-in zoom-in-95 duration-200"
       >
-
-        {/* Close Button */}
-        <button
-          onClick={closePricingModal}
-          className="absolute top-5 right-5 p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer z-10"
-          aria-label="Close dialog"
-        >
-          <X className="w-5 h-5" />
-        </button>
-
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3 pt-1 pr-10 sm:pr-0">
-          <div>
-            <h2 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white">
+        {/* Pinned Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-4 sm:p-6 border-b border-slate-100 dark:border-slate-800 shrink-0">
+          <div className="flex items-center justify-between w-full sm:w-auto">
+            <h2 className="text-lg sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white">
               Subscription Plans
             </h2>
+            <button
+              onClick={closePricingModal}
+              className="sm:hidden p-1.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+              aria-label="Close dialog"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
 
           <div className="flex items-center gap-2">
@@ -194,8 +188,19 @@ export const PricingModal = () => {
             )}>
               {isFounder ? 'Founder Lifetime' : isLifetime ? 'Lifetime Pass' : isYearly ? 'Pro Yearly' : isMonthly ? 'Pro Monthly' : isTrialActive ? `⭐ Pro Preview Trial (${trialInfo?.trialDaysRemaining}d left)` : 'Free Starter'}
             </span>
+
+            <button
+              onClick={closePricingModal}
+              className="hidden sm:inline-flex p-1.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+              aria-label="Close dialog"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
         </div>
+
+        {/* Scrollable Body */}
+        <div className="p-4 sm:p-8 space-y-6 overflow-y-auto overflow-x-hidden overscroll-x-none flex-1 min-w-0">
 
         {/* Pro Preview Active Announcement Banner */}
         {isTrialActive && (
@@ -592,6 +597,7 @@ export const PricingModal = () => {
         </div>
 
       </div>
-    </>
+    </div>
+  </div>
   );
 };

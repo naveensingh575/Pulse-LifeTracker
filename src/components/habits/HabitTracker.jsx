@@ -508,37 +508,36 @@ export const HabitTracker = ({ activeCategoryProp }) => {
 
       {/* Add / Edit Habit Modal with Track From Date Selector */}
       {showAddModal && (
-        <>
-          {/* Backdrop: Clicking closes modal */}
+        <div
+          onClick={() => {
+            setShowAddModal(false);
+            setEditingHabit(null);
+          }}
+          className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-200 overflow-x-hidden"
+        >
           <div
-            className="fixed inset-0 z-40 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-150"
-            onClick={() => {
-              setShowAddModal(false);
-              setEditingHabit(null);
-            }}
-          />
-
-          {/* Modal Card: FIXED at top of screen on mobile (top-20), centered on sm */}
-          <div className="fixed top-20 sm:top-1/2 left-4 right-4 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 z-50 max-w-sm mx-auto w-auto sm:w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-4 shadow-2xl text-slate-900 dark:text-slate-100 animate-in zoom-in-95 duration-150 max-h-[calc(100vh-6rem)] overflow-y-auto overflow-x-hidden overscroll-x-none">
-            <div className="flex items-center justify-between">
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full max-w-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90dvh] sm:max-h-[90vh] min-w-0 overflow-x-hidden overscroll-x-none animate-in zoom-in-95 duration-200 text-slate-900 dark:text-slate-100"
+          >
+            {/* Pinned Header */}
+            <div className="flex items-center justify-between p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 shrink-0">
               <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
                 {editingHabit ? <Edit2 className="w-4 h-4 text-amber-500" /> : <Plus className="w-4 h-4 text-amber-500" />}
                 <span>{editingHabit ? 'Edit Habit' : 'Add New Habit'}</span>
               </h4>
-
 
               <button
                 onClick={() => {
                   setShowAddModal(false);
                   setEditingHabit(null);
                 }}
-                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleSaveHabit} className="space-y-3">
+            <form onSubmit={handleSaveHabit} className="p-4 sm:p-5 space-y-3 overflow-y-auto overflow-x-hidden overscroll-x-none flex-1 min-w-0">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Habit Title</label>
                 <input
@@ -662,7 +661,7 @@ export const HabitTracker = ({ activeCategoryProp }) => {
               </div>
             </form>
           </div>
-        </>
+        </div>
       )}
 
       {/* 🚀 HABIT STREAK MILESTONE SHARE MODAL */}

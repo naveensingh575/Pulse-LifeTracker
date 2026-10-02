@@ -399,11 +399,17 @@ export const ActivityModal = ({ isOpen, onClose, onSave, initialData = null }) =
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-200 overflow-x-hidden">
-      <div className="relative w-full max-w-xl glass-panel-dark bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col max-h-[90vh] min-w-0 overflow-x-hidden overscroll-x-none">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-200 overflow-x-hidden"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-xl glass-panel-dark bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col max-h-[90dvh] sm:max-h-[90vh] min-w-0 overflow-x-hidden overscroll-x-none"
+      >
         
         {/* Modal Header */}
-        <div className="flex items-center justify-between p-5 border-b border-slate-200 dark:border-slate-800/80">
+        <div className="flex items-center justify-between p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800/80 shrink-0">
           <div className="flex items-center space-x-2.5">
             <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
               {initialData ? <Edit2 className="w-5 h-5" /> : <Activity className="w-5 h-5" />}

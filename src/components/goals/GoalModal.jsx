@@ -203,8 +203,14 @@ export const GoalModal = ({ isOpen, onClose, onSave, onDelete, initialData }) =>
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-200 overflow-x-hidden">
-      <div className="w-full max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden text-slate-900 dark:text-slate-100 max-h-[90vh] flex flex-col min-w-0 overflow-x-hidden overscroll-x-none">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-200 overflow-x-hidden"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden text-slate-900 dark:text-slate-100 max-h-[90dvh] sm:max-h-[90vh] flex flex-col min-w-0 overflow-x-hidden overscroll-x-none"
+      >
         
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 shrink-0">
@@ -221,7 +227,7 @@ export const GoalModal = ({ isOpen, onClose, onSave, onDelete, initialData }) =>
         </div>
 
         {/* Scrollable Form */}
-        <form onSubmit={handleSubmit} className="p-5 sm:p-6 space-y-4 overflow-y-auto overflow-x-hidden overscroll-x-none min-w-0">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 overflow-y-auto overflow-x-hidden overscroll-x-none flex-1 min-w-0">
           
           {/* 1. Time Horizon Selector */}
           <div>

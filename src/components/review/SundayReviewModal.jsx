@@ -151,36 +151,44 @@ export const SundayReviewModal = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 dark:bg-slate-950/85 backdrop-blur-md animate-in fade-in duration-200 overflow-y-auto">
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white max-w-xl w-full rounded-3xl p-5 sm:p-7 space-y-5 shadow-2xl relative my-auto animate-in zoom-in-95 duration-200">
-        
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute top-5 right-5 p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
-        >
-          <X className="w-5 h-5" />
-        </button>
-
-        {/* Modal Header */}
-        <div className="flex items-center space-x-3 pr-8">
-          <div className="p-3 rounded-2xl bg-gradient-to-tr from-indigo-500/20 via-purple-500/20 to-amber-500/20 border border-indigo-500/30 text-indigo-600 dark:text-indigo-400 shrink-0">
-            <Sparkles className="w-6 h-6 text-indigo-500" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h3 className="text-lg font-black text-slate-900 dark:text-white">
-                Sunday Executive Review
-              </h3>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-extrabold uppercase tracking-wider border border-indigo-500/20">
-                Weekly Brief
-              </span>
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 dark:bg-slate-950/85 backdrop-blur-md animate-in fade-in duration-200 overflow-x-hidden"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90dvh] sm:max-h-[90vh] min-w-0 overflow-x-hidden overscroll-x-none animate-in zoom-in-95 duration-200"
+      >
+        {/* Pinned Header */}
+        <div className="flex items-center justify-between p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 shrink-0">
+          <div className="flex items-center space-x-3 pr-2">
+            <div className="p-2.5 rounded-xl bg-gradient-to-tr from-indigo-500/20 via-purple-500/20 to-amber-500/20 border border-indigo-500/30 text-indigo-600 dark:text-indigo-400 shrink-0">
+              <Sparkles className="w-5 h-5 text-indigo-500" />
             </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              Reflect on <strong className="font-semibold text-slate-700 dark:text-slate-300">{weekBadge}</strong> and calibrate your focus for next week.
-            </p>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white">
+                  Sunday Executive Review
+                </h3>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-extrabold uppercase tracking-wider border border-indigo-500/20">
+                  Weekly Brief
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                Reflect on <strong className="font-semibold text-slate-700 dark:text-slate-300">{weekBadge}</strong> and calibrate your focus for next week.
+              </p>
+            </div>
           </div>
+          <button
+            onClick={onClose}
+            className="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
+
+        {/* Scrollable Body */}
+        <div className="p-4 sm:p-6 space-y-5 overflow-y-auto overflow-x-hidden overscroll-x-none flex-1 min-w-0">
 
         {/* 4-Pillar Scoreboard Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
@@ -326,6 +334,7 @@ export const SundayReviewModal = ({ isOpen, onClose }) => {
             <span>Lock In & Start Week</span>
             <ArrowRight className="w-4 h-4" />
           </button>
+        </div>
         </div>
 
       </div>

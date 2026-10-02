@@ -758,9 +758,16 @@ export const MoneyTracker = ({ openAddModalTrigger }) => {
 
       {/* Set Monthly Budget Allocation Modal */}
       {isBudgetModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="w-full max-w-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-4 shadow-2xl text-slate-900 dark:text-slate-100">
-            <div className="flex items-center justify-between">
+        <div
+          onClick={() => setIsBudgetModalOpen(false)}
+          className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-200 overflow-x-hidden"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full max-w-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90dvh] sm:max-h-[90vh] min-w-0 overflow-x-hidden overscroll-x-none animate-in zoom-in-95 duration-200 text-slate-900 dark:text-slate-100"
+          >
+            {/* Pinned Header */}
+            <div className="flex items-center justify-between p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 shrink-0">
               <div>
                 <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">
                   Set Budget Allocation
@@ -769,12 +776,15 @@ export const MoneyTracker = ({ openAddModalTrigger }) => {
                   {MONTH_NAMES_FULL[selectedMonth - 1]} {selectedYear}
                 </p>
               </div>
-              <button onClick={() => setIsBudgetModalOpen(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer">
+              <button
+                onClick={() => setIsBudgetModalOpen(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+              >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleSaveBudgetModal} className="space-y-3">
+            <form onSubmit={handleSaveBudgetModal} className="p-4 sm:p-5 space-y-3 overflow-y-auto overflow-x-hidden overscroll-x-none flex-1 min-w-0">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   Target Expense Living Budget ({currency})
