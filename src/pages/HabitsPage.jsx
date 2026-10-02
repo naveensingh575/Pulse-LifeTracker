@@ -29,7 +29,7 @@ import {
   X
 } from 'lucide-react';
 import { exportHabitsToCSV } from '../utils/exportUtils';
-import { HABIT_CATEGORIES, HABIT_FILTER_CATEGORIES } from '../utils/habitCategories';
+import { HABIT_CATEGORIES, HABIT_FILTER_CATEGORIES, getHabitIconForCategory } from '../utils/habitCategories';
 
 export const HabitsPage = () => {
   const {
@@ -75,10 +75,12 @@ export const HabitsPage = () => {
     e.preventDefault();
     if (!newHabitName.trim()) return;
 
+    const habitIcon = getHabitIconForCategory(newHabitCategory);
+
     addHabit({
       name: newHabitName.trim(),
       category: newHabitCategory,
-      icon: 'Smile',
+      icon: habitIcon,
       createdAt: newHabitStartDate || getISTDateString(),
       activeDays: newHabitActiveDays
     });

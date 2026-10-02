@@ -27,18 +27,33 @@ import {
   Calendar,
   Edit2,
   Share2,
-  Shield
+  Shield,
+  Heart,
+  Wallet,
+  Briefcase,
+  Sparkles,
+  Brain
 } from 'lucide-react';
 import { triggerHaptic } from '../../utils/hapticUtils';
 import { DisciplineShareModal } from '../analytics/DisciplineShareModal';
-import { HABIT_CATEGORIES, HABIT_FILTER_CATEGORIES } from '../../utils/habitCategories';
+import {
+  HABIT_CATEGORIES,
+  HABIT_FILTER_CATEGORIES,
+  getHabitIconForCategory,
+  resolveHabitIcon
+} from '../../utils/habitCategories';
 
 const habitIconMap = {
-  Droplets: Droplets,
-  BookOpen: BookOpen,
-  Dumbbell: Dumbbell,
-  Smile: Smile,
-  Code: Code
+  Heart,
+  Dumbbell,
+  Wallet,
+  Briefcase,
+  BookOpen,
+  Sparkles,
+  Brain,
+  Droplets,
+  Smile,
+  Code
 };
 
 export const HabitTracker = ({ activeCategoryProp }) => {
@@ -114,10 +129,13 @@ export const HabitTracker = ({ activeCategoryProp }) => {
     e.preventDefault();
     if (!newHabitName.trim()) return;
 
+    const habitIcon = getHabitIconForCategory(newHabitCategory);
+
     if (editingHabit) {
       updateHabit(editingHabit.id, {
         name: newHabitName.trim(),
         category: newHabitCategory,
+        icon: habitIcon,
         createdAt: newHabitStartDate || getISTDateString(),
         activeDays: newHabitActiveDays
       });
@@ -125,7 +143,7 @@ export const HabitTracker = ({ activeCategoryProp }) => {
       addHabit({
         name: newHabitName.trim(),
         category: newHabitCategory,
-        icon: 'Smile',
+        icon: habitIcon,
         createdAt: newHabitStartDate || getISTDateString(),
         activeDays: newHabitActiveDays
       });
@@ -280,7 +298,8 @@ export const HabitTracker = ({ activeCategoryProp }) => {
           </p>
         ) : (
           filteredHabits.map((habit) => {
-            const IconComp = habitIconMap[habit.icon] || Smile;
+            const iconName = resolveHabitIcon(habit);
+            const IconComp = habitIconMap[iconName] || habitIconMap[habit.icon] || Smile;
 
             // Calculate completions for the currently visible week, only for scheduled days
             const scheduledDays = weekDays.filter(d => isHabitActiveOnDate(habit, d.dateStr));

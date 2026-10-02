@@ -22,6 +22,7 @@ import { getQuotaStatus, getCurrentMonthKey, FREE_TIER_LIMITS } from '../utils/f
 import { getGuestDemoData } from '../utils/demoData';
 import { getUserReferralCode, getReferralRewardTier, fetchReferralStats } from '../utils/referralUtils';
 import { calculateNextDueDate, extractRepeat, formatNotesWithRepeat, cleanNotes } from '../utils/taskUtils';
+import { getHabitIconForCategory } from '../utils/habitCategories';
 
 export const SUPPORTED_CURRENCIES = [
   { symbol: '$', code: 'USD', name: 'US Dollar ($)' },
@@ -103,12 +104,15 @@ const normalizeHabit = (h) => {
   const activeDays = parseActiveDays(frequency);
   const { streak, shieldActive } = calculateHabitStreakWithShield(completions, createdAt);
 
+  const category = h.category || 'Health';
+  const icon = (h.icon && h.icon !== 'Smile') ? h.icon : getHabitIconForCategory(category);
+
   return {
     ...h,
     id: h.id,
     name: h.name,
-    category: h.category || 'Health',
-    icon: h.icon || 'Smile',
+    category,
+    icon,
     frequency,
     activeDays,
     createdAt,
@@ -916,13 +920,15 @@ export const DashboardProvider = ({ children }) => {
     const todayStr = getISTDateString();
     const habitCreatedAt = newHabit.createdAt || todayStr;
     const frequency = newHabit.activeDays ? encodeActiveDays(newHabit.activeDays) : (newHabit.frequency || 'daily');
+    const category = newHabit.category || 'Health';
+    const icon = (newHabit.icon && newHabit.icon !== 'Smile') ? newHabit.icon : getHabitIconForCategory(category);
 
     if (userId) {
       const { data, error } = await supabase.from('habits').insert({
         user_id: userId,
         name: newHabit.name.trim(),
-        category: newHabit.category || 'Health',
-        icon: newHabit.icon || 'Smile',
+        category,
+        icon,
         frequency,
         streak: 0,
         created_at: habitCreatedAt
@@ -935,6 +941,9 @@ export const DashboardProvider = ({ children }) => {
       const localHabit = normalizeHabit({
         ...newHabit,
         id: `h-${Date.now()}`,
+        name: newHabit.name.trim(),
+        category,
+        icon,
         frequency,
         createdAt: habitCreatedAt,
         completions: {},
@@ -966,7 +975,7 @@ export const DashboardProvider = ({ children }) => {
 
     const name = (updatedHabit.name || '').trim();
     const category = updatedHabit.category || 'Health';
-    const icon = updatedHabit.icon || 'Smile';
+    const icon = (updatedHabit.icon && updatedHabit.icon !== 'Smile') ? updatedHabit.icon : getHabitIconForCategory(category);
     const frequency = updatedHabit.activeDays ? encodeActiveDays(updatedHabit.activeDays) : (updatedHabit.frequency || 'daily');
     const activeDays = parseActiveDays(frequency);
     const createdAt = updatedHabit.createdAt || updatedHabit.created_at || getISTDateString();
@@ -1958,7 +1967,7 @@ export const DashboardProvider = ({ children }) => {
             user_id: userId,
             name: h.name,
             category: h.category || 'Health',
-            icon: h.icon || 'Smile',
+            icon: (h.icon && h.icon !== 'Smile') ? h.icon : getHabitIconForCategory(h.category || 'Health'),
             frequency: h.frequency || 'daily',
             streak: h.streak || 0,
             created_at: h.createdAt || getISTDateString()
