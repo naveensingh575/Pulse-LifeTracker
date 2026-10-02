@@ -23,6 +23,36 @@ import {
 } from 'lucide-react';
 import { getISTDateString } from '../../utils/dateUtils';
 
+export const GOAL_CATEGORY_OPTIONS = [
+  { id: 'Financial', label: 'Financial', emoji: '💰', icon: 'PiggyBank' },
+  { id: 'Health', label: 'Health & Fitness', emoji: '🏃', icon: 'Activity' },
+  { id: 'Career', label: 'Career & Work', emoji: '💼', icon: 'Briefcase' },
+  { id: 'Skill', label: 'Skill & Tech', emoji: '📚', icon: 'Award' },
+  { id: 'Travel', label: 'Travel & Life', emoji: '✈️', icon: 'Plane' },
+  { id: 'Personal', label: 'Personal & Lifestyle', emoji: '❤️', icon: 'Heart' },
+  { id: 'Asset', label: 'Asset & Property', emoji: '🏠', icon: 'Home' },
+  { id: 'Launch', label: 'Launch & Venture', emoji: '🚀', icon: 'Rocket' },
+  { id: 'Strategic', label: 'Strategic Focus', emoji: '🎯', icon: 'Target' }
+];
+
+export const getGoalIconForCategory = (category) => {
+  if (!category) return 'Target';
+  const norm = String(category).trim().toLowerCase();
+  
+  if (norm.includes('financ') || norm.includes('money') || norm.includes('wealth')) return 'PiggyBank';
+  if (norm.includes('health') || norm.includes('fit')) return 'Activity';
+  if (norm.includes('career') || norm.includes('work') || norm.includes('job')) return 'Briefcase';
+  if (norm.includes('skill') || norm.includes('tech') || norm.includes('learn') || norm.includes('code')) return 'Award';
+  if (norm.includes('travel') || norm.includes('trip') || norm.includes('tour')) return 'Plane';
+  if (norm.includes('personal') || norm.includes('life')) return 'Heart';
+  if (norm.includes('asset') || norm.includes('home') || norm.includes('house') || norm.includes('property')) return 'Home';
+  if (norm.includes('launch') || norm.includes('startup') || norm.includes('venture')) return 'Rocket';
+  if (norm.includes('strateg') || norm.includes('focus') || norm.includes('obj')) return 'Target';
+
+  const found = GOAL_CATEGORY_OPTIONS.find(c => c.id.toLowerCase() === norm);
+  return found ? found.icon : 'Target';
+};
+
 export const GOAL_ICONS = [
   { id: 'Compass', label: 'Objective', emoji: '🧭', icon: Compass },
   { id: 'PiggyBank', label: 'Finance', emoji: '💰', icon: PiggyBank },
@@ -77,7 +107,7 @@ export const GoalModal = ({ isOpen, onClose, onSave, onDelete, initialData }) =>
         deadline: initialData.deadline || '',
         category: initialData.category || 'Financial',
         color: initialData.color || 'emerald',
-        icon: initialData.icon || 'Target',
+        icon: getGoalIconForCategory(initialData.category || 'Financial'),
         subGoals: Array.isArray(initialData.subGoals)
           ? initialData.subGoals.map(sg => ({
               id: sg.id,
@@ -105,7 +135,7 @@ export const GoalModal = ({ isOpen, onClose, onSave, onDelete, initialData }) =>
         deadline: defaultDeadline,
         category: 'Financial',
         color: 'emerald',
-        icon: 'PiggyBank',
+        icon: getGoalIconForCategory('Financial'),
         subGoals: []
       });
     }
@@ -152,10 +182,14 @@ export const GoalModal = ({ isOpen, onClose, onSave, onDelete, initialData }) =>
     if (!formData.title.trim()) return;
     const safeTargetAmt = Math.min(1000000000, Math.max(1, parseFloat(formData.targetAmount) || 1));
     const safeCurrentAmt = Math.min(1000000000, Math.max(0, parseFloat(formData.currentAmount) || 0));
+    const category = formData.category || 'Financial';
+    const icon = getGoalIconForCategory(category);
 
     const cleanGoal = {
       ...formData,
       title: formData.title.trim(),
+      category,
+      icon,
       targetAmount: safeTargetAmt,
       currentAmount: safeCurrentAmt,
       subGoals: formData.subGoals || []
@@ -238,22 +272,31 @@ export const GoalModal = ({ isOpen, onClose, onSave, onDelete, initialData }) =>
             />
           </div>
 
-          {/* 3. Icon / Logo Picker Dropdown */}
+          {/* 3. Category Tag */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              Goal Icon / Logo
+              Category Tag
             </label>
             <div className="relative flex items-center">
               <select
-                value={formData.icon}
-                onChange={e => setFormData({ ...formData, icon: e.target.value })}
+                value={formData.category}
+                onChange={e => {
+                  const newCat = e.target.value;
+                  const newIcon = getGoalIconForCategory(newCat);
+                  setFormData({ ...formData, category: newCat, icon: newIcon });
+                }}
                 className="w-full px-3 pr-8 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500 cursor-pointer appearance-none font-medium"
               >
-                {GOAL_ICONS.map((item) => (
+                {GOAL_CATEGORY_OPTIONS.map((item) => (
                   <option key={item.id} value={item.id} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
                     {item.emoji} {item.label}
                   </option>
                 ))}
+                {!GOAL_CATEGORY_OPTIONS.some(c => c.id === formData.category) && formData.category && (
+                  <option value={formData.category} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
+                    📌 {formData.category}
+                  </option>
+                )}
               </select>
               <div className="pointer-events-none absolute right-3 flex items-center text-slate-400">
                 <ChevronDown className="w-4 h-4" />
@@ -329,37 +372,19 @@ export const GoalModal = ({ isOpen, onClose, onSave, onDelete, initialData }) =>
             </div>
           </div>
 
-          {/* 6. Deadline & Category */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="min-w-0">
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Target Deadline
-              </label>
-              <input
-                type="date"
-                required
-                value={formData.deadline}
-                onChange={e => setFormData({ ...formData, deadline: e.target.value })}
-                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500 font-mono"
-              />
-            </div>
-            <div className="min-w-0">
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Category Tag
-              </label>
-              <select
-                value={formData.category}
-                onChange={e => setFormData({ ...formData, category: e.target.value })}
-                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500 cursor-pointer"
-              >
-                <option value="Financial">Financial</option>
-                <option value="Health">Health / Fitness</option>
-                <option value="Skill">Skill & Tech</option>
-                <option value="Career">Career & Work</option>
-                <option value="Travel">Travel & Life</option>
-                <option value="Personal">Personal</option>
-              </select>
-            </div>
+          {/* 6. Target Deadline */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1">
+              <Calendar className="w-3.5 h-3.5 text-indigo-500" />
+              <span>Target Deadline</span>
+            </label>
+            <input
+              type="date"
+              required
+              value={formData.deadline}
+              onChange={e => setFormData({ ...formData, deadline: e.target.value })}
+              className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500 font-mono"
+            />
           </div>
 
           {/* 7. NESTED SUB-GOALS / MILESTONES (For Long-Term Goals or optional milestones) */}

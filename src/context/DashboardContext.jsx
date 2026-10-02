@@ -23,6 +23,7 @@ import { getGuestDemoData } from '../utils/demoData';
 import { getUserReferralCode, getReferralRewardTier, fetchReferralStats } from '../utils/referralUtils';
 import { calculateNextDueDate, extractRepeat, formatNotesWithRepeat, cleanNotes } from '../utils/taskUtils';
 import { getHabitIconForCategory } from '../utils/habitCategories';
+import { getGoalIconForCategory } from '../components/goals/GoalModal';
 
 export const SUPPORTED_CURRENCIES = [
   { symbol: '$', code: 'USD', name: 'US Dollar ($)' },
@@ -166,9 +167,9 @@ const normalizeGoal = (g) => {
     currentAmount,
     unit,
     deadline: g.deadline || g.targetDate || g.target_date || '',
-    category: g.category || 'General',
+    category: g.category || 'Financial',
     color: g.color || 'indigo',
-    icon: g.icon || 'Target',
+    icon: getGoalIconForCategory(g.category || 'Financial'),
     subGoals
   };
 };
