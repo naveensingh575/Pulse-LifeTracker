@@ -128,13 +128,14 @@ export const ProfileCardModal = ({ isOpen, onClose }) => {
 
   return (
     <>
+      {/* Backdrop: Clicking closes modal */}
       <div
-        className="fixed inset-0 z-50 bg-slate-950/65 backdrop-blur-sm flex items-center justify-center p-3 sm:p-5 overflow-y-auto animate-in fade-in duration-200"
-        onClick={(e) => {
-          if (e.target === e.currentTarget) onClose();
-        }}
-      >
-        <div className="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-5 sm:p-7 space-y-6 max-h-[92vh] overflow-y-auto animate-in zoom-in-95 duration-200">
+        className="fixed inset-0 z-50 bg-slate-950/65 backdrop-blur-sm animate-in fade-in duration-200"
+        onClick={onClose}
+      />
+
+      {/* Modal Card: FIXED below top bezel (top-16) on mobile, centered on sm, with whitespace below */}
+      <div className="fixed top-16 sm:top-1/2 left-3 right-3 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 z-50 max-w-lg mx-auto w-[calc(100%-1.5rem)] sm:w-full bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-5 sm:p-7 space-y-6 max-h-[calc(100dvh-8rem)] sm:max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200">
           
           {/* Header Bar */}
           <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
@@ -562,7 +563,6 @@ export const ProfileCardModal = ({ isOpen, onClose }) => {
           </div>
 
         </div>
-      </div>
 
       {/* Child Modals */}
       <ContactSupportModal

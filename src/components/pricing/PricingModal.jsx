@@ -152,13 +152,16 @@ export const PricingModal = () => {
   };
 
   return (
-    <div
-      onClick={closePricingModal}
-      className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 dark:bg-slate-950/85 backdrop-blur-md animate-in fade-in duration-150 overflow-y-auto"
-    >
+    <>
+      {/* Backdrop: Clicking closes modal */}
       <div
-        onClick={(e) => e.stopPropagation()}
-        className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white max-w-4xl w-full rounded-3xl p-5 sm:p-8 shadow-2xl relative my-6 max-h-[92vh] overflow-y-auto space-y-6"
+        className="fixed inset-0 z-[100] bg-slate-950/75 dark:bg-slate-950/85 backdrop-blur-md animate-in fade-in duration-150"
+        onClick={closePricingModal}
+      />
+
+      {/* Modal Card: FIXED below top bezel (top-16) on mobile, centered on sm, with whitespace below */}
+      <div
+        className="fixed top-16 sm:top-1/2 left-3 right-3 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 z-[100] max-w-4xl mx-auto w-[calc(100%-1.5rem)] sm:w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-3xl p-5 sm:p-8 shadow-2xl space-y-6 max-h-[calc(100dvh-8rem)] sm:max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-150"
       >
 
         {/* Close Button */}
@@ -171,7 +174,7 @@ export const PricingModal = () => {
         </button>
 
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3 pt-1">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3 pt-1 pr-10 sm:pr-0">
           <div>
             <h2 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white">
               Subscription Plans
@@ -589,6 +592,6 @@ export const PricingModal = () => {
         </div>
 
       </div>
-    </div>
+    </>
   );
 };
