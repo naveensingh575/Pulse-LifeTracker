@@ -66,18 +66,29 @@ export const AuthPage = ({ initialMode }) => {
   
   const navigate = useNavigate();
 
-  // Modes: 'signin' | 'signup' | 'forgot' | 'update-password'
+  // Modes: 'signin' | 'signup' | 'forgot' | 'update-password' | 'signup-verified' | 'password-reset-success'
   const [mode, setMode] = useState(() => {
     if (initialMode) return initialMode;
     const hash = typeof window !== 'undefined' ? window.location.hash : '';
+    const search = typeof window !== 'undefined' ? window.location.search : '';
     const href = typeof window !== 'undefined' ? window.location.href : '';
     if (
       hash.includes('type=recovery') ||
+      search.includes('type=recovery') ||
       href.includes('type=recovery') ||
       hash.includes('mode=update-password') ||
       (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('pulse_recovery_mode') === 'true')
     ) {
       return 'update-password';
+    }
+    if (
+      hash.includes('type=signup') ||
+      search.includes('type=signup') ||
+      hash.includes('type=email_change') ||
+      search.includes('type=email_change') ||
+      emailVerified
+    ) {
+      return 'signup-verified';
     }
     // Auto-direct to signup when arriving via referral or explicit mode=signup
     if (
@@ -135,12 +146,17 @@ export const AuthPage = ({ initialMode }) => {
     setShowInstallModal(true);
   };
 
-  // Check URL hash / auth recovery event on mount
+  // Check URL hash / auth recovery / email verification event on mount
   useEffect(() => {
     const hash = typeof window !== 'undefined' ? window.location.hash : '';
     const search = typeof window !== 'undefined' ? window.location.search : '';
-    const hasValidToken = (hash.includes('type=recovery') && hash.includes('access_token=')) ||
-                          (search.includes('type=recovery') && search.includes('code='));
+    const hasValidToken = (hash.includes('type=recovery') && (hash.includes('access_token=') || hash.includes('token_hash='))) ||
+                          (search.includes('type=recovery') && (search.includes('code=') || search.includes('token_hash='))) ||
+                          hash.includes('type=recovery') || search.includes('type=recovery');
+
+    const hasSignupToken = hash.includes('type=signup') || search.includes('type=signup') ||
+                           hash.includes('type=email_change') || search.includes('type=email_change');
+
     if (
       initialMode === 'update-password' ||
       hasValidToken ||
@@ -148,10 +164,14 @@ export const AuthPage = ({ initialMode }) => {
       (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('pulse_recovery_mode') === 'true')
     ) {
       setMode('update-password');
-      setAuthSuccess('Please enter your new password below.');
+      setAuthSuccess('');
+      setAuthError('');
+    } else if (hasSignupToken || emailVerified) {
+      setMode('signup-verified');
+      setAuthSuccess('');
       setAuthError('');
     }
-  }, [initialMode, isPasswordRecovery]);
+  }, [initialMode, isPasswordRecovery, emailVerified]);
 
   // RFC 5322 Compliant Email Validation
   const validateEmail = (emailStr) => {
@@ -201,8 +221,11 @@ export const AuthPage = ({ initialMode }) => {
       setIsSubmitting(true);
       try {
         await updateUserPassword(password);
-        setAuthSuccess('Password updated successfully! Entering your dashboard...');
-        setTimeout(() => navigate('/'), 900);
+        setPassword('');
+        setConfirmPassword('');
+        setAuthError('');
+        setAuthSuccess('');
+        setMode('password-reset-success');
       } catch (err) {
         setAuthError(err.message || 'Failed to update password. Your recovery link may have expired.');
       } finally {
@@ -242,11 +265,13 @@ export const AuthPage = ({ initialMode }) => {
           setPassword('');
           setName('');
           setConfirmPassword('');
-          setMode('signin');
-
         } else {
-          setAuthSuccess('Account created successfully! Entering PULSE...');
-          setTimeout(() => navigate('/'), 600);
+          setAuthSuccess('Account created successfully! Please sign in with your email and password.');
+          setEmail('');
+          setPassword('');
+          setName('');
+          setConfirmPassword('');
+          setMode('signin');
         }
       } else {
         await signInWithEmail(cleanEmail, password);
@@ -293,67 +318,14 @@ export const AuthPage = ({ initialMode }) => {
     } catch {
       // ignore
     }
+    setPassword('');
+    setConfirmPassword('');
+    setEmail('');
     setMode('signin');
     setAuthError('');
     setAuthSuccess('');
     setResetEmailSent(false);
   };
-
-  // ─── EMAIL VERIFIED SUCCESS SCREEN ───────────────────────────────────────────
-  // Shown when user clicks the confirmation link in their inbox and is signed in
-  if (emailVerified) {
-    // Auto-redirect to dashboard after showing the success state
-    setTimeout(() => {
-      setEmailVerified(false);
-      navigate('/');
-    }, 2500);
-
-    return (
-      <div
-        className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-6 text-center space-y-6 relative overflow-y-auto"
-        style={{
-          paddingTop: 'calc(env(safe-area-inset-top, 0px) + 2rem)',
-          paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 2rem)',
-          minHeight: '100dvh'
-        }}
-      >
-        {/* Ambient glows */}
-        <div className="absolute top-1/4 left-1/4 w-80 h-80 bg-emerald-500/10 dark:bg-emerald-600/20 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-indigo-500/10 dark:bg-indigo-600/20 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="z-10 space-y-5 max-w-sm">
-          {/* Animated success icon */}
-          <div className="flex items-center justify-center">
-            <div className="w-20 h-20 rounded-full bg-emerald-500/15 dark:bg-emerald-500/20 flex items-center justify-center ring-4 ring-emerald-500/20 animate-in zoom-in duration-300">
-              <ShieldCheck className="w-10 h-10 text-emerald-500" />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <h2 className="text-2xl font-black text-slate-900 dark:text-white">
-              Authentication Successful!
-            </h2>
-            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-              Your email has been verified and your account is now active.
-              You're being signed in to your dashboard…
-            </p>
-          </div>
-
-          {/* Progress bar */}
-          <div className="w-full h-1 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
-            <div className="h-full bg-emerald-500 rounded-full animate-[grow_2.5s_ease-in-out_forwards]"
-              style={{ animation: 'width 2.5s ease-in-out forwards', width: '100%' }}
-            />
-          </div>
-
-          <div className="flex items-center justify-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-            <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-500" />
-            <span>Entering Pulse Life Tracker…</span>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div
@@ -447,13 +419,17 @@ export const AuthPage = ({ initialMode }) => {
                 {mode === 'signin' && 'Sign In to Your Account'}
                 {mode === 'signup' && 'Create a New Account'}
                 {mode === 'forgot' && 'Reset Your Password'}
-                {mode === 'update-password' && 'Set New Password'}
+                {mode === 'update-password' && 'Verification Successful'}
+                {mode === 'signup-verified' && 'Verification Successful!'}
+                {mode === 'password-reset-success' && 'Password Changed Successfully!'}
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                 {mode === 'signin' && 'Enter your verified email and password to access your dashboard.'}
                 {mode === 'signup' && 'Sign up with your email to start tracking your daily operating pulse.'}
                 {mode === 'forgot' && 'Enter your registered email to receive a secure password reset link.'}
-                {mode === 'update-password' && 'Enter a strong new password for your PULSE account.'}
+                {mode === 'update-password' && 'Your recovery link has been verified. Please create and confirm your new password below.'}
+                {mode === 'signup-verified' && 'Your email address has been verified and your account is active.'}
+                {mode === 'password-reset-success' && 'Your new password has been set. You can now sign in with your updated credentials.'}
               </p>
             </div>
 
@@ -464,6 +440,10 @@ export const AuthPage = ({ initialMode }) => {
                   type="button"
                   onClick={() => {
                     setMode('signin');
+                    setEmail('');
+                    setPassword('');
+                    setName('');
+                    setConfirmPassword('');
                     setAuthError('');
                     setAuthSuccess('');
                     setNeedsConfirmation(false);
@@ -480,6 +460,10 @@ export const AuthPage = ({ initialMode }) => {
                   type="button"
                   onClick={() => {
                     setMode('signup');
+                    setEmail('');
+                    setPassword('');
+                    setName('');
+                    setConfirmPassword('');
                     setAuthError('');
                     setAuthSuccess('');
                     setNeedsConfirmation(false);
@@ -538,7 +522,7 @@ export const AuthPage = ({ initialMode }) => {
 
           {/* 1. SIGN IN / SIGN UP FORM */}
           {(mode === 'signin' || mode === 'signup') && (
-            <form onSubmit={handleSubmit} className="space-y-3.5">
+            <form onSubmit={handleSubmit} autoComplete="off" className="space-y-3.5">
               {mode === 'signup' && (
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Your Full Name</label>
@@ -547,6 +531,7 @@ export const AuthPage = ({ initialMode }) => {
                     <input
                       type="text"
                       required
+                      autoComplete="name"
                       placeholder="Enter your full name"
                       value={name}
                       onChange={e => setName(e.target.value)}
@@ -563,6 +548,7 @@ export const AuthPage = ({ initialMode }) => {
                   <input
                     type="email"
                     required
+                    autoComplete="off"
                     placeholder="name@domain.com"
                     value={email}
                     onChange={e => {
@@ -582,6 +568,8 @@ export const AuthPage = ({ initialMode }) => {
                       type="button"
                       onClick={() => {
                         setMode('forgot');
+                        setEmail('');
+                        setPassword('');
                         setAuthError('');
                         setAuthSuccess('');
                         setResetEmailSent(false);
@@ -599,6 +587,7 @@ export const AuthPage = ({ initialMode }) => {
                   <input
                     type="password"
                     required
+                    autoComplete="new-password"
                     placeholder="••••••••"
                     value={password}
                     onChange={e => {
@@ -778,9 +767,63 @@ export const AuthPage = ({ initialMode }) => {
             </div>
           )}
 
-          {/* 3. SET NEW PASSWORD FORM */}
+          {/* 3. SIGNUP EMAIL VERIFIED SUCCESS CARD */}
+          {mode === 'signup-verified' && (
+            <div className="space-y-5 text-center py-2 animate-in fade-in duration-200">
+              <div className="flex items-center justify-center">
+                <div className="w-16 h-16 rounded-2xl bg-emerald-500/15 dark:bg-emerald-500/20 flex items-center justify-center ring-4 ring-emerald-500/20 text-emerald-600 dark:text-emerald-400">
+                  <ShieldCheck className="w-8 h-8" />
+                </div>
+              </div>
+
+              <div className="space-y-2 max-w-sm mx-auto">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[11px] font-bold">
+                  <Check className="w-3 h-3" />
+                  <span>Email Confirmed</span>
+                </div>
+                <h4 className="text-lg font-bold text-slate-900 dark:text-white">
+                  Verification Successful!
+                </h4>
+                <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Your email address has been verified and your account is active. Please sign in below with your email and password to access your dashboard.
+                </p>
+              </div>
+
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEmailVerified(false);
+                    setEmail('');
+                    setPassword('');
+                    setName('');
+                    setConfirmPassword('');
+                    setAuthError('');
+                    setAuthSuccess('');
+                    setMode('signin');
+                  }}
+                  className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-indigo-600/30 transition flex items-center justify-center space-x-2 cursor-pointer active:scale-95"
+                >
+                  <span>Proceed to Sign In</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* 4. SET NEW PASSWORD FORM (Password Recovery) */}
           {mode === 'update-password' && (
-            <form onSubmit={handleSubmit} className="space-y-3.5">
+            <form onSubmit={handleSubmit} autoComplete="off" className="space-y-3.5">
+              <div className="p-3 bg-indigo-50/70 dark:bg-indigo-950/40 rounded-xl border border-indigo-200/60 dark:border-indigo-500/20 space-y-1 text-xs">
+                <div className="flex items-center gap-1.5 font-bold text-indigo-700 dark:text-cyan-400">
+                  <KeyRound className="w-4 h-4" />
+                  <span>Verification Confirmed</span>
+                </div>
+                <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed pl-5">
+                  Please create and confirm your new password below.
+                </p>
+              </div>
+
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">New Password</label>
                 <div className="relative">
@@ -788,6 +831,7 @@ export const AuthPage = ({ initialMode }) => {
                   <input
                     type="password"
                     required
+                    autoComplete="new-password"
                     placeholder="Enter new password (min. 8 characters)"
                     value={password}
                     onChange={e => {
@@ -806,6 +850,7 @@ export const AuthPage = ({ initialMode }) => {
                   <input
                     type="password"
                     required
+                    autoComplete="new-password"
                     placeholder="Re-enter new password"
                     value={confirmPassword}
                     onChange={e => {
@@ -825,11 +870,11 @@ export const AuthPage = ({ initialMode }) => {
                 {isSubmitting ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Updating password...</span>
+                    <span>Saving new password...</span>
                   </>
                 ) : (
                   <>
-                    <span>Set New Password & Open Dashboard</span>
+                    <span>Save New Password</span>
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}
@@ -846,6 +891,48 @@ export const AuthPage = ({ initialMode }) => {
                 </button>
               </div>
             </form>
+          )}
+
+          {/* 5. PASSWORD RESET SUCCESS CONFIRMATION */}
+          {mode === 'password-reset-success' && (
+            <div className="space-y-5 text-center py-2 animate-in fade-in duration-200">
+              <div className="flex items-center justify-center">
+                <div className="w-16 h-16 rounded-2xl bg-emerald-500/15 dark:bg-emerald-500/20 flex items-center justify-center ring-4 ring-emerald-500/20 text-emerald-600 dark:text-emerald-400">
+                  <CheckCircle2 className="w-8 h-8" />
+                </div>
+              </div>
+
+              <div className="space-y-2 max-w-sm mx-auto">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[11px] font-bold">
+                  <Check className="w-3 h-3" />
+                  <span>Password Updated</span>
+                </div>
+                <h4 className="text-lg font-bold text-slate-900 dark:text-white">
+                  Password Changed Successfully!
+                </h4>
+                <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Your new password has been saved. Please sign in below with your updated credentials to access your dashboard.
+                </p>
+              </div>
+
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEmail('');
+                    setPassword('');
+                    setConfirmPassword('');
+                    setAuthError('');
+                    setAuthSuccess('');
+                    setMode('signin');
+                  }}
+                  className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-indigo-600/30 transition flex items-center justify-center space-x-2 cursor-pointer active:scale-95"
+                >
+                  <span>Sign In with New Password</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
           )}
 
         </div>

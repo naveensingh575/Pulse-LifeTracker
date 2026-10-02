@@ -10,10 +10,11 @@ const checkIsRecoveryUrl = () => {
     const hash = window.location.hash || '';
     const search = window.location.search || '';
     const hasRecoveryToken =
-      (hash.includes('type=recovery') && hash.includes('access_token=')) ||
-      (search.includes('type=recovery') && search.includes('code='));
+      (hash.includes('type=recovery') && (hash.includes('access_token=') || hash.includes('token_hash='))) ||
+      (search.includes('type=recovery') && (search.includes('code=') || search.includes('token_hash='))) ||
+      hash.includes('type=recovery') || search.includes('type=recovery');
     const hasStoredRecovery = sessionStorage.getItem('pulse_recovery_mode') === 'true';
-    return hasRecoveryToken || hasStoredRecovery;
+    return Boolean(hasRecoveryToken || hasStoredRecovery);
   } catch {
     return false;
   }
@@ -26,9 +27,10 @@ const checkIsEmailConfirmUrl = () => {
     const hash = window.location.hash || '';
     const search = window.location.search || '';
     // Supabase sends ?token_hash=...&type=signup or #access_token=...&type=signup
-    return (
+    return Boolean(
       (hash.includes('type=signup') || search.includes('type=signup')) ||
-      (hash.includes('type=email_change') || search.includes('type=email_change'))
+      (hash.includes('type=email_change') || search.includes('type=email_change')) ||
+      (hash.includes('type=invite') || search.includes('type=invite'))
     );
   } catch {
     return false;
@@ -41,7 +43,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [isPasswordRecovery, setIsPasswordRecovery] = useState(checkIsRecoveryUrl);
   // True when the user just landed back from clicking the email verification link
-  const [emailVerified, setEmailVerified] = useState(false);
+  const [emailVerified, setEmailVerified] = useState(() => checkIsEmailConfirmUrl());
 
   // Helper to format Supabase user into friendly profile
   const formatUser = (supaUser) => {
@@ -112,7 +114,32 @@ export const AuthProvider = ({ children }) => {
     }
 
     // 1. Initial Session Check
-    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+    supabase.auth.getSession().then(async ({ data: { session: currentSession } }) => {
+      // If landing from signup email verification link: do NOT auto-sign in!
+      if (checkIsEmailConfirmUrl()) {
+        setEmailVerified(true);
+        setUser(null);
+        setSession(null);
+        try {
+          await supabase.auth.signOut();
+        } catch {}
+        try {
+          window.history.replaceState(null, '', window.location.pathname);
+        } catch {}
+        setLoading(false);
+        return;
+      }
+
+      // If in password recovery mode, user must NOT be granted dashboard access!
+      if (checkIsRecoveryUrl()) {
+        sessionStorage.setItem('pulse_recovery_mode', 'true');
+        setIsPasswordRecovery(true);
+        setSession(currentSession);
+        setUser(null); // Keep user null so ProtectedRoute blocks dashboard access
+        setLoading(false);
+        return;
+      }
+
       setSession(currentSession);
       if (currentSession) {
         setUser(formatUser(currentSession.user));
@@ -120,9 +147,6 @@ export const AuthProvider = ({ children }) => {
         setUser(createGuestUser());
       } else {
         setUser(null);
-      }
-      if (checkIsRecoveryUrl()) {
-        setIsPasswordRecovery(true);
       }
       setLoading(false);
     }).catch(() => {
@@ -133,25 +157,34 @@ export const AuthProvider = ({ children }) => {
     });
 
     // 2. Real-time Auth State Listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
-      setSession(newSession);
-      setUser(newSession ? formatUser(newSession.user) : null);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+      // When user clicks the signup email verification link, Supabase fires SIGNED_IN.
+      // We explicitly clear the session so they are NEVER auto-signed into the dashboard.
+      if (checkIsEmailConfirmUrl()) {
+        setEmailVerified(true);
+        setUser(null);
+        setSession(null);
+        try {
+          await supabase.auth.signOut();
+        } catch {}
+        try {
+          window.history.replaceState(null, '', window.location.pathname);
+        } catch {}
+        setLoading(false);
+        return;
+      }
 
       if (event === 'PASSWORD_RECOVERY' || checkIsRecoveryUrl()) {
         sessionStorage.setItem('pulse_recovery_mode', 'true');
         setIsPasswordRecovery(true);
+        setSession(newSession);
+        setUser(null); // Keep user null so ProtectedRoute redirects to reset-password
+        setLoading(false);
+        return;
       }
 
-      // When user clicks the email verification link, Supabase fires SIGNED_IN
-      // and the URL contains type=signup. Show the verified success screen.
-      if (event === 'SIGNED_IN' && checkIsEmailConfirmUrl()) {
-        setEmailVerified(true);
-        // Clean the token from the URL so it doesn't linger
-        try {
-          window.history.replaceState(null, '', window.location.pathname);
-        } catch { /* ignore */ }
-      }
-
+      setSession(newSession);
+      setUser(newSession ? formatUser(newSession.user) : null);
       setLoading(false);
     });
 
@@ -229,18 +262,19 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Request Password Reset Email
-  // NOTE: No custom redirectTo is passed here — Supabase uses the Site URL configured
-  // in Dashboard → Authentication → URL Configuration. This bypasses the redirect allowlist
-  // restriction and ensures the email always arrives and the link always works.
-  // Site URL must be set to: https://pulse-life-tracker.vercel.app
+  // Pass explicit redirectTo to ensure Supabase directs to active app origin,
+  // preventing fallback to default localhost:3000 configured in Supabase Site URL.
   const resetPasswordForEmail = async (email) => {
     const cleanEmail = email.trim().toLowerCase();
-    const { data, error } = await supabase.auth.resetPasswordForEmail(cleanEmail);
+    const { data, error } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
+      redirectTo: getAppBaseUrl()
+    });
     if (error) throw error;
     return data;
   };
 
-  // Update authenticated user password
+  // Update authenticated user password from recovery mode
+  // Signs out user immediately after password reset so they are NOT auto-logged into the dashboard
   const updateUserPassword = async (newPassword) => {
     const { data, error } = await supabase.auth.updateUser({
       password: newPassword
@@ -248,6 +282,11 @@ export const AuthProvider = ({ children }) => {
     if (error) throw error;
     sessionStorage.removeItem('pulse_recovery_mode');
     setIsPasswordRecovery(false);
+    setUser(null);
+    setSession(null);
+    try {
+      await supabase.auth.signOut();
+    } catch {}
     return data;
   };
 
@@ -286,6 +325,7 @@ export const AuthProvider = ({ children }) => {
       sessionStorage.removeItem('pulse_guest_mode');
     } catch {}
     setIsPasswordRecovery(false);
+    setEmailVerified(false);
     setUser(null);
     setSession(null);
     try {
