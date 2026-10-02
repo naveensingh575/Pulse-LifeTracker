@@ -289,12 +289,7 @@ export const HabitsPage = () => {
               </div>
               <div>
                 <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                  {isDayToday ? 'Today' : 'Day'} • {formatISTDisplayDate(selectedDayDate)}
-                  {isDayToday && (
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500 text-slate-950 font-extrabold uppercase">
-                      Today
-                    </span>
-                  )}
+                  {formatISTDisplayDate(selectedDayDate)}
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                   {dayStats.completed} of {dayStats.total} habits completed ({dayStats.percentage}% daily consistency score)
