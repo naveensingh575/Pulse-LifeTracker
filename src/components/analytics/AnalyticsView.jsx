@@ -55,7 +55,8 @@ import {
   Sun,
   CalendarDays,
   CheckSquare,
-  Share2
+  Share2,
+  LineChart
 } from 'lucide-react';
 import { SmartPulseIntelligence } from './SmartPulseIntelligence';
 import { DisciplineShareModal } from './DisciplineShareModal';
@@ -647,15 +648,27 @@ export const AnalyticsView = () => {
       
       {/* 🌟 1. UNIFIED 3-HEADER TIME TOGGLE & DYNAMIC DATE / WEEK / MONTH CONTROLS */}
       <div className="glass-panel-dark rounded-2xl p-5 border border-slate-200 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center space-x-3">
-          <div className="p-2.5 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 shadow-md">
-            <Compass className="w-5 h-5" />
+        <div className="flex items-center justify-between w-full md:w-auto">
+          <div className="flex items-center space-x-3">
+            <div className="p-2.5 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 shadow-md">
+              <LineChart className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                Pulse Insights
+              </h2>
+            </div>
           </div>
-          <div>
-            <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-              Executive Pulse Insights
-            </h2>
-          </div>
+
+          {/* Share button (Mobile only - parallel to Pulse Insights on right corner side) */}
+          <button
+            onClick={() => setIsShareModalOpen(true)}
+            className="md:hidden flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 text-xs font-bold transition cursor-pointer shadow-sm shrink-0"
+            title="Generate shareable weekly discipline card"
+          >
+            <Share2 className="w-3.5 h-3.5" />
+            <span>Share</span>
+          </button>
         </div>
 
         {/* 3-Toggle Navigation Bar & Dynamic Controls: [ Day | Week | Month ] */}
@@ -687,7 +700,6 @@ export const AnalyticsView = () => {
           {/* Date Picker (Day View Only) */}
           {timeframe === 'day' && (
             <div className="flex flex-wrap items-center gap-2">
-              <span className="font-bold text-slate-500 dark:text-slate-400">Date:</span>
               <DayCalendarNavigator
                 selectedDate={selectedDate}
                 onDateChange={setSelectedDate}
@@ -776,15 +788,14 @@ export const AnalyticsView = () => {
             </div>
           )}
 
-          {/* Share Proof of Work Action */}
+          {/* Share Proof of Work Action (Desktop only) */}
           <button
             onClick={() => setIsShareModalOpen(true)}
-            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 text-xs font-bold transition cursor-pointer shadow-sm"
+            className="hidden md:flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 text-xs font-bold transition cursor-pointer shadow-sm"
             title="Generate shareable weekly discipline card"
           >
             <Share2 className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Share Proof of Work</span>
-            <span className="sm:hidden">Share</span>
+            <span>Share Proof of Work</span>
           </button>
         </div>
       </div>
