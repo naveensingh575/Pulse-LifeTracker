@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useDashboard } from '../../context/DashboardContext';
 import { TransactionModal } from './TransactionModal';
+import { DayCalendarNavigator } from '../common/DayCalendarNavigator';
 import {
   getISTDateString,
   getISTYearMonth,
@@ -344,19 +345,16 @@ export const MoneyTracker = ({ openAddModalTrigger }) => {
           </div>
         )}
 
-        {/* Day View Input */}
+        {/* Day View Controls */}
         {timeframe === 'day' && (
-          <div className="flex items-center space-x-2">
-            <span className="font-bold text-slate-500 dark:text-slate-400">Select Date:</span>
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="px-2.5 py-1 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-xs font-mono text-slate-900 dark:text-slate-100"
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="font-bold text-slate-500 dark:text-slate-400">Active Day:</span>
+            <DayCalendarNavigator
+              selectedDate={selectedDate}
+              onDateChange={setSelectedDate}
+              accentColor="emerald"
+              showDateLabel
             />
-            <span className="text-slate-400">
-              {selectedDate === todayStr ? '(Today)' : formatISTDisplayDate(selectedDate)}
-            </span>
           </div>
         )}
 

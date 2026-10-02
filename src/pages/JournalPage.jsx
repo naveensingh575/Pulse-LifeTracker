@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDashboard } from '../context/DashboardContext';
+import { DayCalendarNavigator } from '../components/common/DayCalendarNavigator';
 import {
   BookOpen,
   Calendar,
@@ -68,14 +69,6 @@ export const JournalPage = () => {
       setSaveStatus('saved');
     }, 400);
   };
-
-  const shiftDate = (days) => {
-    const d = new Date(selectedDate);
-    d.setDate(d.getDate() + days);
-    setSelectedDate(d.toISOString().split('T')[0]);
-  };
-
-  const isToday = selectedDate === new Date().toISOString().split('T')[0];
 
   const moods = [
     { key: 'high_energy', label: 'High Energy', emoji: '⚡', color: 'text-amber-500 bg-amber-500/10 border-amber-500/30' },
@@ -198,44 +191,11 @@ ${gratitude || '*No entries recorded.*'}
       <div className="glass-panel-dark rounded-2xl p-4 border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
         
         {/* Date Prev / Next / Picker */}
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={() => shiftDate(-1)}
-            className="p-2 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition"
-            title="Previous Day"
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </button>
-
-          <div className="flex items-center space-x-2 bg-slate-50 dark:bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800">
-            <Calendar className="w-4 h-4 text-indigo-500" />
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="bg-transparent text-xs font-bold font-mono text-slate-900 dark:text-slate-100 focus:outline-none cursor-pointer"
-            />
-          </div>
-
-          <button
-            onClick={() => shiftDate(1)}
-            className="p-2 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition"
-            title="Next Day"
-          >
-            <ChevronRight className="w-4 h-4" />
-          </button>
-
-          <button
-            onClick={() => setSelectedDate(new Date().toISOString().split('T')[0])}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition ${
-              isToday
-                ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/30'
-                : 'bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800'
-            }`}
-          >
-            Today
-          </button>
-        </div>
+        <DayCalendarNavigator
+          selectedDate={selectedDate}
+          onDateChange={setSelectedDate}
+          accentColor="indigo"
+        />
 
         {/* Selected Date String & Save Status */}
         <div className="flex items-center space-x-3 text-xs">

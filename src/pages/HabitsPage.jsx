@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { HabitTracker } from '../components/habits/HabitTracker';
+import { DayCalendarNavigator } from '../components/common/DayCalendarNavigator';
 import { useDashboard } from '../context/DashboardContext';
 import { isHabitActiveOnDate, encodeActiveDays } from '../context/DashboardContext';
 import {
@@ -86,16 +87,6 @@ export const HabitsPage = () => {
     setNewHabitStartDate(getISTDateString());
     setNewHabitActiveDays([0, 1, 2, 3, 4, 5, 6]);
     setShowAddModal(false);
-  };
-
-  const shiftDayDate = (days) => {
-    const parts = selectedDayDate.split('-');
-    const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
-    d.setDate(d.getDate() + days);
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, '0');
-    const dd = String(d.getDate()).padStart(2, '0');
-    setSelectedDayDate(`${yyyy}-${mm}-${dd}`);
   };
 
   const dayStats = getDayCompletionStats(selectedDayDate);
@@ -299,42 +290,11 @@ export const HabitsPage = () => {
 
             <div className="flex flex-wrap items-center gap-3">
               {/* Date Navigation & Calendar Picker */}
-              <div className="flex items-center space-x-1 bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-200 dark:border-slate-800 text-xs">
-                <button
-                  onClick={() => shiftDayDate(-1)}
-                  className="p-1.5 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 cursor-pointer transition"
-                  title="Previous Day"
-                >
-                  <ChevronLeft className="w-3.5 h-3.5" />
-                </button>
-
-                <div className="flex items-center space-x-1.5 px-2 py-0.5">
-                  <CalendarIcon className="w-3.5 h-3.5 text-amber-500" />
-                  <input
-                    type="date"
-                    value={selectedDayDate}
-                    onChange={(e) => setSelectedDayDate(e.target.value)}
-                    className="bg-transparent text-xs font-mono font-bold text-slate-900 dark:text-slate-100 focus:outline-none cursor-pointer"
-                  />
-                </div>
-
-                <button
-                  onClick={() => shiftDayDate(1)}
-                  className="p-1.5 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 cursor-pointer transition"
-                  title="Next Day"
-                >
-                  <ChevronRight className="w-3.5 h-3.5" />
-                </button>
-
-                {!isDayToday && (
-                  <button
-                    onClick={() => setSelectedDayDate(todayStr)}
-                    className="px-2.5 py-1 ml-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 font-bold text-[11px] transition cursor-pointer"
-                  >
-                    Today
-                  </button>
-                )}
-              </div>
+              <DayCalendarNavigator
+                selectedDate={selectedDayDate}
+                onDateChange={setSelectedDayDate}
+                accentColor="amber"
+              />
 
               {/* Progress Bar & Counter */}
               <div className="hidden sm:block text-right pl-2 border-l border-slate-200 dark:border-slate-800">

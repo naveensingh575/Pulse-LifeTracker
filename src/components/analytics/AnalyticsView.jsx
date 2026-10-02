@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useDashboard } from '../../context/DashboardContext';
+import { DayCalendarNavigator } from '../common/DayCalendarNavigator';
 import {
   getISTDateString,
   getISTDate,
@@ -685,17 +686,14 @@ export const AnalyticsView = () => {
 
           {/* Date Picker (Day View Only) */}
           {timeframe === 'day' && (
-            <div className="flex items-center space-x-2 bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-200 dark:border-slate-800 text-xs animate-in fade-in duration-150">
-              <span className="font-bold text-slate-500 dark:text-slate-400 pl-1.5">Date:</span>
-              <input
-                type="date"
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className="px-2 py-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-xs font-mono text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500 cursor-pointer"
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-bold text-slate-500 dark:text-slate-400">Date:</span>
+              <DayCalendarNavigator
+                selectedDate={selectedDate}
+                onDateChange={setSelectedDate}
+                accentColor="indigo"
+                showDateLabel
               />
-              <span className="text-slate-400 pr-1.5 text-[11px] hidden sm:inline">
-                {selectedDate === todayStr ? '(Today)' : formatISTDisplayDate(selectedDate)}
-              </span>
             </div>
           )}
 
