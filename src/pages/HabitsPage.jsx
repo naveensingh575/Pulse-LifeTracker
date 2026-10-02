@@ -295,22 +295,13 @@ export const HabitsPage = () => {
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2.5 w-full md:w-auto">
+            <div className="flex flex-wrap items-center gap-3">
               {/* Date Navigation & Calendar Picker */}
               <DayCalendarNavigator
                 selectedDate={selectedDayDate}
                 onDateChange={setSelectedDayDate}
                 accentColor="amber"
               />
-
-              {/* Add New Habit Button in Top Header */}
-              <button
-                onClick={handleOpenAdd}
-                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold transition shadow-sm hover:shadow-amber-500/20 active:scale-95 cursor-pointer shrink-0"
-              >
-                <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-                <span>Add Habit</span>
-              </button>
 
               {/* Progress Bar & Counter */}
               <div className="hidden sm:block text-right pl-2 border-l border-slate-200 dark:border-slate-800">
