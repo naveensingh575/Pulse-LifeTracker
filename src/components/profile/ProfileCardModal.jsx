@@ -7,6 +7,9 @@ import { NotificationSettingsModal } from '../reminders/NotificationSettingsModa
 import { DataBackupModal } from '../backup/DataBackupModal';
 import { ReferralModal } from '../referral/ReferralModal';
 import { DeleteAccountModal } from '../auth/DeleteAccountModal';
+import { AvatarUploadModal } from './AvatarUploadModal';
+import { ChangePasswordModal } from './ChangePasswordModal';
+import { EditProfileModal } from './EditProfileModal';
 import { triggerHaptic } from '../../utils/hapticUtils';
 import {
   X,
@@ -31,7 +34,16 @@ import {
   ArrowRight,
   LogIn,
   Sliders,
-  Heart
+  Heart,
+  Camera,
+  KeyRound,
+  Phone,
+  Calendar,
+  Briefcase,
+  Activity,
+  Ruler,
+  Edit3,
+  UserCheck
 } from 'lucide-react';
 
 export const ProfileCardModal = ({ isOpen, onClose }) => {
@@ -54,6 +66,9 @@ export const ProfileCardModal = ({ isOpen, onClose }) => {
   const [showBackupModal, setShowBackupModal] = useState(false);
   const [showReferralModal, setShowReferralModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showAvatarModal, setShowAvatarModal] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [showEditProfileModal, setShowEditProfileModal] = useState(false);
 
   // Rating State
   const [rating, setRating] = useState(() => {
@@ -158,17 +173,29 @@ export const ProfileCardModal = ({ isOpen, onClose }) => {
           <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-50 to-indigo-50/30 dark:from-slate-950/80 dark:to-indigo-950/20 border border-slate-200/80 dark:border-slate-800">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center space-x-3.5 min-w-0">
-                {user && user.avatar ? (
-                  <img
-                    src={user.avatar}
-                    alt={user.name || 'User'}
-                    className="w-12 h-12 rounded-2xl object-cover ring-2 ring-indigo-500/30 shrink-0"
-                  />
-                ) : (
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center text-white font-black text-lg shadow-md shrink-0">
-                    <User className="w-6 h-6" />
+                <button
+                  type="button"
+                  onClick={() => setShowAvatarModal(true)}
+                  className="relative group cursor-pointer focus:outline-none shrink-0"
+                  title="Click to edit or upload avatar"
+                  aria-label="Change profile avatar"
+                >
+                  {user && user.avatar ? (
+                    <img
+                      src={user.avatar}
+                      alt={user.name || 'User'}
+                      className="w-12 h-12 rounded-2xl object-cover ring-2 ring-indigo-500/30 group-hover:ring-indigo-500 transition-all shadow-md"
+                    />
+                  ) : (
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center text-white font-black text-lg shadow-md group-hover:brightness-110 transition">
+                      <User className="w-6 h-6" />
+                    </div>
+                  )}
+                  {/* Camera Edit Overlay Badge */}
+                  <div className="absolute -bottom-1 -right-1 p-1 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white shadow-md ring-2 ring-white dark:ring-slate-900 group-hover:scale-110 transition-transform">
+                    <Camera className="w-2.5 h-2.5" />
                   </div>
-                )}
+                </button>
                 
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
@@ -176,6 +203,12 @@ export const ProfileCardModal = ({ isOpen, onClose }) => {
                       {isGuest ? 'Guest Workspace' : (user?.name || 'Pulse Operator')}
                     </h3>
                   </div>
+                  {user?.profession && (
+                    <p className="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 truncate flex items-center gap-1">
+                      <Briefcase className="w-3 h-3 shrink-0" />
+                      <span>{user.profession}</span>
+                    </p>
+                  )}
                   <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
                     {isGuest ? 'Local demo exploration session' : (user?.email || '')}
                   </p>
@@ -242,7 +275,95 @@ export const ProfileCardModal = ({ isOpen, onClose }) => {
             </div>
           </div>
 
-          {/* 2. Core Preferences: Theme & Currency */}
+          {/* 2. Personal Profile Card (Optional Attributes) */}
+          <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <div className="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+                  <UserCheck className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                    <span>Personal Profile</span>
+                    <span className="text-[9px] font-semibold px-1.5 py-0.2 rounded bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 uppercase">
+                      Optional
+                    </span>
+                  </h4>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowEditProfileModal(true)}
+                className="px-2.5 py-1 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-indigo-600 dark:text-indigo-400 border border-slate-200 dark:border-slate-700 text-xs font-bold transition flex items-center gap-1 cursor-pointer shadow-sm"
+              >
+                <Edit3 className="w-3 h-3" />
+                <span>Edit Details</span>
+              </button>
+            </div>
+
+            {/* Profile Attributes Summary Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+              <div className="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800">
+                <span className="text-[10px] text-slate-400 dark:text-slate-500 flex items-center gap-1 font-medium">
+                  <Phone className="w-3 h-3 text-indigo-500" /> Mobile
+                </span>
+                <p className="font-bold text-slate-800 dark:text-slate-200 truncate mt-0.5">
+                  {user?.mobile || '—'}
+                </p>
+              </div>
+
+              <div className="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800">
+                <span className="text-[10px] text-slate-400 dark:text-slate-500 flex items-center gap-1 font-medium">
+                  <Briefcase className="w-3 h-3 text-indigo-500" /> Profession
+                </span>
+                <p className="font-bold text-slate-800 dark:text-slate-200 truncate mt-0.5">
+                  {user?.profession || '—'}
+                </p>
+              </div>
+
+              <div className="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800">
+                <span className="text-[10px] text-slate-400 dark:text-slate-500 flex items-center gap-1 font-medium">
+                  <Calendar className="w-3 h-3 text-amber-500" /> Age
+                </span>
+                <p className="font-bold text-slate-800 dark:text-slate-200 mt-0.5">
+                  {user?.age ? `${user.age} yrs` : '—'}
+                </p>
+              </div>
+
+              <div className="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800">
+                <span className="text-[10px] text-slate-400 dark:text-slate-500 flex items-center gap-1 font-medium">
+                  <Activity className="w-3 h-3 text-emerald-500" /> Weight
+                </span>
+                <p className="font-bold text-slate-800 dark:text-slate-200 mt-0.5">
+                  {user?.weight ? `${user.weight} kg` : '—'}
+                </p>
+              </div>
+
+              <div className="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800">
+                <span className="text-[10px] text-slate-400 dark:text-slate-500 flex items-center gap-1 font-medium">
+                  <Ruler className="w-3 h-3 text-cyan-500" /> Height
+                </span>
+                <p className="font-bold text-slate-800 dark:text-slate-200 mt-0.5">
+                  {user?.height ? `${user.height} cm` : '—'}
+                </p>
+              </div>
+
+              <div
+                onClick={() => setShowAvatarModal(true)}
+                className="p-2.5 rounded-xl bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-200/50 dark:border-indigo-800/40 hover:bg-indigo-100/50 dark:hover:bg-indigo-900/30 transition cursor-pointer flex flex-col justify-center"
+              >
+                <span className="text-[10px] text-indigo-600 dark:text-indigo-400 flex items-center gap-1 font-bold">
+                  <Camera className="w-3 h-3" /> Avatar
+                </span>
+                <p className="text-[11px] font-bold text-indigo-700 dark:text-indigo-300 mt-0.5">
+                  Edit Photo →
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* 3. Core Preferences: Theme & Currency */}
           <div className="space-y-4">
             <h4 className="text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
               Preferences
@@ -485,6 +606,26 @@ export const ProfileCardModal = ({ isOpen, onClose }) => {
             </h4>
 
             <div className="space-y-1.5">
+              {/* Change Password (for registered accounts) */}
+              {!isGuest && (
+                <button
+                  type="button"
+                  onClick={() => setShowPasswordModal(true)}
+                  className="w-full p-3 rounded-2xl bg-slate-50 dark:bg-slate-950/50 hover:bg-slate-100 dark:hover:bg-slate-800/60 border border-slate-200 dark:border-slate-800 flex items-center justify-between transition cursor-pointer text-left"
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+                      <KeyRound className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-slate-800 dark:text-slate-200">Change Password</p>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400">Update your account security credential</p>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-slate-400" />
+                </button>
+              )}
+
               {/* Backup & Restore */}
               <button
                 type="button"
@@ -565,6 +706,21 @@ export const ProfileCardModal = ({ isOpen, onClose }) => {
         </div>
 
       {/* Child Modals */}
+      <AvatarUploadModal
+        isOpen={showAvatarModal}
+        onClose={() => setShowAvatarModal(false)}
+      />
+
+      <EditProfileModal
+        isOpen={showEditProfileModal}
+        onClose={() => setShowEditProfileModal(false)}
+      />
+
+      <ChangePasswordModal
+        isOpen={showPasswordModal}
+        onClose={() => setShowPasswordModal(false)}
+      />
+
       <ContactSupportModal
         isOpen={showContactModal}
         onClose={() => setShowContactModal(false)}

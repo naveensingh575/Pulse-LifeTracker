@@ -48,7 +48,7 @@ export const AuthProvider = ({ children }) => {
     if (!supaUser) return null;
     const meta = supaUser.user_metadata || {};
     const name = meta.full_name || meta.name || supaUser.email?.split('@')[0] || 'Pulse User';
-    const initial = name.trim().charAt(0).toUpperCase();
+    const initial = name.trim().charAt(0).toUpperCase() || 'P';
     const localAvatar = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><rect width="64" height="64" rx="32" fill="%236366f1"/><text x="50%" y="54%" text-anchor="middle" dominant-baseline="middle" fill="%23ffffff" font-family="system-ui,-apple-system,sans-serif" font-size="28" font-weight="600">${initial}</text></svg>`;
     const avatar = meta.avatar_url || localAvatar;
     const provider = supaUser.app_metadata?.provider || 'email';
@@ -58,22 +58,43 @@ export const AuthProvider = ({ children }) => {
       email: supaUser.email,
       name,
       avatar,
+      mobile: meta.mobile || meta.phone_number || '',
+      age: meta.age || '',
+      weight: meta.weight || '',
+      height: meta.height || '',
+      profession: meta.profession || '',
       provider,
       emailConfirmed: Boolean(supaUser.email_confirmed_at || supaUser.confirmed_at),
       raw: supaUser
     };
   };
 
-  const createGuestUser = () => ({
-    id: 'guest-user',
-    email: 'guest@pulselife.app',
-    name: 'Guest Explorer',
-    avatar: `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><rect width="64" height="64" rx="32" fill="%236366f1"/><text x="50%" y="54%" text-anchor="middle" dominant-baseline="middle" fill="%23ffffff" font-family="system-ui,-apple-system,sans-serif" font-size="28" font-weight="600">G</text></svg>`,
-    provider: 'guest',
-    emailConfirmed: true,
-    isGuest: true,
-    raw: null
-  });
+  const createGuestUser = () => {
+    let saved = null;
+    try {
+      saved = JSON.parse(localStorage.getItem('pulse_guest_profile') || 'null');
+    } catch {}
+
+    const name = saved?.name || 'Guest Explorer';
+    const initial = name.trim().charAt(0).toUpperCase() || 'G';
+    const defaultAvatar = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><rect width="64" height="64" rx="32" fill="%236366f1"/><text x="50%" y="54%" text-anchor="middle" dominant-baseline="middle" fill="%23ffffff" font-family="system-ui,-apple-system,sans-serif" font-size="28" font-weight="600">${initial}</text></svg>`;
+
+    return {
+      id: 'guest-user',
+      email: 'guest@pulselife.app',
+      name,
+      avatar: saved?.avatar || defaultAvatar,
+      mobile: saved?.mobile || '',
+      age: saved?.age || '',
+      weight: saved?.weight || '',
+      height: saved?.height || '',
+      profession: saved?.profession || '',
+      provider: 'guest',
+      emailConfirmed: true,
+      isGuest: true,
+      raw: null
+    };
+  };
 
   const loginAsGuest = () => {
     try {
@@ -276,6 +297,60 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Update user profile information (Name, Avatar, Mobile, Age, Weight, Height, Profession)
+  const updateUserProfile = async (updates) => {
+    if (!user) throw new Error('No active user found.');
+
+    // Guest Mode: persist to localStorage
+    if (user.isGuest) {
+      const updated = {
+        ...user,
+        name: updates.name !== undefined ? updates.name : user.name,
+        avatar: updates.avatar !== undefined ? updates.avatar : user.avatar,
+        mobile: updates.mobile !== undefined ? updates.mobile : user.mobile,
+        age: updates.age !== undefined ? updates.age : user.age,
+        weight: updates.weight !== undefined ? updates.weight : user.weight,
+        height: updates.height !== undefined ? updates.height : user.height,
+        profession: updates.profession !== undefined ? updates.profession : user.profession
+      };
+      try {
+        localStorage.setItem('pulse_guest_profile', JSON.stringify(updated));
+      } catch (err) {
+        console.warn('Could not save guest profile:', err);
+      }
+      setUser(updated);
+      return { success: true, user: updated };
+    }
+
+    // Registered User: update Supabase user_metadata
+    const currentMeta = user.raw?.user_metadata || {};
+    const newMeta = {
+      ...currentMeta,
+      full_name: updates.name !== undefined ? updates.name : (currentMeta.full_name || user.name),
+      name: updates.name !== undefined ? updates.name : (currentMeta.name || user.name),
+      avatar_url: updates.avatar !== undefined ? updates.avatar : (currentMeta.avatar_url || user.avatar),
+      mobile: updates.mobile !== undefined ? updates.mobile : (currentMeta.mobile || user.mobile),
+      age: updates.age !== undefined ? updates.age : (currentMeta.age || user.age),
+      weight: updates.weight !== undefined ? updates.weight : (currentMeta.weight || user.weight),
+      height: updates.height !== undefined ? updates.height : (currentMeta.height || user.height),
+      profession: updates.profession !== undefined ? updates.profession : (currentMeta.profession || user.profession)
+    };
+
+    const { data, error } = await supabase.auth.updateUser({
+      data: newMeta
+    });
+
+    if (error) throw error;
+
+    if (data?.user) {
+      const formatted = formatUser(data.user);
+      setUser(formatted);
+      return { success: true, user: formatted };
+    }
+
+    return { success: true };
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -293,6 +368,7 @@ export const AuthProvider = ({ children }) => {
         resendConfirmationEmail,
         resetPasswordForEmail,
         updateUserPassword,
+        updateUserProfile,
         logout,
         deleteAccount
       }}
