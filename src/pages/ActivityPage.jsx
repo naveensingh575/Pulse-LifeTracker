@@ -352,8 +352,6 @@ export const ActivityPage = () => {
           {/* If MONTH View is selected: Show Month & Year dropdown pickers */}
           {timeframe === 'month' && (
             <div className="flex flex-wrap items-center gap-2">
-              <span className="font-bold text-slate-500 dark:text-slate-400">Select Month / Year:</span>
-              
               <button
                 onClick={handlePrevMonth}
                 className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition cursor-pointer"
@@ -393,17 +391,12 @@ export const ActivityPage = () => {
               >
                 <ChevronRight className="w-4 h-4" />
               </button>
-
-              <span className="text-slate-400 pl-2">
-                Showing logs for: <strong className="text-indigo-600 dark:text-cyan-400 font-bold">{MONTH_NAMES_FULL[selectedMonth - 1]} {selectedYear}</strong>
-              </span>
             </div>
           )}
 
           {/* If DAY View is selected */}
           {timeframe === 'day' && (
             <div className="flex flex-wrap items-center gap-2">
-              <span className="font-bold text-slate-500 dark:text-slate-400">Active Day:</span>
               <DayCalendarNavigator
                 selectedDate={selectedDate}
                 onDateChange={setSelectedDate}
@@ -416,8 +409,6 @@ export const ActivityPage = () => {
           {/* If WEEK View is selected */}
           {timeframe === 'week' && (
             <div className="flex flex-wrap items-center gap-2">
-              <span className="font-bold text-slate-500 dark:text-slate-400">Active Week:</span>
-              
               <div className="flex items-center space-x-1.5 bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-200 dark:border-slate-800 text-xs">
                 <button
                   onClick={() => setWeekOffset(prev => prev - 1)}
