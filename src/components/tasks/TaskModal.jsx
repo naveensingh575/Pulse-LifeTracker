@@ -217,9 +217,9 @@ export const TaskModal = ({ isOpen, onClose, initialCategory = 'Work', initialTa
           </div>
 
           {/* Repeatability / Recurrence Selector */}
-          <div className="space-y-1.5 p-3 rounded-xl bg-slate-50/80 dark:bg-slate-950/60 border border-slate-200/80 dark:border-slate-800/80">
+          <div className="space-y-1.5">
             <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center justify-between">
-              <span className="flex items-center gap-1.5">
+              <span className="flex items-center gap-1">
                 <RotateCw className="w-3.5 h-3.5 text-indigo-500" />
                 <span>Repeat / Recurrence:</span>
               </span>
@@ -234,7 +234,7 @@ export const TaskModal = ({ isOpen, onClose, initialCategory = 'Work', initialTa
               <select
                 value={repeat}
                 onChange={(e) => setRepeat(e.target.value)}
-                className="w-full px-3.5 pr-8 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs font-semibold focus:outline-none focus:border-indigo-500 transition cursor-pointer appearance-none"
+                className="w-full px-3.5 pr-8 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs font-medium focus:outline-none focus:border-indigo-500 transition cursor-pointer appearance-none"
               >
                 {RECURRENCE_OPTIONS.map((opt) => (
                   <option key={opt.key} value={opt.key} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
@@ -248,7 +248,7 @@ export const TaskModal = ({ isOpen, onClose, initialCategory = 'Work', initialTa
             </div>
 
             {repeat !== 'none' && (
-              <p className="text-[11px] text-indigo-600 dark:text-indigo-400 flex items-center gap-1 pt-1 font-medium">
+              <p className="text-[11px] text-indigo-600 dark:text-indigo-400 flex items-center gap-1 pt-0.5 font-medium">
                 <Sparkles className="w-3 h-3 shrink-0" />
                 <span>When checked off, the next task instance is automatically scheduled.</span>
               </p>
