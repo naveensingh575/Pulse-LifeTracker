@@ -342,7 +342,7 @@ export const HabitsPage = () => {
               </div>
 
               {/* Progress Bar & Counter */}
-              <div className="text-right pl-2 border-l border-slate-200 dark:border-slate-800">
+              <div className="hidden sm:block text-right pl-2 border-l border-slate-200 dark:border-slate-800">
                 <span className="text-xs font-mono font-extrabold text-slate-900 dark:text-slate-100">
                   {dayStats.completed}/{dayStats.total} Done
                 </span>

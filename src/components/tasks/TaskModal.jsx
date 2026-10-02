@@ -47,24 +47,6 @@ export const TaskModal = ({ isOpen, onClose, initialCategory = 'Work', initialTa
 
   if (!isOpen) return null;
 
-  const tomorrowStr = (() => {
-    const [y, m, d] = todayStr.split('-').map(Number);
-    const date = new Date(y, m - 1, d + 1);
-    const ny = date.getFullYear();
-    const nm = String(date.getMonth() + 1).padStart(2, '0');
-    const nd = String(date.getDate()).padStart(2, '0');
-    return `${ny}-${nm}-${nd}`;
-  })();
-
-  const nextWeekStr = (() => {
-    const [y, m, d] = todayStr.split('-').map(Number);
-    const date = new Date(y, m - 1, d + 7);
-    const ny = date.getFullYear();
-    const nm = String(date.getMonth() + 1).padStart(2, '0');
-    const nd = String(date.getDate()).padStart(2, '0');
-    return `${ny}-${nm}-${nd}`;
-  })();
-
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!title.trim()) return;
@@ -220,61 +202,12 @@ export const TaskModal = ({ isOpen, onClose, initialCategory = 'Work', initialTa
             </div>
           </div>
 
-          {/* Due Date with Quick Date Shortcut Pills */}
+          {/* Due Date */}
           <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1">
-                <Calendar className="w-3.5 h-3.5 text-indigo-500" />
-                <span>Due Date:</span>
-              </label>
-              <div className="flex items-center space-x-1.5">
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setDueDate(todayStr);
-                  }}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer active:scale-95 ${
-                    dueDate === todayStr
-                      ? 'bg-indigo-600 text-white shadow-sm ring-1 ring-indigo-500'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-                  }`}
-                >
-                  Today
-                </button>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setDueDate(tomorrowStr);
-                  }}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer active:scale-95 ${
-                    dueDate === tomorrowStr
-                      ? 'bg-indigo-600 text-white shadow-sm ring-1 ring-indigo-500'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-                  }`}
-                >
-                  Tomorrow
-                </button>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setDueDate(nextWeekStr);
-                  }}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer active:scale-95 ${
-                    dueDate === nextWeekStr
-                      ? 'bg-indigo-600 text-white shadow-sm ring-1 ring-indigo-500'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-                  }`}
-                >
-                  +1 Wk
-                </button>
-              </div>
-            </div>
+            <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1">
+              <Calendar className="w-3.5 h-3.5 text-indigo-500" />
+              <span>Due Date:</span>
+            </label>
             <input
               type="date"
               value={dueDate}
@@ -314,14 +247,10 @@ export const TaskModal = ({ isOpen, onClose, initialCategory = 'Work', initialTa
               </div>
             </div>
 
-            {repeat !== 'none' ? (
+            {repeat !== 'none' && (
               <p className="text-[11px] text-indigo-600 dark:text-indigo-400 flex items-center gap-1 pt-1 font-medium">
                 <Sparkles className="w-3 h-3 shrink-0" />
                 <span>When checked off, the next task instance is automatically scheduled.</span>
-              </p>
-            ) : (
-              <p className="text-[10px] text-slate-400 dark:text-slate-500 pt-0.5">
-                One-time task. Select Daily, Weekdays, Weekly, or Monthly to repeat automatically.
               </p>
             )}
           </div>
