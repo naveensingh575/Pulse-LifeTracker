@@ -387,7 +387,7 @@ export const MoneyTracker = ({ openAddModalTrigger }) => {
           </div>
         )}
 
-        <div className="text-slate-500 dark:text-slate-400 font-mono text-xs">
+        <div className="hidden sm:block text-slate-500 dark:text-slate-400 font-mono text-xs">
           Transactions: <strong className="text-slate-900 dark:text-slate-100">{timeframeTransactions.length}</strong>
         </div>
       </div>

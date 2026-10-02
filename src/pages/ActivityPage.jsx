@@ -442,7 +442,7 @@ export const ActivityPage = () => {
             </div>
           )}
 
-          <div className="text-slate-500 dark:text-slate-400 font-mono text-xs">
+          <div className="hidden sm:block text-slate-500 dark:text-slate-400 font-mono text-xs">
             Total Sessions: <strong className="text-slate-900 dark:text-slate-100">{activeLogs.length}</strong>
           </div>
         </div>
