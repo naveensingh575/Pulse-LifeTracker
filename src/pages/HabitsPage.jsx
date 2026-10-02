@@ -38,6 +38,7 @@ export const HabitsPage = () => {
     toggleHabitForDate,
     getDayCompletionStats,
     addHabit,
+    canAddHabit = true,
     quotaStatus,
     canViewMonthOnPage,
     recordMonthlyView,
@@ -64,6 +65,10 @@ export const HabitsPage = () => {
   const [newHabitActiveDays, setNewHabitActiveDays] = useState([0, 1, 2, 3, 4, 5, 6]);
 
   const handleOpenAdd = () => {
+    if (!canAddHabit) {
+      openPricingModal();
+      return;
+    }
     setNewHabitName('');
     setNewHabitCategory(selectedCategory !== 'All' ? selectedCategory : 'Health');
     setNewHabitStartDate(getISTDateString());
@@ -290,13 +295,22 @@ export const HabitsPage = () => {
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2.5 w-full md:w-auto">
               {/* Date Navigation & Calendar Picker */}
               <DayCalendarNavigator
                 selectedDate={selectedDayDate}
                 onDateChange={setSelectedDayDate}
                 accentColor="amber"
               />
+
+              {/* Add New Habit Button in Top Header */}
+              <button
+                onClick={handleOpenAdd}
+                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold transition shadow-sm hover:shadow-amber-500/20 active:scale-95 cursor-pointer shrink-0"
+              >
+                <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                <span>Add Habit</span>
+              </button>
 
               {/* Progress Bar & Counter */}
               <div className="hidden sm:block text-right pl-2 border-l border-slate-200 dark:border-slate-800">
@@ -315,6 +329,26 @@ export const HabitsPage = () => {
 
           {/* Day Habit Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+            {/* Add New Habit Card — Placed on top so it's instantly accessible without scrolling */}
+            <div
+              onClick={handleOpenAdd}
+              className="p-4 rounded-xl border border-dashed border-amber-500/40 dark:border-amber-500/30 hover:border-amber-500 bg-amber-500/5 hover:bg-amber-500/10 text-slate-700 dark:text-slate-300 flex items-center justify-between transition-all cursor-pointer min-h-[68px] group"
+            >
+              <div className="space-y-1">
+                <p className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition">
+                  <Plus className="w-4 h-4 text-amber-500" />
+                  Add New Habit
+                </p>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
+                  Create a habit to track daily
+                </span>
+              </div>
+
+              <div className="px-3.5 py-2 rounded-xl text-xs font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 group-hover:bg-amber-500 group-hover:text-slate-950 transition-all">
+                + Add
+              </div>
+            </div>
+
             {filteredHabits
               .filter(habit => isHabitActiveOnDate(habit, selectedDayDate))
               .map((habit) => {
@@ -365,26 +399,6 @@ export const HabitsPage = () => {
                   </div>
                 );
               })}
-
-            {/* Add New Habit Card (Same size as listed habit cards) */}
-            <div
-              onClick={handleOpenAdd}
-              className="p-4 rounded-xl border border-dashed border-amber-500/40 dark:border-amber-500/30 hover:border-amber-500 bg-amber-500/5 hover:bg-amber-500/10 text-slate-700 dark:text-slate-300 flex items-center justify-between transition-all cursor-pointer min-h-[68px] group"
-            >
-              <div className="space-y-1">
-                <p className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition">
-                  <Plus className="w-4 h-4 text-amber-500" />
-                  Add New Habit
-                </p>
-                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
-                  Create a habit to track daily
-                </span>
-              </div>
-
-              <div className="px-3.5 py-2 rounded-xl text-xs font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 group-hover:bg-amber-500 group-hover:text-slate-950 transition-all">
-                + Add
-              </div>
-            </div>
           </div>
 
         </div>
