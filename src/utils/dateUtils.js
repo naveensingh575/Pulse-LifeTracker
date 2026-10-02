@@ -370,10 +370,11 @@ export const calculateHabitStreakWithShield = (completionsMap = {}, createdAt) =
   }
 
   // Iterate backwards through past days
+  const cleanCreatedAt = createdAt ? String(createdAt).slice(0, 10) : null;
   let usedGraceDay = false;
   while (true) {
     const dateStr = getISTDateString(checkDate);
-    if (createdAt && dateStr < createdAt) break;
+    if (cleanCreatedAt && dateStr < cleanCreatedAt) break;
 
     if (completions[dateStr]) {
       streak += 1;
@@ -421,9 +422,18 @@ export const encodeActiveDays = (activeDays) => {
 
 export const isHabitActiveOnDate = (habit, dateStr) => {
   if (!habit || !dateStr) return false;
-  if (habit.createdAt && dateStr < habit.createdAt) return false;
+  // If habit has a recorded completion on this date, it is ALWAYS active on this date!
+  if (habit.completions && Boolean(habit.completions[dateStr])) return true;
+
+  // Check if date is prior to creation date (only if explicitly set)
+  if (habit.createdAt) {
+    const cleanCreatedAt = String(habit.createdAt).slice(0, 10);
+    if (dateStr < cleanCreatedAt) return false;
+  }
+
   const activeDays = habit.activeDays || ALL_DAYS;
   const weekdayIdx = getWeekdayIndex(dateStr);
   return activeDays.includes(weekdayIdx);
 };
+
 

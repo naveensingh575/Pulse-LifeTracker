@@ -388,17 +388,18 @@ export const HabitTracker = ({ activeCategoryProp }) => {
                 <div className="sm:col-span-5 w-full grid grid-cols-7 gap-1">
                   {weekDays.map((day) => {
                     const isDone = isHabitDoneOn(habit.id, day.dateStr);
-                    const isPriorToCreation = habit.createdAt && day.dateStr < habit.createdAt;
+                    const cleanCreatedAt = habit.createdAt ? String(habit.createdAt).slice(0, 10) : null;
+                    const isPriorToCreation = cleanCreatedAt && day.dateStr < cleanCreatedAt && !isDone;
                     const isNotScheduled = !isHabitActiveOnDate(habit, day.dateStr) && !isPriorToCreation;
                     const editable = day.isEditable && !isPriorToCreation && !isNotScheduled;
 
-                    // PRIOR TO CREATION DATE: Display subtle N/A dash
+                    // PRIOR TO CREATION DATE: Display subtle N/A dash (only if never marked completed)
                     if (isPriorToCreation) {
                       return (
                         <div
                           key={day.dateStr}
                           className="h-8 sm:h-7 rounded-lg flex items-center justify-center text-[10px] text-slate-400 dark:text-slate-600 bg-slate-100/50 dark:bg-slate-950/40 border border-dashed border-slate-200 dark:border-slate-800 cursor-not-allowed select-none"
-                          title={`${formatISTDisplayDate(day.dateStr)}: Prior to habit start date (${habit.createdAt})`}
+                          title={`${formatISTDisplayDate(day.dateStr)}: Prior to habit start date (${cleanCreatedAt})`}
                         >
                           -
                         </div>

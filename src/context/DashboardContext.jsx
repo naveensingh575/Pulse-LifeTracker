@@ -61,10 +61,11 @@ export const calculateHabitStreakWithShield = (completions = {}, createdAt) => {
   }
 
   // Iterate backwards through past days
+  const cleanCreatedAt = createdAt ? String(createdAt).slice(0, 10) : null;
   let usedGraceDay = false;
   while (true) {
     const dateStr = getISTDateString(checkDate);
-    if (createdAt && dateStr < createdAt) break;
+    if (cleanCreatedAt && dateStr < cleanCreatedAt) break;
 
     if (completions[dateStr]) {
       streak += 1;
@@ -100,7 +101,23 @@ const normalizeHabit = (h) => {
   const completions = h.completions || {};
   const currentWeek = getISTWeekDays();
   const completedDays = currentWeek.map(w => Boolean(completions[w.dateStr]));
-  const createdAt = h.created_at || h.createdAt || getISTDateString();
+
+  // Find earliest completion date if any exists
+  const compDates = Object.keys(completions).filter(d => completions[d]);
+  compDates.sort();
+  const earliestCompDate = compDates.length > 0 ? compDates[0] : null;
+
+  // Extract clean date part (YYYY-MM-DD) from created_at / createdAt
+  const rawCreated = h.createdAt || h.created_at;
+  let createdAt = rawCreated ? String(rawCreated).slice(0, 10) : null;
+
+  // If habit has completions before its createdAt, the true createdAt is at least as early as the first completion!
+  if (earliestCompDate) {
+    if (!createdAt || earliestCompDate < createdAt) {
+      createdAt = earliestCompDate;
+    }
+  }
+
   const frequency = h.frequency || 'daily';
   const activeDays = parseActiveDays(frequency);
   const { streak, shieldActive } = calculateHabitStreakWithShield(completions, createdAt);
@@ -642,8 +659,20 @@ export const DashboardProvider = ({ children }) => {
       ]);
 
       // 2. Process Habits & Completions
-      const rawHabits = habitsRes.data || [];
+      let rawHabits = habitsRes.data || [];
+      if (habitsRes.error) {
+        console.error('[PULSE Supabase habits fetch error]:', habitsRes.error);
+        try {
+          const fallbackHabits = await supabase.from('habits').select('*').eq('user_id', userId);
+          if (fallbackHabits.data) rawHabits = fallbackHabits.data;
+        } catch (fbErr) {
+          console.error('[PULSE Supabase habits fallback error]:', fbErr);
+        }
+      }
       const completionsList = habitCompsRes.data || [];
+      if (habitCompsRes.error) {
+        console.error('[PULSE Supabase habit_completions fetch error]:', habitCompsRes.error);
+      }
       const habitCompletionsMap = {};
       completionsList.forEach(comp => {
         if (!habitCompletionsMap[comp.habit_id]) {
@@ -974,12 +1003,14 @@ export const DashboardProvider = ({ children }) => {
       return;
     }
 
-    const name = (updatedHabit.name || '').trim();
-    const category = updatedHabit.category || 'Health';
-    const icon = (updatedHabit.icon && updatedHabit.icon !== 'Smile') ? updatedHabit.icon : getHabitIconForCategory(category);
-    const frequency = updatedHabit.activeDays ? encodeActiveDays(updatedHabit.activeDays) : (updatedHabit.frequency || 'daily');
+    const existingHabit = habits.find(h => h.id === habitId);
+    const name = (updatedHabit.name || existingHabit?.name || '').trim();
+    const category = updatedHabit.category || existingHabit?.category || 'Health';
+    const icon = (updatedHabit.icon && updatedHabit.icon !== 'Smile') ? updatedHabit.icon : (existingHabit?.icon || getHabitIconForCategory(category));
+    const frequency = updatedHabit.activeDays ? encodeActiveDays(updatedHabit.activeDays) : (updatedHabit.frequency || existingHabit?.frequency || 'daily');
     const activeDays = parseActiveDays(frequency);
-    const createdAt = updatedHabit.createdAt || updatedHabit.created_at || getISTDateString();
+    const rawCreated = updatedHabit.createdAt || updatedHabit.created_at || existingHabit?.createdAt || existingHabit?.created_at;
+    const createdAt = rawCreated ? String(rawCreated).slice(0, 10) : null;
 
     setHabits(prev =>
       prev.map(h => {
@@ -1005,7 +1036,7 @@ export const DashboardProvider = ({ children }) => {
         category,
         icon,
         frequency,
-        created_at: createdAt
+        ...(createdAt ? { created_at: createdAt } : {})
       }).eq('id', habitId).eq('user_id', userId);
 
       if (error) {
