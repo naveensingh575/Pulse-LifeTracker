@@ -140,7 +140,6 @@ export const TaskModal = ({ isOpen, onClose, initialCategory = 'Work', initialTa
             <input
               type="text"
               required
-              placeholder="e.g., Finalize Q3 Budget Deck or Buy Grocery Items"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs font-medium focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition shadow-inner"
