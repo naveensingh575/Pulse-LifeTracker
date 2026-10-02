@@ -251,6 +251,34 @@ export const AuthProvider = ({ children }) => {
     return data;
   };
 
+  // Change password with verification of current (old) password
+  const changePasswordWithVerification = async (oldPassword, newPassword) => {
+    if (!user || user.isGuest) {
+      throw new Error('Only registered accounts can change their password.');
+    }
+    if (!user.email) {
+      throw new Error('User email not found. Please log in again.');
+    }
+
+    // 1. Verify current password
+    const { error: verifyError } = await supabase.auth.signInWithPassword({
+      email: user.email,
+      password: oldPassword
+    });
+
+    if (verifyError) {
+      throw new Error('Current password is incorrect. Please check and try again.');
+    }
+
+    // 2. Set new password
+    const { data, error: updateError } = await supabase.auth.updateUser({
+      password: newPassword
+    });
+
+    if (updateError) throw updateError;
+    return data;
+  };
+
   // Sign Out
   const logout = async () => {
     try {
@@ -368,6 +396,7 @@ export const AuthProvider = ({ children }) => {
         resendConfirmationEmail,
         resetPasswordForEmail,
         updateUserPassword,
+        changePasswordWithVerification,
         updateUserProfile,
         logout,
         deleteAccount

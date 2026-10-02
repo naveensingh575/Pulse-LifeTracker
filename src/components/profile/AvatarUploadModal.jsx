@@ -4,7 +4,6 @@ import {
   Upload,
   Camera,
   Check,
-  Sparkles,
   User,
   RotateCcw,
   Smile
@@ -268,9 +267,6 @@ export const AvatarUploadModal = ({ isOpen, onClose }) => {
               ) : (
                 <User className="w-10 h-10 text-slate-400" />
               )}
-            </div>
-            <div className="absolute -bottom-1 -right-1 p-1.5 rounded-full bg-indigo-600 text-white shadow-md">
-              <Sparkles className="w-3.5 h-3.5" />
             </div>
           </div>
         </div>

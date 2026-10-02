@@ -15,10 +15,12 @@ import { useAuth } from '../../context/AuthContext';
 import { triggerHaptic } from '../../utils/hapticUtils';
 
 export const ChangePasswordModal = ({ isOpen, onClose }) => {
-  const { user, isGuest, updateUserPassword } = useAuth();
+  const { user, isGuest, changePasswordWithVerification } = useAuth();
 
+  const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showOldPassword, setShowOldPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -31,8 +33,18 @@ export const ChangePasswordModal = ({ isOpen, onClose }) => {
     e.preventDefault();
     setErrorMessage('');
 
+    if (!oldPassword.trim()) {
+      setErrorMessage('Please enter your current password.');
+      return;
+    }
+
     if (newPassword.length < 6) {
-      setErrorMessage('Password must be at least 6 characters long.');
+      setErrorMessage('New password must be at least 6 characters long.');
+      return;
+    }
+
+    if (oldPassword === newPassword) {
+      setErrorMessage('New password must be different from current password.');
       return;
     }
 
@@ -43,22 +55,27 @@ export const ChangePasswordModal = ({ isOpen, onClose }) => {
 
     setIsSubmitting(true);
     try {
-      await updateUserPassword(newPassword);
+      await changePasswordWithVerification(oldPassword, newPassword);
       setIsSuccess(true);
       triggerHaptic('success');
+      setOldPassword('');
       setNewPassword('');
       setConfirmPassword('');
     } catch (err) {
       console.error('Password change error:', err);
-      setErrorMessage(err.message || 'Failed to update password. Please try again.');
+      setErrorMessage(err.message || 'Failed to update password. Please check your current password and try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleResetAndClose = () => {
+    setOldPassword('');
     setNewPassword('');
     setConfirmPassword('');
+    setShowOldPassword(false);
+    setShowNewPassword(false);
+    setShowConfirmPassword(false);
     setErrorMessage('');
     setIsSuccess(false);
     onClose();
@@ -161,6 +178,31 @@ export const ChangePasswordModal = ({ isOpen, onClose }) => {
               </div>
             )}
 
+            {/* Current (Old) Password */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                Current Password
+              </label>
+              <div className="relative">
+                <input
+                  type={showOldPassword ? 'text' : 'password'}
+                  value={oldPassword}
+                  onChange={(e) => setOldPassword(e.target.value)}
+                  placeholder="Enter current password"
+                  required
+                  className="w-full px-3.5 py-2.5 pr-10 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 text-xs sm:text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowOldPassword(!showOldPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                  aria-label={showOldPassword ? 'Hide current password' : 'Show current password'}
+                >
+                  {showOldPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
             {/* New Password */}
             <div className="space-y-1.5">
               <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
@@ -180,6 +222,7 @@ export const ChangePasswordModal = ({ isOpen, onClose }) => {
                   type="button"
                   onClick={() => setShowNewPassword(!showNewPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                  aria-label={showNewPassword ? 'Hide new password' : 'Show new password'}
                 >
                   {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -205,6 +248,7 @@ export const ChangePasswordModal = ({ isOpen, onClose }) => {
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                  aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
                 >
                   {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -227,7 +271,7 @@ export const ChangePasswordModal = ({ isOpen, onClose }) => {
 
               <button
                 type="submit"
-                disabled={isSubmitting || !newPassword || !confirmPassword}
+                disabled={isSubmitting || !oldPassword || !newPassword || !confirmPassword}
                 className="flex-1 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 text-white text-xs font-bold shadow-md shadow-indigo-600/30 transition flex items-center justify-center gap-2 cursor-pointer"
               >
                 {isSubmitting ? (
