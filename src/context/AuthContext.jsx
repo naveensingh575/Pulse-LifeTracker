@@ -173,8 +173,20 @@ export const AuthProvider = ({ children }) => {
           sessionStorage.removeItem('pulse_recovery_mode');
         } catch {}
         setIsPasswordRecovery(false);
-        setSession(currentSession);
-        setUser(formatUser(currentSession.user));
+
+        // Proactively refresh the access token on app load to ensure it's not stale.
+        // After password changes on another device, mobile may hold an expired JWT
+        // that causes RLS to silently return empty data (HTTP 200, no error).
+        let activeSession = currentSession;
+        try {
+          const { data: { session: freshSession } } = await supabase.auth.refreshSession();
+          if (freshSession) {
+            activeSession = freshSession;
+          }
+        } catch {} // Non-critical — continue with existing session
+
+        setSession(activeSession);
+        setUser(formatUser(activeSession.user));
       } else if (checkIsRecoveryUrl()) {
         sessionStorage.setItem('pulse_recovery_mode', 'true');
         setIsPasswordRecovery(true);
@@ -244,6 +256,18 @@ export const AuthProvider = ({ children }) => {
         sessionStorage.setItem('pulse_recovery_mode', 'true');
         setIsPasswordRecovery(true);
         setSession(newSession);
+        setUser(null);
+        setLoading(false);
+        return;
+      }
+
+      if (event === 'SIGNED_OUT') {
+        try {
+          sessionStorage.removeItem('pulse_recovery_mode');
+          sessionStorage.removeItem('pulse_guest_mode');
+        } catch {}
+        setIsPasswordRecovery(false);
+        setSession(null);
         setUser(null);
         setLoading(false);
         return;
@@ -400,7 +424,24 @@ export const AuthProvider = ({ children }) => {
 
     if (updateError) throw updateError;
 
-    // 3. Ensure recovery mode is purged and session stays live
+    // 3. Explicitly refresh the session to synchronize updated credentials and tokens
+    try {
+      const { data: refreshData } = await supabase.auth.refreshSession();
+      if (refreshData?.session) {
+        setSession(refreshData.session);
+        if (refreshData.session.user) {
+          setUser(formatUser(refreshData.session.user));
+        }
+      } else if (data?.user) {
+        setUser(formatUser(data.user));
+      }
+    } catch {
+      if (data?.user) {
+        setUser(formatUser(data.user));
+      }
+    }
+
+    // 4. Ensure recovery mode is purged and session stays live
     try {
       sessionStorage.removeItem('pulse_recovery_mode');
       sessionStorage.removeItem('pulse_guest_mode');
@@ -412,9 +453,6 @@ export const AuthProvider = ({ children }) => {
       }
     } catch {}
     setIsPasswordRecovery(false);
-    if (data?.user) {
-      setUser(formatUser(data.user));
-    }
     return data;
   };
 

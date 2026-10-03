@@ -121,6 +121,9 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  define: {
+    '__BUILD_TIMESTAMP__': JSON.stringify(Date.now().toString()),
+  },
   server: {
     port: 3000,
     host: '127.0.0.1'

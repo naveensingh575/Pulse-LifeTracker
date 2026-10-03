@@ -634,6 +634,25 @@ export const DashboardProvider = ({ children }) => {
 
     setIsLoadingData(true);
 
+    // Session health check: verify the JWT is alive before querying.
+    // Supabase RLS silently returns empty arrays (HTTP 200, no error) when
+    // the JWT is invalid, making auth failures completely invisible.
+    try {
+      const { data: { session: liveSession } } = await supabase.auth.getSession();
+      if (!liveSession?.access_token) {
+        console.warn('[PULSE] No active session token — attempting refresh…');
+        const { data: { session: refreshed }, error: refreshErr } = await supabase.auth.refreshSession();
+        if (!refreshed || refreshErr) {
+          console.error('[PULSE] Session refresh failed — skipping data fetch (would get empty arrays from RLS)', refreshErr?.message);
+          setIsLoadingData(false);
+          return;
+        }
+        console.log('[PULSE] Session refreshed successfully');
+      }
+    } catch (sessionErr) {
+      console.warn('[PULSE] Session health check failed — proceeding with caution', sessionErr?.message);
+    }
+
     // Timeout helper to prevent poor mobile cellular connections from hanging queries indefinitely
     const withTimeout = (promise, ms = 12000, label = 'query') =>
       Promise.race([
@@ -814,6 +833,37 @@ export const DashboardProvider = ({ children }) => {
         updatedAt: j.updated_at || j.created_at || null
       }));
       setJournalEntries(processedJournal);
+
+      // All-empty detection: if EVERY table returned empty data for a cloud user,
+      // it's likely that the JWT is silently invalid and RLS is blocking everything.
+      // Verify by hitting the auth server directly (not RLS-gated).
+      const dataArrays = [rawHabits, completionsList, rawAllocs, rawTx, rawGoals, rawTasks, rawDeadlines, rawActs, rawJournal];
+      const allEmpty = dataArrays.every(arr => !arr || arr.length === 0);
+      if (allEmpty && isCloudUser) {
+        console.warn('[PULSE] All tables returned empty — verifying auth health…');
+        try {
+          const { data: { user: authUser }, error: authErr } = await supabase.auth.getUser();
+          if (authErr || !authUser) {
+            console.error('[PULSE] Auth verification failed — session is dead. Attempting recovery…', authErr?.message);
+            const { data: { session: recovered }, error: recoverErr } = await supabase.auth.refreshSession();
+            if (recovered && !recoverErr) {
+              console.log('[PULSE] Session recovered — retrying data fetch');
+              // Retry once (guard against infinite loop with a flag)
+              if (!fetchUserData._retrying) {
+                fetchUserData._retrying = true;
+                try { await fetchUserData(); } finally { fetchUserData._retrying = false; }
+                return;
+              }
+            } else {
+              console.error('[PULSE] Session recovery failed — user may need to re-login', recoverErr?.message);
+            }
+          } else {
+            console.log('[PULSE] Auth is valid — user genuinely has no data yet');
+          }
+        } catch (verifyErr) {
+          console.warn('[PULSE] Auth verification check failed', verifyErr?.message);
+        }
+      }
 
     } catch (err) {
       console.error('[PULSE Supabase Fetch Error]:', err);
