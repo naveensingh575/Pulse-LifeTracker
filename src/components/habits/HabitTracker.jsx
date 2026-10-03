@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useDashboard } from '../../context/DashboardContext';
 import { isHabitActiveOnDate, encodeActiveDays, parseActiveDays } from '../../context/DashboardContext';
 import {
@@ -158,7 +159,8 @@ export const HabitTracker = ({ activeCategoryProp }) => {
   const categories = HABIT_FILTER_CATEGORIES;
 
   return (
-    <div className="glass-panel-dark rounded-2xl p-5 border border-slate-200 dark:border-slate-800 space-y-4">
+    <>
+      <div className="glass-panel-dark rounded-2xl p-5 border border-slate-200 dark:border-slate-800 space-y-4">
       
       {/* Header Controls & Week Navigator */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -506,9 +508,10 @@ export const HabitTracker = ({ activeCategoryProp }) => {
           })
         )}
       </div>
+      </div>
 
       {/* Add / Edit Habit Modal with Track From Date Selector */}
-      {showAddModal && (
+      {showAddModal && (typeof document !== 'undefined' ? createPortal(
         <div
           onClick={() => {
             setShowAddModal(false);
@@ -662,8 +665,9 @@ export const HabitTracker = ({ activeCategoryProp }) => {
               </div>
             </form>
           </div>
-        </div>
-      )}
+        </div>,
+        document.body
+      ) : null)}
 
       {/* 🚀 HABIT STREAK MILESTONE SHARE MODAL */}
       <DisciplineShareModal
@@ -683,7 +687,7 @@ export const HabitTracker = ({ activeCategoryProp }) => {
         theme={theme}
       />
 
-    </div>
+    </>
   );
 };
 

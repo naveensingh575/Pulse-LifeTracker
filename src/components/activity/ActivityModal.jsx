@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { getISTDateString } from '../../utils/dateUtils';
 import {
   X,
@@ -398,7 +399,7 @@ export const ActivityModal = ({ isOpen, onClose, onSave, initialData = null }) =
     onClose();
   };
 
-  return (
+  const modalContent = (
     <div
       onClick={onClose}
       className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-200 overflow-x-hidden"
@@ -982,4 +983,6 @@ export const ActivityModal = ({ isOpen, onClose, onSave, initialData = null }) =
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : modalContent;
 };

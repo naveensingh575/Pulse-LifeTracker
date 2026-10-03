@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useDashboard } from '../../context/DashboardContext';
 import {
   X,
@@ -96,7 +97,7 @@ export const TaskModal = ({ isOpen, onClose, initialCategory = 'Work', initialTa
     { key: 'low', label: 'Low Priority (Backlog)', badge: '🔵 Low', color: 'border-blue-500/40 bg-blue-500/10 text-blue-600 dark:text-blue-400' },
   ];
 
-  return (
+  const modalContent = (
     <div
       onClick={onClose}
       className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-200 overflow-x-hidden"
@@ -288,4 +289,6 @@ export const TaskModal = ({ isOpen, onClose, initialCategory = 'Work', initialTa
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : modalContent;
 };

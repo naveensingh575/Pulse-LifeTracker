@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { AlertTriangle, Trash2, X, Loader2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -30,7 +31,7 @@ export const DeleteAccountModal = ({ onClose }) => {
     }
   };
 
-  return (
+  const modalContent = (
     <div className="fixed inset-0 z-[9998] flex items-center justify-center p-3 sm:p-4 overflow-x-hidden">
       {/* Backdrop */}
       <div
@@ -137,4 +138,6 @@ export const DeleteAccountModal = ({ onClose }) => {
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : modalContent;
 };

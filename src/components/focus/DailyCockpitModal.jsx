@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useDashboard } from '../../context/DashboardContext';
 import { useAuth } from '../../context/AuthContext';
 import { getISTDateString, formatDisplayDate } from '../../utils/dateUtils';
@@ -101,7 +102,7 @@ export const DailyCockpitModal = ({ isOpen, onClose }) => {
     onClose();
   };
 
-  return (
+  const modalContent = (
     <div
       onClick={handleDismissToday}
       className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 backdrop-blur-md animate-in fade-in duration-200 overflow-x-hidden"
@@ -277,4 +278,6 @@ export const DailyCockpitModal = ({ isOpen, onClose }) => {
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : modalContent;
 };

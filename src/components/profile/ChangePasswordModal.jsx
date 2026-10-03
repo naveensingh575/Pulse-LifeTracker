@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   X,
   Lock,
@@ -81,7 +82,7 @@ export const ChangePasswordModal = ({ isOpen, onClose }) => {
     onClose();
   };
 
-  return (
+  const modalContent = (
     <div
       onClick={handleResetAndClose}
       className="fixed inset-0 z-[80] flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 backdrop-blur-sm animate-in fade-in duration-200 overflow-x-hidden"
@@ -293,4 +294,6 @@ export const ChangePasswordModal = ({ isOpen, onClose }) => {
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : modalContent;
 };

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useDashboard } from '../../context/DashboardContext';
 import { TransactionModal } from './TransactionModal';
 import { DayCalendarNavigator } from '../common/DayCalendarNavigator';
@@ -216,7 +217,8 @@ export const MoneyTracker = ({ openAddModalTrigger }) => {
   };
 
   return (
-    <div className="glass-panel-dark rounded-2xl p-5 border border-slate-200 dark:border-slate-800 space-y-5">
+    <>
+      <div className="glass-panel-dark rounded-2xl p-5 border border-slate-200 dark:border-slate-800 space-y-5">
       
       {/* Header & Time-Horizon Controls */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-4">
@@ -744,6 +746,7 @@ export const MoneyTracker = ({ openAddModalTrigger }) => {
           )}
         </div>
       </div>
+    </div>
 
       {/* Transaction Modal (Add & Edit) */}
       <TransactionModal
@@ -757,7 +760,7 @@ export const MoneyTracker = ({ openAddModalTrigger }) => {
       />
 
       {/* Set Monthly Budget Allocation Modal */}
-      {isBudgetModalOpen && (
+      {isBudgetModalOpen && (typeof document !== 'undefined' ? createPortal(
         <div
           onClick={() => setIsBudgetModalOpen(false)}
           className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-200 overflow-x-hidden"
@@ -837,9 +840,10 @@ export const MoneyTracker = ({ openAddModalTrigger }) => {
               </div>
             </form>
           </div>
-        </div>
-      )}
+        </div>,
+        document.body
+      ) : null)}
 
-    </div>
+    </>
   );
 };

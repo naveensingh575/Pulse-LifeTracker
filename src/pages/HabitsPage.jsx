@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { HabitTracker } from '../components/habits/HabitTracker';
 import { DayCalendarNavigator } from '../components/common/DayCalendarNavigator';
 import { useDashboard } from '../context/DashboardContext';
@@ -595,7 +596,7 @@ export const HabitsPage = () => {
       )}
 
       {/* Add Habit Modal */}
-      {showAddModal && (
+      {showAddModal && (typeof document !== 'undefined' ? createPortal(
         <div
           onClick={() => setShowAddModal(false)}
           className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-200 overflow-x-hidden"
@@ -740,8 +741,9 @@ export const HabitsPage = () => {
               </div>
             </form>
           </div>
-        </div>
-      )}
+        </div>,
+        document.body
+      ) : null)}
 
     </div>
   );

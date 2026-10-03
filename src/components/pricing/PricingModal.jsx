@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import { useDashboard } from "../../context/DashboardContext";
 import { useAuth } from "../../context/AuthContext";
@@ -151,7 +152,7 @@ export const PricingModal = () => {
     }
   };
 
-  return (
+  const modalContent = (
     <div
       onClick={closePricingModal}
       className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 dark:bg-slate-950/85 backdrop-blur-md animate-in fade-in duration-200 overflow-x-hidden"
@@ -600,4 +601,6 @@ export const PricingModal = () => {
     </div>
   </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : modalContent;
 };

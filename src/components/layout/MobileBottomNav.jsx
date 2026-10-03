@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useDashboard } from '../../context/DashboardContext';
 import {
@@ -87,7 +88,7 @@ export const MobileBottomNav = ({ onOpenQuickCapture }) => {
       </nav>
 
       {/* 📂 "MORE" SLIDE-UP BOTTOM SHEET */}
-      {isMoreOpen && (
+      {isMoreOpen && (typeof document !== 'undefined' ? createPortal(
         <div className="lg:hidden fixed inset-0 z-[60] flex flex-col justify-end">
           {/* Backdrop */}
           <div
@@ -199,8 +200,9 @@ export const MobileBottomNav = ({ onOpenQuickCapture }) => {
               <ArrowRight className="w-4 h-4 text-slate-400 shrink-0" />
             </button>
           </div>
-        </div>
-      )}
+        </div>,
+        document.body
+      ) : null)}
     </>
   );
 };

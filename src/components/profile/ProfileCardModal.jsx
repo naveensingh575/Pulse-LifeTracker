@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate, Link } from 'react-router-dom';
 import { useDashboard, SUPPORTED_CURRENCIES } from '../../context/DashboardContext';
 import { useAuth } from '../../context/AuthContext';
@@ -141,7 +142,7 @@ export const ProfileCardModal = ({ isOpen, onClose }) => {
 
   const isGuest = !user || user.isGuest;
 
-  return (
+  const modalContent = (
     <>
       {/* Outer Centered Backdrop Wrapper */}
       <div
@@ -752,4 +753,6 @@ export const ProfileCardModal = ({ isOpen, onClose }) => {
       )}
     </>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : modalContent;
 };

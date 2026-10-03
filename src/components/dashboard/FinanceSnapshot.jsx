@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { useDashboard } from '../../context/DashboardContext';
 import { getISTDateString, getISTDate, getISTYearMonth } from '../../utils/dateUtils';
@@ -79,7 +80,8 @@ export const FinanceSnapshot = () => {
   const colorStyle = getHealthColor(consumptionPct);
 
   return (
-    <div className="glass-panel-dark rounded-2xl p-5 border border-slate-200 dark:border-slate-800 space-y-4 shadow-sm flex flex-col justify-between relative">
+    <>
+      <div className="glass-panel-dark rounded-2xl p-5 border border-slate-200 dark:border-slate-800 space-y-4 shadow-sm flex flex-col justify-between relative">
       
       {/* Header with deep-link */}
       <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
@@ -168,9 +170,10 @@ export const FinanceSnapshot = () => {
           {todayExpenses <= safeDailyPace ? 'Within Pace 🟢' : 'Over Pace ⚠️'}
         </span>
       </div>
+      </div>
 
       {/* Lightweight Quick Expense Modal */}
-      {isQuickExpenseOpen && (
+      {isQuickExpenseOpen && (typeof document !== 'undefined' ? createPortal(
         <div
           onClick={() => setIsQuickExpenseOpen(false)}
           className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-150 overflow-x-hidden"
@@ -256,9 +259,10 @@ export const FinanceSnapshot = () => {
               </div>
             </form>
           </div>
-        </div>
-      )}
+        </div>,
+        document.body
+      ) : null)}
 
-    </div>
+    </>
   );
 };

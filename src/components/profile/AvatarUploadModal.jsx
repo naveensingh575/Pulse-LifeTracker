@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import {
   X,
   Upload,
@@ -218,7 +219,7 @@ export const AvatarUploadModal = ({ isOpen, onClose }) => {
     }
   };
 
-  return (
+  const modalContent = (
     <div
       onClick={onClose}
       className="fixed inset-0 z-[80] flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 backdrop-blur-sm animate-in fade-in duration-200 overflow-x-hidden"
@@ -467,4 +468,6 @@ export const AvatarUploadModal = ({ isOpen, onClose }) => {
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : modalContent;
 };

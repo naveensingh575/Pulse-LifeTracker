@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useDashboard } from '../../context/DashboardContext';
 import { getISTDateString } from '../../utils/dateUtils';
@@ -182,7 +183,7 @@ export const CommandPalette = ({ isOpen, onClose }) => {
     }
   };
 
-  return (
+  const modalContent = (
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 sm:pt-28 px-4">
       {/* Backdrop */}
       <div
@@ -304,4 +305,6 @@ export const CommandPalette = ({ isOpen, onClose }) => {
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : modalContent;
 };

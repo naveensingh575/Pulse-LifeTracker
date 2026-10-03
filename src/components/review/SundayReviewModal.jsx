@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useDashboard } from '../../context/DashboardContext';
 import { useAuth } from '../../context/AuthContext';
 import {
@@ -150,7 +151,7 @@ export const SundayReviewModal = ({ isOpen, onClose }) => {
 
   if (!isOpen) return null;
 
-  return (
+  const modalContent = (
     <div
       onClick={onClose}
       className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 dark:bg-slate-950/85 backdrop-blur-md animate-in fade-in duration-200 overflow-x-hidden"
@@ -340,4 +341,6 @@ export const SundayReviewModal = ({ isOpen, onClose }) => {
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : modalContent;
 };

@@ -60,7 +60,8 @@ export const TodoList = () => {
   };
 
   return (
-    <div className="glass-panel-dark rounded-2xl p-5 border border-slate-200 dark:border-slate-800 space-y-4">
+    <>
+      <div className="glass-panel-dark rounded-2xl p-5 border border-slate-200 dark:border-slate-800 space-y-4">
       
       {/* Section Header */}
       <div className="flex items-center justify-between">
@@ -263,6 +264,7 @@ export const TodoList = () => {
           })}
         </div>
       )}
+      </div>
 
       {/* Task Edit Modal */}
       {editingTask && (
@@ -277,6 +279,6 @@ export const TodoList = () => {
         />
       )}
 
-    </div>
+    </>
   );
 };
