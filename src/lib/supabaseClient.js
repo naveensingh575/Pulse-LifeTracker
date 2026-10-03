@@ -8,5 +8,9 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: true,
+    // Custom no-op lock to completely bypass navigator.locks deadlock on mobile Safari/Chrome/Capacitor/PWA
+    lock: async (_name, _acquireTimeout, fn) => {
+      return await fn();
+    },
   },
 });

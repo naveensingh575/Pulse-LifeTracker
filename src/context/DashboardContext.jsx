@@ -634,18 +634,27 @@ export const DashboardProvider = ({ children }) => {
 
     setIsLoadingData(true);
 
+    // Timeout helper to prevent poor mobile cellular connections from hanging queries indefinitely
+    const withTimeout = (promise, ms = 12000, label = 'query') =>
+      Promise.race([
+        promise,
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error(`[PULSE] ${label} timed out after ${ms}ms`)), ms)
+        )
+      ]);
+
     try {
       // 1. Fetch in parallel using allSettled for maximum fault tolerance across mobile & web
       const results = await Promise.allSettled([
-        supabase.from('habits').select('*').eq('user_id', userId).order('created_at', { ascending: true }),
-        supabase.from('habit_completions').select('*').eq('user_id', userId),
-        supabase.from('monthly_allocations').select('*').eq('user_id', userId),
-        supabase.from('transactions').select('*').eq('user_id', userId).order('transaction_date', { ascending: false }),
-        supabase.from('goals').select('*, sub_goals(*)').eq('user_id', userId).order('created_at', { ascending: false }),
-        supabase.from('tasks').select('*').eq('user_id', userId).order('created_at', { ascending: false }),
-        supabase.from('deadlines').select('*').eq('user_id', userId).order('deadline_date', { ascending: true }),
-        supabase.from('activities').select('*').eq('user_id', userId).order('activity_date', { ascending: false }),
-        supabase.from('journal_entries').select('*').eq('user_id', userId).order('entry_date', { ascending: false })
+        withTimeout(supabase.from('habits').select('*').eq('user_id', userId).order('created_at', { ascending: true }), 12000, 'habits'),
+        withTimeout(supabase.from('habit_completions').select('*').eq('user_id', userId).limit(5000), 12000, 'habit_completions'),
+        withTimeout(supabase.from('monthly_allocations').select('*').eq('user_id', userId), 12000, 'monthly_allocations'),
+        withTimeout(supabase.from('transactions').select('*').eq('user_id', userId).order('transaction_date', { ascending: false }), 12000, 'transactions'),
+        withTimeout(supabase.from('goals').select('*, sub_goals(*)').eq('user_id', userId).order('created_at', { ascending: false }), 12000, 'goals'),
+        withTimeout(supabase.from('tasks').select('*').eq('user_id', userId).order('created_at', { ascending: false }), 12000, 'tasks'),
+        withTimeout(supabase.from('deadlines').select('*').eq('user_id', userId).order('deadline_date', { ascending: true }), 12000, 'deadlines'),
+        withTimeout(supabase.from('activities').select('*').eq('user_id', userId).order('activity_date', { ascending: false }), 12000, 'activities'),
+        withTimeout(supabase.from('journal_entries').select('*').eq('user_id', userId).order('entry_date', { ascending: false }), 12000, 'journal_entries')
       ]);
 
       const habitsRes = results[0].status === 'fulfilled' ? results[0].value : { data: [], error: results[0].reason };
@@ -851,6 +860,29 @@ export const DashboardProvider = ({ children }) => {
       setJournalEntries([]);
     }
   }, [userId, isCloudUser, user?.isGuest, fetchUserData]);
+
+  // Mobile App Lifecycle Re-sync: Re-fetch cloud data when tab/PWA is foregrounded or network reconnects
+  useEffect(() => {
+    if (!isCloudUser) return;
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchUserData();
+      }
+    };
+
+    const handleOnline = () => {
+      fetchUserData();
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('online', handleOnline);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('online', handleOnline);
+    };
+  }, [isCloudUser, fetchUserData]);
 
   // --- Monthly Allocation Operations ---
   const getMonthlyAllocation = (ymStr) => {

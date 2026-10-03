@@ -4,17 +4,31 @@ import { recordReferralSignup } from '../utils/referralUtils';
 
 const AuthContext = createContext();
 
-const checkIsRecoveryUrl = () => {
+export const hasExplicitRecoveryTokensInUrl = () => {
   try {
     if (typeof window === 'undefined') return false;
     const hash = window.location.hash || '';
     const search = window.location.search || '';
-    const hasRecoveryToken =
+    return Boolean(
       (hash.includes('type=recovery') && (hash.includes('access_token=') || hash.includes('token_hash='))) ||
-      (search.includes('type=recovery') && (search.includes('code=') || search.includes('token_hash='))) ||
-      hash.includes('type=recovery') || search.includes('type=recovery');
+      (search.includes('type=recovery') && (search.includes('code=') || search.includes('token_hash=')))
+    );
+  } catch {
+    return false;
+  }
+};
+
+const checkIsRecoveryUrl = () => {
+  try {
+    if (typeof window === 'undefined') return false;
+    // URL explicitly contains recovery tokens from a reset password link
+    if (hasExplicitRecoveryTokensInUrl()) return true;
+
+    // Only consider stored recovery mode if currently on the reset-password route
+    const hash = window.location.hash || '';
+    const isResetPasswordRoute = hash.includes('/reset-password') || (typeof window !== 'undefined' && window.location.pathname.includes('/reset-password'));
     const hasStoredRecovery = sessionStorage.getItem('pulse_recovery_mode') === 'true';
-    return Boolean(hasRecoveryToken || hasStoredRecovery);
+    return Boolean(isResetPasswordRoute && hasStoredRecovery);
   } catch {
     return false;
   }
@@ -143,8 +157,8 @@ export const AuthProvider = ({ children }) => {
         return;
       }
 
-      // If in password recovery mode, user must NOT be granted dashboard access!
-      if (checkIsRecoveryUrl()) {
+      // If explicitly landing on password recovery URL with tokens, user must NOT be granted dashboard access!
+      if (hasExplicitRecoveryTokensInUrl()) {
         sessionStorage.setItem('pulse_recovery_mode', 'true');
         setIsPasswordRecovery(true);
         setSession(currentSession);
@@ -153,12 +167,24 @@ export const AuthProvider = ({ children }) => {
         return;
       }
 
-      setSession(currentSession);
-      if (currentSession) {
+      // If active session exists, ensure any stale recovery mode in sessionStorage is purged immediately!
+      if (currentSession?.user) {
+        try {
+          sessionStorage.removeItem('pulse_recovery_mode');
+        } catch {}
+        setIsPasswordRecovery(false);
+        setSession(currentSession);
         setUser(formatUser(currentSession.user));
+      } else if (checkIsRecoveryUrl()) {
+        sessionStorage.setItem('pulse_recovery_mode', 'true');
+        setIsPasswordRecovery(true);
+        setSession(currentSession);
+        setUser(null);
       } else if (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('pulse_guest_mode') === 'true') {
+        setSession(null);
         setUser(createGuestUser());
       } else {
+        setSession(null);
         setUser(null);
       }
       setLoading(false);
@@ -187,8 +213,8 @@ export const AuthProvider = ({ children }) => {
         return;
       }
 
-      // If user successfully signed in with email/password, ensure recovery mode is completely cleared!
-      if (event === 'SIGNED_IN') {
+      // If user successfully signed in with email/password or updated user/refreshed token:
+      if (event === 'SIGNED_IN' || event === 'USER_UPDATED' || event === 'TOKEN_REFRESHED') {
         try {
           sessionStorage.removeItem('pulse_recovery_mode');
           sessionStorage.removeItem('pulse_guest_mode');
@@ -214,7 +240,7 @@ export const AuthProvider = ({ children }) => {
         return;
       }
 
-      if (checkIsRecoveryUrl()) {
+      if (hasExplicitRecoveryTokensInUrl()) {
         sessionStorage.setItem('pulse_recovery_mode', 'true');
         setIsPasswordRecovery(true);
         setSession(newSession);
@@ -373,6 +399,22 @@ export const AuthProvider = ({ children }) => {
     });
 
     if (updateError) throw updateError;
+
+    // 3. Ensure recovery mode is purged and session stays live
+    try {
+      sessionStorage.removeItem('pulse_recovery_mode');
+      sessionStorage.removeItem('pulse_guest_mode');
+      if (typeof window !== 'undefined') {
+        const hash = window.location.hash || '';
+        if (hash.includes('type=recovery') || hash.includes('type=signup')) {
+          window.history.replaceState(null, '', window.location.pathname);
+        }
+      }
+    } catch {}
+    setIsPasswordRecovery(false);
+    if (data?.user) {
+      setUser(formatUser(data.user));
+    }
     return data;
   };
 

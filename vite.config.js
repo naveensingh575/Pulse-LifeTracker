@@ -72,6 +72,10 @@ export default defineConfig({
         ]
       },
       workbox: {
+        // Immediately take control of mobile clients and wipe stale precaches
+        skipWaiting: true,
+        clientsClaim: true,
+        cleanupOutdatedCaches: true,
         // Cache all static assets
         globPatterns: ['**/*.{js,css,html,ico,png,svg,jpg,woff,woff2}'],
         // Runtime caching for Google Fonts

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext';
+import { AuthProvider, useAuth, clearRecoveryUrlAndState } from './context/AuthContext';
 import { DashboardProvider, useDashboard } from './context/DashboardContext';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { AuthPage } from './components/auth/AuthPage';
@@ -45,6 +45,11 @@ const AppLayout = () => {
       setIncomingReferral(refData);
       setShowReferralBanner(true);
     }
+  }, []);
+
+  // Sanitize any stale recovery URL parameters or storage flags once inside dashboard
+  useEffect(() => {
+    clearRecoveryUrlAndState();
   }, []);
 
   // Global Cmd+K / Ctrl+K listener
