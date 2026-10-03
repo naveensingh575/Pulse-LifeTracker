@@ -699,7 +699,7 @@ export const AnalyticsView = () => {
 
           {/* Date Picker (Day View Only) */}
           {timeframe === 'day' && (
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-2 min-w-0 max-w-full overflow-hidden">
               <DayCalendarNavigator
                 selectedDate={selectedDate}
                 onDateChange={setSelectedDate}

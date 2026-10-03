@@ -74,9 +74,9 @@ export const DayCalendarNavigator = ({
   const currentStyle = colorStyles[accentColor] || colorStyles.indigo;
 
   return (
-    <div className={`flex flex-wrap items-center gap-2 ${className}`}>
+    <div className={`inline-flex items-center gap-1.5 sm:gap-2 max-w-full shrink-0 ${className}`}>
       {/* Sleek Integrated Calendar Pill */}
-      <div className="inline-flex items-center space-x-1 bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-200 dark:border-slate-800 text-xs">
+      <div className="inline-flex items-center space-x-0.5 sm:space-x-1 bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-200 dark:border-slate-800 text-xs shrink-0 max-w-full overflow-hidden">
         <button
           type="button"
           onClick={() => shiftDay(-1)}
@@ -89,7 +89,7 @@ export const DayCalendarNavigator = ({
 
         <div
           onClick={handleDateContainerClick}
-          className="h-7 flex items-center space-x-1.5 px-2 rounded-lg hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition shrink-0 cursor-pointer"
+          className="h-7 flex items-center space-x-1 sm:space-x-1.5 px-1.5 sm:px-2 rounded-lg hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition shrink-0 cursor-pointer"
         >
           <CalendarIcon className={`w-3.5 h-3.5 shrink-0 ${currentStyle.icon}`} />
           <input
@@ -97,7 +97,7 @@ export const DayCalendarNavigator = ({
             type="date"
             value={currentDate}
             onChange={(e) => onDateChange(e.target.value)}
-            className="day-calendar-date-input font-mono font-bold text-slate-900 dark:text-slate-100 focus:outline-none cursor-pointer"
+            className="day-calendar-date-input font-mono font-bold text-slate-900 dark:text-slate-100 focus:outline-none cursor-pointer w-[86px] sm:w-[94px] shrink-0"
           />
         </div>
 
@@ -115,7 +115,7 @@ export const DayCalendarNavigator = ({
           <button
             type="button"
             onClick={() => onDateChange(todayStr)}
-            className={`h-7 px-2.5 flex items-center justify-center rounded-lg font-bold text-[11px] leading-none transition cursor-pointer shrink-0 ${currentStyle.todayBtn}`}
+            className={`h-7 px-2 sm:px-2.5 flex items-center justify-center rounded-lg font-bold text-[10px] sm:text-[11px] leading-none transition cursor-pointer shrink-0 ${currentStyle.todayBtn}`}
             title="Jump to Today"
           >
             Today
@@ -125,7 +125,7 @@ export const DayCalendarNavigator = ({
 
       {/* Clean Formatted Date Label */}
       {showDateLabel && (
-        <span className="text-xs font-bold text-slate-600 dark:text-slate-400 hidden sm:inline">
+        <span className="text-xs font-bold text-slate-600 dark:text-slate-400 hidden sm:inline truncate">
           {formatISTDisplayDate(currentDate)}
         </span>
       )}

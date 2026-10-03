@@ -296,7 +296,7 @@ export const HabitsPage = () => {
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center justify-between sm:justify-end gap-2.5 sm:gap-3 w-full sm:w-auto min-w-0">
               {/* Date Navigation & Calendar Picker */}
               <DayCalendarNavigator
                 selectedDate={selectedDayDate}
@@ -305,7 +305,7 @@ export const HabitsPage = () => {
               />
 
               {/* Progress Bar & Counter */}
-              <div className="hidden sm:block text-right pl-2 border-l border-slate-200 dark:border-slate-800">
+              <div className="hidden sm:block text-right pl-2 border-l border-slate-200 dark:border-slate-800 shrink-0">
                 <span className="text-xs font-mono font-extrabold text-slate-900 dark:text-slate-100">
                   {dayStats.completed}/{dayStats.total} Done
                 </span>
