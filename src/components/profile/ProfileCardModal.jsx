@@ -44,7 +44,8 @@ import {
   Activity,
   Ruler,
   Edit3,
-  UserCheck
+  UserCheck,
+  Users
 } from 'lucide-react';
 
 export const ProfileCardModal = ({ isOpen, onClose }) => {
@@ -354,15 +355,20 @@ export const ProfileCardModal = ({ isOpen, onClose }) => {
                 </p>
               </div>
 
+              {/* Gender */}
               <div
-                onClick={() => setShowAvatarModal(true)}
-                className="p-2.5 rounded-xl bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-200/50 dark:border-indigo-800/40 hover:bg-indigo-100/50 dark:hover:bg-indigo-900/30 transition cursor-pointer flex flex-col justify-center"
+                onClick={() => setShowEditProfileModal(true)}
+                className="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-indigo-600 transition cursor-pointer group"
+                title="Click to change Gender"
               >
-                <span className="text-[10px] text-indigo-600 dark:text-indigo-400 flex items-center gap-1 font-bold">
-                  <Camera className="w-3 h-3" /> Avatar
+                <span className="text-[10px] text-slate-400 dark:text-slate-500 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 flex items-center justify-between font-medium">
+                  <span className="flex items-center gap-1">
+                    <Users className="w-3 h-3 text-purple-500" /> Gender
+                  </span>
+                  <span className="text-[9px] text-indigo-500 opacity-0 group-hover:opacity-100 transition font-bold">Edit</span>
                 </span>
-                <p className="text-[11px] font-bold text-indigo-700 dark:text-indigo-300 mt-0.5">
-                  Edit Photo →
+                <p className="font-bold text-slate-800 dark:text-slate-200 mt-0.5 truncate">
+                  {user?.gender || '—'}
                 </p>
               </div>
             </div>

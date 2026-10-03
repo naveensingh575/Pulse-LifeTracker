@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import {
   X,
   User,
+  Users,
   Phone,
   Calendar,
   Briefcase,
@@ -10,7 +11,8 @@ import {
   Ruler,
   Check,
   AlertCircle,
-  Loader2
+  Loader2,
+  ChevronDown
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { triggerHaptic } from '../../utils/hapticUtils';
@@ -20,6 +22,7 @@ export const EditProfileModal = ({ isOpen, onClose }) => {
 
   const [name, setName] = useState('');
   const [mobile, setMobile] = useState('');
+  const [gender, setGender] = useState('');
   const [age, setAge] = useState('');
   const [weight, setWeight] = useState('');
   const [height, setHeight] = useState('');
@@ -32,6 +35,7 @@ export const EditProfileModal = ({ isOpen, onClose }) => {
     if (isOpen && user) {
       setName(user.name || '');
       setMobile(user.mobile || '');
+      setGender(user.gender || '');
       setAge(user.age || '');
       setWeight(user.weight || '');
       setHeight(user.height || '');
@@ -53,6 +57,7 @@ export const EditProfileModal = ({ isOpen, onClose }) => {
       await updateUserProfile({
         name: name.trim(),
         mobile: mobile.trim(),
+        gender: gender.trim(),
         age: age ? Number(age) : '',
         weight: weight ? Number(weight) : '',
         height: height ? Number(height) : '',
@@ -166,6 +171,31 @@ export const EditProfileModal = ({ isOpen, onClose }) => {
               placeholder="e.g. +91 98765 43210"
               className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 text-xs sm:text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
+          </div>
+
+          {/* Gender */}
+          <div className="space-y-1">
+            <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+              <Users className="w-3.5 h-3.5 text-indigo-500" />
+              <span>Gender</span>
+            </label>
+            <div className="relative">
+              <select
+                value={gender}
+                onChange={(e) => setGender(e.target.value)}
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 text-xs sm:text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer appearance-none pr-9"
+              >
+                <option value="">Select Gender</option>
+                <option value="Female">Female</option>
+                <option value="Male">Male</option>
+                <option value="Non-binary">Non-binary</option>
+                <option value="Another gender identity">Another gender identity</option>
+                <option value="Prefer not to say">Prefer not to say</option>
+              </select>
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                <ChevronDown className="w-4 h-4" />
+              </div>
+            </div>
           </div>
 
           {/* Age, Weight, Height Grid */}
