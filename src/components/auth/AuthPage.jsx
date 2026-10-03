@@ -148,6 +148,8 @@ export const AuthPage = ({ initialMode }) => {
 
   // Check URL hash / auth recovery / email verification event on mount
   useEffect(() => {
+    if (mode === 'password-reset-success') return;
+
     const hash = typeof window !== 'undefined' ? window.location.hash : '';
     const search = typeof window !== 'undefined' ? window.location.search : '';
     const hasValidToken = (hash.includes('type=recovery') && (hash.includes('access_token=') || hash.includes('token_hash='))) ||
@@ -171,7 +173,7 @@ export const AuthPage = ({ initialMode }) => {
       setAuthSuccess('');
       setAuthError('');
     }
-  }, [initialMode, isPasswordRecovery, emailVerified]);
+  }, [initialMode, isPasswordRecovery, emailVerified, mode]);
 
   // RFC 5322 Compliant Email Validation
   const validateEmail = (emailStr) => {
@@ -256,11 +258,19 @@ export const AuthPage = ({ initialMode }) => {
       if (mode === 'signup') {
         const result = await signUpWithEmail(cleanEmail, password, name, referralCode);
         
+        // Supabase user enumeration protection: if email already exists, identities is empty and no email is sent
+        if (result?.user && Array.isArray(result.user.identities) && result.user.identities.length === 0) {
+          setAuthError('An account with this email address already exists. Please sign in or use "Forgot Password".');
+          setMode('signin');
+          setEmail(cleanEmail);
+          return;
+        }
+
         // If Supabase has email confirmations enabled and session is not yet active
         if (result?.user && !result.session) {
           setNeedsConfirmation(true);
-          setAuthSuccess(`Verification email sent to ${cleanEmail}! Please check your inbox to activate your account.`);
-          // Clear all form fields — user must fill sign-in manually
+          setAuthSuccess(`Verification email sent to ${cleanEmail}! Please check your inbox (and spam folder) to activate your account.`);
+          // Clear form fields
           setEmail('');
           setPassword('');
           setName('');
@@ -318,13 +328,32 @@ export const AuthPage = ({ initialMode }) => {
     } catch {
       // ignore
     }
+    try {
+      sessionStorage.removeItem('pulse_recovery_mode');
+    } catch {}
+    setIsPasswordRecovery(false);
     setPassword('');
     setConfirmPassword('');
     setEmail('');
-    setMode('signin');
     setAuthError('');
     setAuthSuccess('');
     setResetEmailSent(false);
+    setMode('signin');
+    navigate('/login', { replace: true });
+  };
+
+  const handleBackToSignInFromResetSuccess = () => {
+    try {
+      sessionStorage.removeItem('pulse_recovery_mode');
+    } catch {}
+    setIsPasswordRecovery(false);
+    setEmail('');
+    setPassword('');
+    setConfirmPassword('');
+    setAuthError('');
+    setAuthSuccess('');
+    setMode('signin');
+    navigate('/login', { replace: true });
   };
 
   return (
@@ -918,21 +947,7 @@ export const AuthPage = ({ initialMode }) => {
               <div className="pt-2">
                 <button
                   type="button"
-                  onClick={() => {
-                    try {
-                      sessionStorage.removeItem('pulse_recovery_mode');
-                      if (typeof window !== 'undefined') {
-                        window.history.replaceState(null, '', window.location.pathname);
-                      }
-                    } catch {}
-                    setIsPasswordRecovery(false);
-                    setEmail('');
-                    setPassword('');
-                    setConfirmPassword('');
-                    setAuthError('');
-                    setAuthSuccess('');
-                    setMode('signin');
-                  }}
+                  onClick={handleBackToSignInFromResetSuccess}
                   className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-indigo-600/30 transition flex items-center justify-center space-x-2 cursor-pointer active:scale-95"
                 >
                   <span>Sign In with New Password</span>
