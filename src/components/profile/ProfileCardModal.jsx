@@ -356,16 +356,9 @@ export const ProfileCardModal = ({ isOpen, onClose }) => {
               </div>
 
               {/* Gender */}
-              <div
-                onClick={() => setShowEditProfileModal(true)}
-                className="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-indigo-600 transition cursor-pointer group"
-                title="Click to change Gender"
-              >
-                <span className="text-[10px] text-slate-400 dark:text-slate-500 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 flex items-center justify-between font-medium">
-                  <span className="flex items-center gap-1">
-                    <Users className="w-3 h-3 text-purple-500" /> Gender
-                  </span>
-                  <span className="text-[9px] text-indigo-500 opacity-0 group-hover:opacity-100 transition font-bold">Edit</span>
+              <div className="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800">
+                <span className="text-[10px] text-slate-400 dark:text-slate-500 flex items-center gap-1 font-medium">
+                  <Users className="w-3 h-3 text-purple-500" /> Gender
                 </span>
                 <p className="font-bold text-slate-800 dark:text-slate-200 mt-0.5 truncate">
                   {user?.gender || '—'}
