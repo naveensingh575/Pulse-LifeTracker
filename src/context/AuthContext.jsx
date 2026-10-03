@@ -20,6 +20,19 @@ const checkIsRecoveryUrl = () => {
   }
 };
 
+export const clearRecoveryUrlAndState = () => {
+  try {
+    sessionStorage.removeItem('pulse_recovery_mode');
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash || '';
+      const search = window.location.search || '';
+      if (hash.includes('type=recovery') || search.includes('type=recovery') || hash.includes('type=signup') || search.includes('type=signup')) {
+        window.history.replaceState(null, '', window.location.pathname);
+      }
+    }
+  } catch {}
+};
+
 // Detect if the URL contains an email-verification confirmation token from Supabase
 const checkIsEmailConfirmUrl = () => {
   try {
@@ -174,11 +187,38 @@ export const AuthProvider = ({ children }) => {
         return;
       }
 
-      if (event === 'PASSWORD_RECOVERY' || checkIsRecoveryUrl()) {
+      // If user successfully signed in with email/password, ensure recovery mode is completely cleared!
+      if (event === 'SIGNED_IN') {
+        try {
+          sessionStorage.removeItem('pulse_recovery_mode');
+          sessionStorage.removeItem('pulse_guest_mode');
+          const hash = window.location.hash || '';
+          const search = window.location.search || '';
+          if (hash.includes('type=recovery') || search.includes('type=recovery')) {
+            window.history.replaceState(null, '', window.location.pathname);
+          }
+        } catch {}
+        setIsPasswordRecovery(false);
+        setSession(newSession);
+        setUser(newSession ? formatUser(newSession.user) : null);
+        setLoading(false);
+        return;
+      }
+
+      if (event === 'PASSWORD_RECOVERY') {
         sessionStorage.setItem('pulse_recovery_mode', 'true');
         setIsPasswordRecovery(true);
         setSession(newSession);
         setUser(null); // Keep user null so ProtectedRoute redirects to reset-password
+        setLoading(false);
+        return;
+      }
+
+      if (checkIsRecoveryUrl()) {
+        sessionStorage.setItem('pulse_recovery_mode', 'true');
+        setIsPasswordRecovery(true);
+        setSession(newSession);
+        setUser(null);
         setLoading(false);
         return;
       }
@@ -204,6 +244,19 @@ export const AuthProvider = ({ children }) => {
 
   // Sign in with Email & Password
   const signInWithEmail = async (email, password) => {
+    try {
+      sessionStorage.removeItem('pulse_recovery_mode');
+      sessionStorage.removeItem('pulse_guest_mode');
+      if (typeof window !== 'undefined') {
+        const hash = window.location.hash || '';
+        const search = window.location.search || '';
+        if (hash.includes('type=recovery') || search.includes('type=recovery')) {
+          window.history.replaceState(null, '', window.location.pathname);
+        }
+      }
+    } catch {}
+    setIsPasswordRecovery(false);
+
     const { data, error } = await supabase.auth.signInWithPassword({
       email: email.trim().toLowerCase(),
       password
@@ -280,7 +333,12 @@ export const AuthProvider = ({ children }) => {
       password: newPassword
     });
     if (error) throw error;
-    sessionStorage.removeItem('pulse_recovery_mode');
+    try {
+      sessionStorage.removeItem('pulse_recovery_mode');
+      if (typeof window !== 'undefined') {
+        window.history.replaceState(null, '', window.location.pathname);
+      }
+    } catch {}
     setIsPasswordRecovery(false);
     setUser(null);
     setSession(null);
@@ -323,6 +381,9 @@ export const AuthProvider = ({ children }) => {
     try {
       sessionStorage.removeItem('pulse_recovery_mode');
       sessionStorage.removeItem('pulse_guest_mode');
+      if (typeof window !== 'undefined') {
+        window.history.replaceState(null, '', window.location.pathname);
+      }
     } catch {}
     setIsPasswordRecovery(false);
     setEmailVerified(false);

@@ -919,6 +919,13 @@ export const AuthPage = ({ initialMode }) => {
                 <button
                   type="button"
                   onClick={() => {
+                    try {
+                      sessionStorage.removeItem('pulse_recovery_mode');
+                      if (typeof window !== 'undefined') {
+                        window.history.replaceState(null, '', window.location.pathname);
+                      }
+                    } catch {}
+                    setIsPasswordRecovery(false);
                     setEmail('');
                     setPassword('');
                     setConfirmPassword('');

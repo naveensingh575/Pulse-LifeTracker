@@ -194,6 +194,7 @@ const normalizeGoal = (g) => {
 export const DashboardProvider = ({ children }) => {
   const { user } = useAuth();
   const userId = user?.id;
+  const isCloudUser = Boolean(userId && !user?.isGuest && userId !== 'guest-user');
 
   // Theme state: defaults to 'light' for first-time users, then respects localStorage
   const [theme, setTheme] = useState(() => {
@@ -616,7 +617,7 @@ export const DashboardProvider = ({ children }) => {
 
   // --- Fetch All User Data from Supabase or Guest Demo Sandbox ---
   const fetchUserData = useCallback(async () => {
-    if (user?.isGuest) {
+    if (user?.isGuest || !userId || userId === 'guest-user') {
       setIsLoadingData(true);
       const demo = getGuestDemoData();
       setHabits(demo.habits.map(normalizeHabit));
@@ -631,22 +632,11 @@ export const DashboardProvider = ({ children }) => {
       return;
     }
 
-    if (!userId) return;
     setIsLoadingData(true);
 
     try {
-      // 1. Fetch in parallel for high throughput with explicit user_id tenant isolation
-      const [
-        habitsRes,
-        habitCompsRes,
-        allocsRes,
-        txRes,
-        goalsRes,
-        tasksRes,
-        deadlinesRes,
-        actsRes,
-        journalRes
-      ] = await Promise.all([
+      // 1. Fetch in parallel using allSettled for maximum fault tolerance across mobile & web
+      const results = await Promise.allSettled([
         supabase.from('habits').select('*').eq('user_id', userId).order('created_at', { ascending: true }),
         supabase.from('habit_completions').select('*').eq('user_id', userId),
         supabase.from('monthly_allocations').select('*').eq('user_id', userId),
@@ -657,6 +647,16 @@ export const DashboardProvider = ({ children }) => {
         supabase.from('activities').select('*').eq('user_id', userId).order('activity_date', { ascending: false }),
         supabase.from('journal_entries').select('*').eq('user_id', userId).order('entry_date', { ascending: false })
       ]);
+
+      const habitsRes = results[0].status === 'fulfilled' ? results[0].value : { data: [], error: results[0].reason };
+      const habitCompsRes = results[1].status === 'fulfilled' ? results[1].value : { data: [], error: results[1].reason };
+      const allocsRes = results[2].status === 'fulfilled' ? results[2].value : { data: [], error: results[2].reason };
+      const txRes = results[3].status === 'fulfilled' ? results[3].value : { data: [], error: results[3].reason };
+      const goalsRes = results[4].status === 'fulfilled' ? results[4].value : { data: [], error: results[4].reason };
+      const tasksRes = results[5].status === 'fulfilled' ? results[5].value : { data: [], error: results[5].reason };
+      const deadlinesRes = results[6].status === 'fulfilled' ? results[6].value : { data: [], error: results[6].reason };
+      const actsRes = results[7].status === 'fulfilled' ? results[7].value : { data: [], error: results[7].reason };
+      const journalRes = results[8].status === 'fulfilled' ? results[8].value : { data: [], error: results[8].reason };
 
       // 2. Process Habits & Completions
       let rawHabits = habitsRes.data || [];
@@ -715,11 +715,29 @@ export const DashboardProvider = ({ children }) => {
       setTransactions(processedTx);
 
       // 5. Process Goals & Sub-Goals
-      const rawGoals = goalsRes.data || [];
+      let rawGoals = goalsRes.data || [];
+      if (goalsRes.error) {
+        console.error('[PULSE Supabase goals fetch error]:', goalsRes.error);
+        try {
+          const fallbackGoals = await supabase.from('goals').select('*').eq('user_id', userId).order('created_at', { ascending: false });
+          if (fallbackGoals.data) rawGoals = fallbackGoals.data;
+        } catch (fbErr) {
+          console.error('[PULSE Supabase goals fallback error]:', fbErr);
+        }
+      }
       setGoals(rawGoals.map(normalizeGoal));
 
       // 6. Process Tasks
-      const rawTasks = tasksRes.data || [];
+      let rawTasks = tasksRes.data || [];
+      if (tasksRes.error) {
+        console.error('[PULSE Supabase tasks fetch error]:', tasksRes.error);
+        try {
+          const fallbackTasks = await supabase.from('tasks').select('*').eq('user_id', userId);
+          if (fallbackTasks.data) rawTasks = fallbackTasks.data;
+        } catch (fbErr) {
+          console.error('[PULSE Supabase tasks fallback error]:', fbErr);
+        }
+      }
       const processedTasks = rawTasks.map(t => ({
         id: t.id,
         title: t.title,
@@ -796,10 +814,10 @@ export const DashboardProvider = ({ children }) => {
   }, [userId, user]);
 
   useEffect(() => {
-    if (userId || user?.isGuest) {
+    if (isCloudUser || user?.isGuest) {
       fetchUserData();
 
-      if (userId && !user?.isGuest) {
+      if (isCloudUser) {
         // Real-time synchronization across devices & browsers with debouncing
         let debounceTimeout = null;
         const channel = supabase
@@ -832,7 +850,7 @@ export const DashboardProvider = ({ children }) => {
       setTasks([]);
       setJournalEntries([]);
     }
-  }, [userId, fetchUserData]);
+  }, [userId, isCloudUser, user?.isGuest, fetchUserData]);
 
   // --- Monthly Allocation Operations ---
   const getMonthlyAllocation = (ymStr) => {
@@ -855,13 +873,17 @@ export const DashboardProvider = ({ children }) => {
       [ymStr]: { expenseBudget: cleanExp, investmentGoal: cleanInv }
     }));
 
-    if (userId) {
-      await supabase.from('monthly_allocations').upsert({
-        user_id: userId,
-        month_key: ymStr,
-        expense_budget: cleanExp,
-        investment_goal: cleanInv
-      }, { onConflict: 'user_id, month_key' });
+    if (isCloudUser) {
+      try {
+        await supabase.from('monthly_allocations').upsert({
+          user_id: userId,
+          month_key: ymStr,
+          expense_budget: cleanExp,
+          investment_goal: cleanInv
+        }, { onConflict: 'user_id, month_key' });
+      } catch (err) {
+        console.error('[PULSE Supabase setMonthlyAllocation Error]:', err);
+      }
     }
   };
 
@@ -919,21 +941,25 @@ export const DashboardProvider = ({ children }) => {
     );
 
     // Supabase background write
-    if (userId) {
-      if (nextState) {
-        await supabase.from('habit_completions').upsert({
-          user_id: userId,
-          habit_id: habitId,
-          completed_date: dateStr
-        }, { onConflict: 'habit_id, completed_date' });
-      } else {
-        await supabase.from('habit_completions').delete().match({
-          user_id: userId,
-          habit_id: habitId,
-          completed_date: dateStr
-        });
+    if (isCloudUser) {
+      try {
+        if (nextState) {
+          await supabase.from('habit_completions').upsert({
+            user_id: userId,
+            habit_id: habitId,
+            completed_date: dateStr
+          }, { onConflict: 'habit_id, completed_date' });
+        } else {
+          await supabase.from('habit_completions').delete().match({
+            user_id: userId,
+            habit_id: habitId,
+            completed_date: dateStr
+          });
+        }
+        await supabase.from('habits').update({ streak: newStreak }).eq('id', habitId).eq('user_id', userId);
+      } catch (err) {
+        console.error('[PULSE Supabase toggleHabitForDate Error]:', err);
       }
-      await supabase.from('habits').update({ streak: newStreak }).eq('id', habitId).eq('user_id', userId);
     }
 
     return true;
@@ -953,32 +979,43 @@ export const DashboardProvider = ({ children }) => {
     const category = newHabit.category || 'Health';
     const icon = (newHabit.icon && newHabit.icon !== 'Smile') ? newHabit.icon : getHabitIconForCategory(category);
 
-    if (userId) {
-      const { data, error } = await supabase.from('habits').insert({
-        user_id: userId,
-        name: newHabit.name.trim(),
-        category,
-        icon,
-        frequency,
-        streak: 0,
-        created_at: habitCreatedAt
-      }).select().single();
+    const tempId = `h-${Date.now()}`;
+    const localHabit = normalizeHabit({
+      ...newHabit,
+      id: tempId,
+      name: newHabit.name.trim(),
+      category,
+      icon,
+      frequency,
+      createdAt: habitCreatedAt,
+      completions: {},
+      streak: 0
+    });
 
-      if (!error && data) {
-        setHabits(prev => [...prev, normalizeHabit(data)]);
+    if (isCloudUser) {
+      try {
+        const { data, error } = await supabase.from('habits').insert({
+          user_id: userId,
+          name: newHabit.name.trim(),
+          category,
+          icon,
+          frequency,
+          streak: 0,
+          created_at: habitCreatedAt
+        }).select().single();
+
+        if (!error && data) {
+          setHabits(prev => [...prev.filter(h => h.id !== tempId), normalizeHabit(data)]);
+          return;
+        }
+        if (error) {
+          console.error('[PULSE Supabase addHabit error]:', error);
+        }
+      } catch (err) {
+        console.error('[PULSE Supabase addHabit exception]:', err);
       }
+      setHabits(prev => (prev.some(h => h.id === tempId) ? prev : [...prev, localHabit]));
     } else {
-      const localHabit = normalizeHabit({
-        ...newHabit,
-        id: `h-${Date.now()}`,
-        name: newHabit.name.trim(),
-        category,
-        icon,
-        frequency,
-        createdAt: habitCreatedAt,
-        completions: {},
-        streak: 0
-      });
       setHabits(prev => [...prev, localHabit]);
     }
   };
@@ -986,11 +1023,16 @@ export const DashboardProvider = ({ children }) => {
   const deleteHabit = async (id) => {
     const prevHabits = habits;
     setHabits(prev => prev.filter(h => h.id !== id));
-    if (userId) {
-      const { error } = await supabase.from('habits').delete().eq('id', id).eq('user_id', userId);
-      if (error) {
+    if (isCloudUser) {
+      try {
+        const { error } = await supabase.from('habits').delete().eq('id', id).eq('user_id', userId);
+        if (error) {
+          setHabits(prevHabits);
+          console.error('[PULSE] Failed to delete habit:', error.message);
+        }
+      } catch (err) {
         setHabits(prevHabits);
-        console.error('[PULSE] Failed to delete habit:', error.message);
+        console.error('[PULSE] Exception deleting habit:', err);
       }
     }
   };
@@ -1030,17 +1072,21 @@ export const DashboardProvider = ({ children }) => {
       })
     );
 
-    if (userId) {
-      const { error } = await supabase.from('habits').update({
-        name,
-        category,
-        icon,
-        frequency,
-        ...(createdAt ? { created_at: createdAt } : {})
-      }).eq('id', habitId).eq('user_id', userId);
+    if (isCloudUser) {
+      try {
+        const { error } = await supabase.from('habits').update({
+          name,
+          category,
+          icon,
+          frequency,
+          ...(createdAt ? { created_at: createdAt } : {})
+        }).eq('id', habitId).eq('user_id', userId);
 
-      if (error) {
-        console.error('[PULSE Supabase updateHabit Error]:', error);
+        if (error) {
+          console.error('[PULSE Supabase updateHabit Error]:', error);
+        }
+      } catch (err) {
+        console.error('[PULSE Supabase updateHabit exception]:', err);
       }
     }
   };
@@ -1050,37 +1096,48 @@ export const DashboardProvider = ({ children }) => {
     const txDate = newTx.date || getISTDateString();
     const cleanAmt = Math.max(0, Number(newTx.amount) || 0);
 
-    if (userId) {
-      const { data, error } = await supabase.from('transactions').insert({
-        user_id: userId,
-        type: newTx.type || 'expense',
-        amount: cleanAmt,
-        category: newTx.category || 'Food',
-        description: newTx.description || 'Expense',
-        asset_name: newTx.assetName || null,
-        transaction_date: txDate,
-        notes: newTx.notes || ''
-      }).select().single();
+    const tempId = `t-${Date.now()}`;
+    const localTx = {
+      ...newTx,
+      id: tempId,
+      amount: cleanAmt,
+      date: txDate
+    };
 
-      if (!error && data) {
-        setTransactions(prev => [{
-          id: data.id,
-          type: data.type,
-          amount: Number(data.amount) || 0,
-          category: data.category,
-          description: data.description,
-          assetName: data.asset_name || '',
-          date: data.transaction_date,
-          notes: data.notes || ''
-        }, ...prev]);
+    if (isCloudUser) {
+      try {
+        const { data, error } = await supabase.from('transactions').insert({
+          user_id: userId,
+          type: newTx.type || 'expense',
+          amount: cleanAmt,
+          category: newTx.category || 'Food',
+          description: newTx.description || 'Expense',
+          asset_name: newTx.assetName || null,
+          transaction_date: txDate,
+          notes: newTx.notes || ''
+        }).select().single();
+
+        if (!error && data) {
+          setTransactions(prev => [{
+            id: data.id,
+            type: data.type,
+            amount: Number(data.amount) || 0,
+            category: data.category,
+            description: data.description,
+            assetName: data.asset_name || '',
+            date: data.transaction_date,
+            notes: data.notes || ''
+          }, ...prev.filter(t => t.id !== tempId)]);
+          return;
+        }
+        if (error) {
+          console.error('[PULSE Supabase addTransaction Error]:', error);
+        }
+      } catch (err) {
+        console.error('[PULSE Supabase addTransaction exception]:', err);
       }
+      setTransactions(prev => (prev.some(t => t.id === tempId) ? prev : [localTx, ...prev]));
     } else {
-      const localTx = {
-        ...newTx,
-        id: `t-${Date.now()}`,
-        amount: cleanAmt,
-        date: txDate
-      };
       setTransactions(prev => [localTx, ...prev]);
     }
   };
@@ -1117,19 +1174,23 @@ export const DashboardProvider = ({ children }) => {
       })
     );
 
-    if (userId) {
-      const { error } = await supabase.from('transactions').update({
-        type,
-        amount: cleanAmt,
-        category,
-        description,
-        asset_name: assetName || null,
-        transaction_date: txDate,
-        notes
-      }).eq('id', txId).eq('user_id', userId);
+    if (isCloudUser) {
+      try {
+        const { error } = await supabase.from('transactions').update({
+          type,
+          amount: cleanAmt,
+          category,
+          description,
+          asset_name: assetName || null,
+          transaction_date: txDate,
+          notes
+        }).eq('id', txId).eq('user_id', userId);
 
-      if (error) {
-        console.error('[PULSE Supabase updateTransaction Error]:', error);
+        if (error) {
+          console.error('[PULSE Supabase updateTransaction Error]:', error);
+        }
+      } catch (err) {
+        console.error('[PULSE Supabase updateTransaction exception]:', err);
       }
     }
   };
@@ -1137,11 +1198,16 @@ export const DashboardProvider = ({ children }) => {
   const deleteTransaction = async (id) => {
     const prevTx = transactions;
     setTransactions(prev => prev.filter(t => t.id !== id));
-    if (userId) {
-      const { error } = await supabase.from('transactions').delete().eq('id', id).eq('user_id', userId);
-      if (error) {
+    if (isCloudUser) {
+      try {
+        const { error } = await supabase.from('transactions').delete().eq('id', id).eq('user_id', userId);
+        if (error) {
+          setTransactions(prevTx);
+          console.error('[PULSE] Failed to delete transaction:', error.message);
+        }
+      } catch (err) {
         setTransactions(prevTx);
-        console.error('[PULSE] Failed to delete transaction:', error.message);
+        console.error('[PULSE] Exception deleting transaction:', err);
       }
     }
   };
@@ -1178,45 +1244,57 @@ export const DashboardProvider = ({ children }) => {
   // --- Goals Operations ---
   const addGoal = async (newGoal) => {
     const normalized = normalizeGoal(newGoal);
-    if (userId) {
-      const { data, error } = await supabase.from('goals').insert({
-        user_id: userId,
-        title: normalized.title.trim(),
-        horizon: normalized.horizon || 'short',
-        category: normalized.category || 'Financial',
-        target_amount: Number(normalized.targetAmount) || 100,
-        current_amount: Number(normalized.currentAmount) || 0,
-        unit: normalized.unit || '₹',
-        deadline: normalized.deadline || null,
-        color: normalized.color || 'indigo',
-        icon: normalized.icon || 'Target'
-      }).select().single();
+    const tempId = `g-${Date.now()}`;
+    const localGoal = normalizeGoal({ ...normalized, id: tempId });
 
-      if (!error && data) {
-        let insertedSubGoals = [];
-        if (normalized.subGoals && normalized.subGoals.length > 0) {
-          const subRows = normalized.subGoals.map(sg => ({
-            user_id: userId,
-            goal_id: data.id,
-            title: sg.title.trim(),
-            target_date: sg.targetDate || null,
-            completed: Boolean(sg.completed),
-            completed_at: sg.completed ? new Date().toISOString() : null
-          }));
-          const { data: subData } = await supabase.from('sub_goals').insert(subRows).select();
-          if (subData) {
-            insertedSubGoals = subData.map(s => ({
-              id: s.id,
-              title: s.title,
-              targetDate: s.target_date,
-              completed: Boolean(s.completed)
+    if (isCloudUser) {
+      try {
+        const { data, error } = await supabase.from('goals').insert({
+          user_id: userId,
+          title: normalized.title.trim(),
+          horizon: normalized.horizon || 'short',
+          category: normalized.category || 'Financial',
+          target_amount: Number(normalized.targetAmount) || 100,
+          current_amount: Number(normalized.currentAmount) || 0,
+          unit: normalized.unit || '₹',
+          deadline: normalized.deadline || null,
+          color: normalized.color || 'indigo',
+          icon: normalized.icon || 'Target'
+        }).select().single();
+
+        if (!error && data) {
+          let insertedSubGoals = [];
+          if (normalized.subGoals && normalized.subGoals.length > 0) {
+            const subRows = normalized.subGoals.map(sg => ({
+              user_id: userId,
+              goal_id: data.id,
+              title: sg.title.trim(),
+              target_date: sg.targetDate || null,
+              completed: Boolean(sg.completed),
+              completed_at: sg.completed ? new Date().toISOString() : null
             }));
+            const { data: subData } = await supabase.from('sub_goals').insert(subRows).select();
+            if (subData) {
+              insertedSubGoals = subData.map(s => ({
+                id: s.id,
+                title: s.title,
+                targetDate: s.target_date,
+                completed: Boolean(s.completed)
+              }));
+            }
           }
+          setGoals(prev => [{ ...normalizeGoal(data), subGoals: insertedSubGoals }, ...prev.filter(g => g.id !== tempId)]);
+          return;
         }
-        setGoals(prev => [{ ...normalizeGoal(data), subGoals: insertedSubGoals }, ...prev]);
+        if (error) {
+          console.error('[PULSE Supabase addGoal error]:', error);
+        }
+      } catch (err) {
+        console.error('[PULSE Supabase addGoal exception]:', err);
       }
+      setGoals(prev => (prev.some(g => g.id === tempId) ? prev : [localGoal, ...prev]));
     } else {
-      setGoals(prev => [normalizeGoal({ ...normalized, id: `g-${Date.now()}` }), ...prev]);
+      setGoals(prev => [localGoal, ...prev]);
     }
   };
 
@@ -1225,22 +1303,22 @@ export const DashboardProvider = ({ children }) => {
     const normalized = normalizeGoal(updatedGoal);
     setGoals(prev => prev.map(g => (g.id === normalized.id ? normalized : g)));
 
-    if (userId) {
-      // 1. Update goals parent record
-      await supabase.from('goals').update({
-        title: normalized.title,
-        horizon: normalized.horizon,
-        category: normalized.category,
-        target_amount: normalized.targetAmount,
-        current_amount: normalized.currentAmount,
-        unit: normalized.unit,
-        deadline: normalized.deadline || null,
-        color: normalized.color,
-        icon: normalized.icon
-      }).eq('id', normalized.id).eq('user_id', userId);
-
-      // 2. Comprehensive Sub-goals synchronization in Supabase
+    if (isCloudUser) {
       try {
+        // 1. Update goals parent record
+        await supabase.from('goals').update({
+          title: normalized.title,
+          horizon: normalized.horizon,
+          category: normalized.category,
+          target_amount: normalized.targetAmount,
+          current_amount: normalized.currentAmount,
+          unit: normalized.unit,
+          deadline: normalized.deadline || null,
+          color: normalized.color,
+          icon: normalized.icon
+        }).eq('id', normalized.id).eq('user_id', userId);
+
+        // 2. Comprehensive Sub-goals synchronization in Supabase
         const currentSubGoals = normalized.subGoals || [];
 
         // Fetch existing sub-goals for this goal from Supabase
@@ -1308,12 +1386,17 @@ export const DashboardProvider = ({ children }) => {
   const deleteGoal = async (goalId) => {
     const prevGoals = goals;
     setGoals(prev => prev.filter(g => g.id !== goalId));
-    if (userId) {
-      const { error: subErr } = await supabase.from('sub_goals').delete().eq('goal_id', goalId).eq('user_id', userId);
-      const { error: gErr } = await supabase.from('goals').delete().eq('id', goalId).eq('user_id', userId);
-      if (gErr || subErr) {
+    if (isCloudUser) {
+      try {
+        const { error: subErr } = await supabase.from('sub_goals').delete().eq('goal_id', goalId).eq('user_id', userId);
+        const { error: gErr } = await supabase.from('goals').delete().eq('id', goalId).eq('user_id', userId);
+        if (gErr || subErr) {
+          setGoals(prevGoals);
+          console.error('[PULSE] Failed to delete goal:', (gErr || subErr)?.message);
+        }
+      } catch (err) {
         setGoals(prevGoals);
-        console.error('[PULSE] Failed to delete goal:', (gErr || subErr)?.message);
+        console.error('[PULSE] Exception deleting goal:', err);
       }
     }
   };
@@ -1335,53 +1418,64 @@ export const DashboardProvider = ({ children }) => {
       })
     );
 
-    if (userId) {
-      await supabase.from('sub_goals').update({
-        completed: nextCompleted,
-        completed_at: nextCompleted ? new Date().toISOString() : null
-      }).eq('id', subGoalId).eq('user_id', userId);
+    if (isCloudUser) {
+      try {
+        await supabase.from('sub_goals').update({
+          completed: nextCompleted,
+          completed_at: nextCompleted ? new Date().toISOString() : null
+        }).eq('id', subGoalId).eq('user_id', userId);
+      } catch (err) {
+        console.error('[PULSE Supabase toggleGoalSubGoal Error]:', err);
+      }
     }
   };
 
   const addSubGoalToGoal = async (goalId, { title, targetDate }) => {
     if (!title || !title.trim()) return;
 
-    if (userId) {
-      const { data, error } = await supabase.from('sub_goals').insert({
-        user_id: userId,
-        goal_id: goalId,
-        title: title.trim(),
-        target_date: targetDate || null,
-        completed: false
-      }).select().single();
+    const tempSubId = `sg-${Date.now()}`;
+    const newSub = {
+      id: tempSubId,
+      title: title.trim(),
+      targetDate,
+      completed: false
+    };
 
-      if (!error && data) {
-        setGoals(prev =>
-          prev.map(g => {
-            if (g.id !== goalId) return g;
-            return {
-              ...g,
-              subGoals: [...(g.subGoals || []), {
-                id: data.id,
-                title: data.title,
-                targetDate: data.target_date,
-                completed: false
-              }]
-            };
-          })
-        );
+    if (isCloudUser) {
+      try {
+        const { data, error } = await supabase.from('sub_goals').insert({
+          user_id: userId,
+          goal_id: goalId,
+          title: title.trim(),
+          target_date: targetDate || null,
+          completed: false
+        }).select().single();
+
+        if (!error && data) {
+          setGoals(prev =>
+            prev.map(g => {
+              if (g.id !== goalId) return g;
+              return {
+                ...g,
+                subGoals: [...(g.subGoals || []).filter(s => s.id !== tempSubId), {
+                  id: data.id,
+                  title: data.title,
+                  targetDate: data.target_date,
+                  completed: false
+                }]
+              };
+            })
+          );
+          return;
+        }
+      } catch (err) {
+        console.error('[PULSE addSubGoalToGoal Error]:', err);
       }
-    } else {
-      const newSub = {
-        id: `sg-${Date.now()}`,
-        title: title.trim(),
-        targetDate,
-        completed: false
-      };
-      setGoals(prev =>
-        prev.map(g => (g.id === goalId ? { ...g, subGoals: [...(g.subGoals || []), newSub] } : g))
-      );
     }
+
+    setGoals(prev =>
+      prev.map(g => (g.id === goalId ? { ...g, subGoals: [...(g.subGoals || []), newSub] } : g))
+    );
   };
 
   // --- Task Board Operations ---
@@ -1391,7 +1485,21 @@ export const DashboardProvider = ({ children }) => {
     const rawNotes = cleanNotes(newTask.notes || '');
     const notesWithRepeat = formatNotesWithRepeat(rawNotes, taskRepeat);
 
-    if (userId) {
+    const tempId = `k-${Date.now()}`;
+    const localTask = {
+      ...newTask,
+      id: tempId,
+      title: newTask.title.trim(),
+      priority: newTask.priority || 'medium',
+      category: newTask.category || 'Work',
+      dueDate: taskDueDate,
+      completed: false,
+      linkedGoalTitle: newTask.linkedGoalTitle || null,
+      repeat: taskRepeat,
+      notes: rawNotes
+    };
+
+    if (isCloudUser) {
       const basePayload = {
         user_id: userId,
         title: newTask.title.trim(),
@@ -1436,17 +1544,13 @@ export const DashboardProvider = ({ children }) => {
           linkedGoalTitle: insertedItem.linked_goal_title,
           repeat: insertedItem.repeat || taskRepeat,
           notes: cleanNotes(insertedItem.notes || '')
-        }, ...prev]);
+        }, ...prev.filter(t => t.id !== tempId)]);
+      } else {
+        // Fallback optimistic task update
+        setTasks(prev => (prev.some(t => t.id === tempId) ? prev : [localTask, ...prev]));
       }
     } else {
-      setTasks(prev => [{
-        ...newTask,
-        id: `k-${Date.now()}`,
-        completed: false,
-        dueDate: taskDueDate,
-        repeat: taskRepeat,
-        notes: rawNotes
-      }, ...prev]);
+      setTasks(prev => [localTask, ...prev]);
     }
   };
 
@@ -1484,7 +1588,7 @@ export const DashboardProvider = ({ children }) => {
       })
     );
 
-    if (userId) {
+    if (isCloudUser) {
       const baseUpdate = {
         title,
         priority,
@@ -1511,8 +1615,12 @@ export const DashboardProvider = ({ children }) => {
 
   const updateTaskPriority = async (taskId, newPriority) => {
     setTasks(prev => prev.map(t => (t.id === taskId ? { ...t, priority: newPriority } : t)));
-    if (userId) {
-      await supabase.from('tasks').update({ priority: newPriority }).eq('id', taskId).eq('user_id', userId);
+    if (isCloudUser) {
+      try {
+        await supabase.from('tasks').update({ priority: newPriority }).eq('id', taskId).eq('user_id', userId);
+      } catch (err) {
+        console.error('[PULSE Supabase updateTaskPriority Error]:', err);
+      }
     }
   };
 
@@ -1551,11 +1659,15 @@ export const DashboardProvider = ({ children }) => {
       })
     );
 
-    if (userId) {
-      await supabase.from('tasks').update({
-        completed: nextComp,
-        completed_at: nextComp ? todayStr : null
-      }).eq('id', taskId).eq('user_id', userId);
+    if (isCloudUser) {
+      try {
+        await supabase.from('tasks').update({
+          completed: nextComp,
+          completed_at: nextComp ? todayStr : null
+        }).eq('id', taskId).eq('user_id', userId);
+      } catch (err) {
+        console.error('[PULSE Supabase toggleTaskComplete Error]:', err);
+      }
     }
 
     // Tactile feedback on Android when task is checked off
@@ -1570,44 +1682,67 @@ export const DashboardProvider = ({ children }) => {
   const deleteTask = async (taskId) => {
     const prevTasks = tasks;
     setTasks(prev => prev.filter(t => t.id !== taskId));
-    if (userId) {
-      const { error } = await supabase.from('tasks').delete().eq('id', taskId).eq('user_id', userId);
-      if (error) {
+    if (isCloudUser) {
+      try {
+        const { error } = await supabase.from('tasks').delete().eq('id', taskId).eq('user_id', userId);
+        if (error) {
+          setTasks(prevTasks);
+          console.error('[PULSE] Failed to delete task:', error.message);
+        }
+      } catch (err) {
         setTasks(prevTasks);
-        console.error('[PULSE] Failed to delete task:', error.message);
+        console.error('[PULSE] Exception deleting task:', err);
       }
     }
   };
 
   // --- Deadlines Operations ---
   const addDeadline = async (newDeadline) => {
-    if (userId) {
-      const { data, error } = await supabase.from('deadlines').insert({
-        user_id: userId,
-        title: newDeadline.title.trim(),
-        deadline_date: newDeadline.date || getISTDateString(),
-        category: newDeadline.category || 'Work',
-        tag: newDeadline.tag || '',
-        priority: newDeadline.priority || 'medium',
-        is_completed: false
-      }).select().single();
+    const tempId = `d-${Date.now()}`;
+    const localDeadline = {
+      ...newDeadline,
+      id: tempId,
+      title: newDeadline.title.trim(),
+      date: newDeadline.date || getISTDateString(),
+      category: newDeadline.category || 'Work',
+      tag: newDeadline.tag || '',
+      priority: newDeadline.priority || 'medium',
+      isCompleted: false
+    };
 
-      if (!error && data) {
-        setDeadlines(prev => [...prev, {
-          id: data.id,
-          title: data.title,
-          date: data.deadline_date,
-          category: data.category,
-          tag: data.tag,
-          priority: data.priority,
-          isCompleted: false
-        }].sort((a, b) => new Date(a.date) - new Date(b.date)));
+    if (isCloudUser) {
+      try {
+        const { data, error } = await supabase.from('deadlines').insert({
+          user_id: userId,
+          title: newDeadline.title.trim(),
+          deadline_date: newDeadline.date || getISTDateString(),
+          category: newDeadline.category || 'Work',
+          tag: newDeadline.tag || '',
+          priority: newDeadline.priority || 'medium',
+          is_completed: false
+        }).select().single();
+
+        if (!error && data) {
+          setDeadlines(prev => [...prev.filter(d => d.id !== tempId), {
+            id: data.id,
+            title: data.title,
+            date: data.deadline_date,
+            category: data.category,
+            tag: data.tag,
+            priority: data.priority,
+            isCompleted: false
+          }].sort((a, b) => new Date(a.date) - new Date(b.date)));
+          return;
+        }
+        if (error) {
+          console.error('[PULSE Supabase addDeadline Error]:', error);
+        }
+      } catch (err) {
+        console.error('[PULSE Supabase addDeadline exception]:', err);
       }
+      setDeadlines(prev => (prev.some(d => d.id === tempId) ? prev : [...prev, localDeadline].sort((a, b) => new Date(a.date) - new Date(b.date))));
     } else {
-      setDeadlines(prev => [...prev, {
-        ...newDeadline,
-        id: `d-${Date.now()}`
-      }].sort((a, b) => new Date(a.date) - new Date(b.date)));
+      setDeadlines(prev => [...prev, localDeadline].sort((a, b) => new Date(a.date) - new Date(b.date)));
     }
   };
 
@@ -1631,26 +1766,35 @@ export const DashboardProvider = ({ children }) => {
       }).sort((a, b) => new Date(a.date) - new Date(b.date))
     );
 
-    if (userId) {
-      await supabase.from('deadlines').update({
-        title: (updated.title || '').trim(),
-        deadline_date: updated.date || updated.deadline_date,
-        category: updated.category,
-        tag: updated.tag || '',
-        priority: updated.priority,
-        is_completed: Boolean(updated.isCompleted)
-      }).eq('id', deadlineId).eq('user_id', userId);
+    if (isCloudUser) {
+      try {
+        await supabase.from('deadlines').update({
+          title: (updated.title || '').trim(),
+          deadline_date: updated.date || updated.deadline_date,
+          category: updated.category,
+          tag: updated.tag || '',
+          priority: updated.priority,
+          is_completed: Boolean(updated.isCompleted)
+        }).eq('id', deadlineId).eq('user_id', userId);
+      } catch (err) {
+        console.error('[PULSE Supabase updateDeadline Error]:', err);
+      }
     }
   };
 
   const deleteDeadline = async (id) => {
     const prevDeadlines = deadlines;
     setDeadlines(prev => prev.filter(d => d.id !== id));
-    if (userId) {
-      const { error } = await supabase.from('deadlines').delete().eq('id', id).eq('user_id', userId);
-      if (error) {
+    if (isCloudUser) {
+      try {
+        const { error } = await supabase.from('deadlines').delete().eq('id', id).eq('user_id', userId);
+        if (error) {
+          setDeadlines(prevDeadlines);
+          console.error('[PULSE] Failed to delete deadline:', error.message);
+        }
+      } catch (err) {
         setDeadlines(prevDeadlines);
-        console.error('[PULSE] Failed to delete deadline:', error.message);
+        console.error('[PULSE] Exception deleting deadline:', err);
       }
     }
   };
@@ -1659,61 +1803,73 @@ export const DashboardProvider = ({ children }) => {
   const addActivity = async (newAct) => {
     const actDate = newAct.date || getISTDateString();
 
-    if (userId) {
-      const { data, error } = await supabase.from('activities').insert({
-        user_id: userId,
-        type: newAct.type,
-        title: newAct.title,
-        activity_date: actDate,
-        duration_mins: Number(newAct.durationMins) || 0,
-        notes: newAct.notes || '',
-        session_focus: newAct.sessionFocus || null,
-        total_volume_kg: Number(newAct.totalVolumeKg) || 0,
-        exercises: newAct.exercises || [],
-        distance_km: Number(newAct.distance) || 0,
-        pace: newAct.pace || null,
-        heart_rate_zone: newAct.heartRateZone || null,
-        stroke: newAct.stroke || null,
-        laps: Number(newAct.laps) || 0,
-        pool_length_meters: Number(newAct.poolLengthMeters) || 50,
-        sport_type: newAct.sportType || null,
-        intensity: newAct.intensity || null,
-        reading_sub_type: newAct.readingSubType || null,
-        book_title: newAct.bookTitle || null,
-        pages_read: Number(newAct.pagesRead) || 0,
-        skill_name: newAct.skillName || null,
-        module_name: newAct.moduleName || null
-      }).select().single();
+    const tempId = `act-${Date.now()}`;
+    const localAct = { ...newAct, id: tempId, date: actDate };
 
-      if (!error && data) {
-        const item = {
-          id: data.id,
-          type: data.type,
-          title: data.title,
-          date: data.activity_date,
-          durationMins: Number(data.duration_mins) || 0,
-          notes: data.notes || '',
-          sessionFocus: data.session_focus,
-          totalVolumeKg: Number(data.total_volume_kg) || 0,
-          exercises: data.exercises || [],
-          distance: Number(data.distance_km) || 0,
-          pace: data.pace,
-          heartRateZone: data.heart_rate_zone,
-          stroke: data.stroke,
-          laps: Number(data.laps) || 0,
-          poolLengthMeters: Number(data.pool_length_meters) || 50,
-          sportType: data.sport_type,
-          intensity: data.intensity,
-          readingSubType: data.reading_sub_type,
-          bookTitle: data.book_title,
-          pagesRead: Number(data.pages_read) || 0,
-          skillName: data.skill_name,
-          moduleName: data.module_name
-        };
-        setActivities(prev => [item, ...prev]);
+    if (isCloudUser) {
+      try {
+        const { data, error } = await supabase.from('activities').insert({
+          user_id: userId,
+          type: newAct.type,
+          title: newAct.title,
+          activity_date: actDate,
+          duration_mins: Number(newAct.durationMins) || 0,
+          notes: newAct.notes || '',
+          session_focus: newAct.sessionFocus || null,
+          total_volume_kg: Number(newAct.totalVolumeKg) || 0,
+          exercises: newAct.exercises || [],
+          distance_km: Number(newAct.distance) || 0,
+          pace: newAct.pace || null,
+          heart_rate_zone: newAct.heartRateZone || null,
+          stroke: newAct.stroke || null,
+          laps: Number(newAct.laps) || 0,
+          pool_length_meters: Number(newAct.poolLengthMeters) || 50,
+          sport_type: newAct.sportType || null,
+          intensity: newAct.intensity || null,
+          reading_sub_type: newAct.readingSubType || null,
+          book_title: newAct.bookTitle || null,
+          pages_read: Number(newAct.pagesRead) || 0,
+          skill_name: newAct.skillName || null,
+          module_name: newAct.moduleName || null
+        }).select().single();
+
+        if (!error && data) {
+          const item = {
+            id: data.id,
+            type: data.type,
+            title: data.title,
+            date: data.activity_date,
+            durationMins: Number(data.duration_mins) || 0,
+            notes: data.notes || '',
+            sessionFocus: data.session_focus,
+            totalVolumeKg: Number(data.total_volume_kg) || 0,
+            exercises: data.exercises || [],
+            distance: Number(data.distance_km) || 0,
+            pace: data.pace,
+            heartRateZone: data.heart_rate_zone,
+            stroke: data.stroke,
+            laps: Number(data.laps) || 0,
+            poolLengthMeters: Number(data.pool_length_meters) || 50,
+            sportType: data.sport_type,
+            intensity: data.intensity,
+            readingSubType: data.reading_sub_type,
+            bookTitle: data.book_title,
+            pagesRead: Number(data.pages_read) || 0,
+            skillName: data.skill_name,
+            moduleName: data.module_name
+          };
+          setActivities(prev => [item, ...prev.filter(a => a.id !== tempId)]);
+          return;
+        }
+        if (error) {
+          console.error('[PULSE Supabase addActivity Error]:', error);
+        }
+      } catch (err) {
+        console.error('[PULSE Supabase addActivity exception]:', err);
       }
+      setActivities(prev => (prev.some(a => a.id === tempId) ? prev : [localAct, ...prev]));
     } else {
-      setActivities(prev => [{ ...newAct, id: `act-${Date.now()}`, date: actDate }, ...prev]);
+      setActivities(prev => [localAct, ...prev]);
     }
   };
 
@@ -1749,33 +1905,37 @@ export const DashboardProvider = ({ children }) => {
       prev.map(a => (a.id === actId ? { ...a, ...formattedObj } : a))
     );
 
-    if (userId) {
-      const { error } = await supabase.from('activities').update({
-        type: updatedAct.type,
-        title: updatedAct.title,
-        activity_date: actDate,
-        duration_mins: durationMins,
-        notes: updatedAct.notes || '',
-        session_focus: updatedAct.sessionFocus || updatedAct.session_focus || null,
-        total_volume_kg: totalVolumeKg,
-        exercises: updatedAct.exercises || [],
-        distance_km: distance,
-        pace: updatedAct.pace || null,
-        heart_rate_zone: updatedAct.heartRateZone || updatedAct.heart_rate_zone || null,
-        stroke: updatedAct.stroke || null,
-        laps: laps,
-        pool_length_meters: poolLengthMeters,
-        sport_type: updatedAct.sportType || updatedAct.sport_type || null,
-        intensity: updatedAct.intensity || null,
-        reading_sub_type: updatedAct.readingSubType || updatedAct.reading_sub_type || null,
-        book_title: updatedAct.bookTitle || updatedAct.book_title || null,
-        pages_read: pagesRead,
-        skill_name: updatedAct.skillName || updatedAct.skill_name || null,
-        module_name: updatedAct.moduleName || updatedAct.module_name || null
-      }).eq('id', actId).eq('user_id', userId);
+    if (isCloudUser) {
+      try {
+        const { error } = await supabase.from('activities').update({
+          type: updatedAct.type,
+          title: updatedAct.title,
+          activity_date: actDate,
+          duration_mins: durationMins,
+          notes: updatedAct.notes || '',
+          session_focus: updatedAct.sessionFocus || updatedAct.session_focus || null,
+          total_volume_kg: totalVolumeKg,
+          exercises: updatedAct.exercises || [],
+          distance_km: distance,
+          pace: updatedAct.pace || null,
+          heart_rate_zone: updatedAct.heartRateZone || updatedAct.heart_rate_zone || null,
+          stroke: updatedAct.stroke || null,
+          laps: laps,
+          pool_length_meters: poolLengthMeters,
+          sport_type: updatedAct.sportType || updatedAct.sport_type || null,
+          intensity: updatedAct.intensity || null,
+          reading_sub_type: updatedAct.readingSubType || updatedAct.reading_sub_type || null,
+          book_title: updatedAct.bookTitle || updatedAct.book_title || null,
+          pages_read: pagesRead,
+          skill_name: updatedAct.skillName || updatedAct.skill_name || null,
+          module_name: updatedAct.moduleName || updatedAct.module_name || null
+        }).eq('id', actId).eq('user_id', userId);
 
-      if (error) {
-        console.error('[PULSE Supabase updateActivity Error]:', error);
+        if (error) {
+          console.error('[PULSE Supabase updateActivity Error]:', error);
+        }
+      } catch (err) {
+        console.error('[PULSE Supabase updateActivity exception]:', err);
       }
     }
   };
@@ -1783,11 +1943,16 @@ export const DashboardProvider = ({ children }) => {
   const deleteActivity = async (actId) => {
     const prevActs = activities;
     setActivities(prev => prev.filter(a => a.id !== actId));
-    if (userId) {
-      const { error } = await supabase.from('activities').delete().eq('id', actId).eq('user_id', userId);
-      if (error) {
+    if (isCloudUser) {
+      try {
+        const { error } = await supabase.from('activities').delete().eq('id', actId).eq('user_id', userId);
+        if (error) {
+          setActivities(prevActs);
+          console.error('[PULSE] Failed to delete activity:', error.message);
+        }
+      } catch (err) {
         setActivities(prevActs);
-        console.error('[PULSE] Failed to delete activity:', error.message);
+        console.error('[PULSE] Exception deleting activity:', err);
       }
     }
   };
@@ -1812,25 +1977,33 @@ export const DashboardProvider = ({ children }) => {
       return [{ ...updatedEntry, id: `j-${dateStr}` }, ...prev];
     });
 
-    if (userId) {
-      await supabase.from('journal_entries').upsert({
-        user_id: userId,
-        entry_date: dateStr,
-        accomplished: entryData.accomplished || '',
-        notes: entryData.notes || '',
-        gratitude: entryData.gratitude || '',
-        mood: entryData.mood || 'productive'
-      }, { onConflict: 'user_id, entry_date' });
+    if (isCloudUser) {
+      try {
+        await supabase.from('journal_entries').upsert({
+          user_id: userId,
+          entry_date: dateStr,
+          accomplished: entryData.accomplished || '',
+          notes: entryData.notes || '',
+          gratitude: entryData.gratitude || '',
+          mood: entryData.mood || 'productive'
+        }, { onConflict: 'user_id, entry_date' });
+      } catch (err) {
+        console.error('[PULSE Supabase saveJournalEntry Error]:', err);
+      }
     }
   };
 
   const deleteJournalEntry = async (dateStr) => {
     setJournalEntries(prev => prev.filter(e => e.date !== dateStr));
-    if (userId) {
-      await supabase.from('journal_entries').delete().match({
-        user_id: userId,
-        entry_date: dateStr
-      });
+    if (isCloudUser) {
+      try {
+        await supabase.from('journal_entries').delete().match({
+          user_id: userId,
+          entry_date: dateStr
+        });
+      } catch (err) {
+        console.error('[PULSE Supabase deleteJournalEntry Error]:', err);
+      }
     }
   };
 
@@ -1992,7 +2165,7 @@ export const DashboardProvider = ({ children }) => {
     }
 
     // If authenticated, sync with Supabase in background
-    if (userId) {
+    if (isCloudUser) {
       try {
         for (const h of finalHabits) {
           const habitPayload = {
@@ -2095,7 +2268,7 @@ export const DashboardProvider = ({ children }) => {
         deadlines: finalDeadlines.length
       }
     };
-  }, [userId, habits, goals, tasks, transactions, activities, journalEntries, deadlines, monthlyAllocations, setCurrency]);
+  }, [userId, isCloudUser, habits, goals, tasks, transactions, activities, journalEntries, deadlines, monthlyAllocations, setCurrency]);
 
   return (
     <DashboardContext.Provider
