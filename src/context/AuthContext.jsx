@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
-import { recordReferralSignup } from '../utils/referralUtils';
+import { recordReferralSignup, isValidReferralCode } from '../utils/referralUtils';
 
 const AuthContext = createContext();
 
@@ -348,8 +348,8 @@ export const AuthProvider = ({ children }) => {
     });
     if (error) throw error;
 
-    // If referral code was provided, grant 14-day Pro exploration & record attribution
-    if (cleanRef) {
+    // If valid referral code was provided, grant 14-day Pro exploration & record attribution
+    if (cleanRef && isValidReferralCode(cleanRef)) {
       try {
         localStorage.setItem('pulse_referral_pro_boost', 'true');
         await recordReferralSignup(cleanRef, data?.user?.id, cleanEmail);

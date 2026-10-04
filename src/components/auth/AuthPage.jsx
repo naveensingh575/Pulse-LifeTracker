@@ -24,6 +24,7 @@ import {
   Gift
 } from 'lucide-react';
 import { AppInstallModal } from '../common/AppInstallModal';
+import { isValidReferralCode, verifyReferralCodeOnline } from '../../utils/referralUtils';
 
 // Feature & usability highlights for hero column (non-technical, user-friendly benefits)
 const BASE_FEATURES = [
@@ -142,6 +143,51 @@ export const AuthPage = ({ initialMode }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isResending, setIsResending] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
+
+  // Referral code validation state: 'idle' | 'validating' | 'valid' | 'invalid'
+  const [referralStatus, setReferralStatus] = useState(() => {
+    return referralCode.trim() && isValidReferralCode(referralCode) ? 'valid' : 'idle';
+  });
+  const [referralValidationMsg, setReferralValidationMsg] = useState('');
+
+  // Validate referral code whenever user types (debounced 350ms)
+  useEffect(() => {
+    const clean = referralCode.trim();
+    if (!clean) {
+      setReferralStatus('idle');
+      setReferralValidationMsg('');
+      try {
+        localStorage.removeItem('pulse_referral_pro_boost');
+        localStorage.removeItem('pulse_incoming_referral');
+      } catch {}
+      return;
+    }
+
+    setReferralStatus('validating');
+    const timer = setTimeout(async () => {
+      const result = await verifyReferralCodeOnline(clean);
+      if (result.valid) {
+        setReferralStatus('valid');
+        setReferralValidationMsg('');
+        try {
+          localStorage.setItem('pulse_referral_pro_boost', 'true');
+          localStorage.setItem('pulse_incoming_referral', JSON.stringify({
+            code: clean,
+            capturedAt: new Date().toISOString()
+          }));
+        } catch {}
+      } else {
+        setReferralStatus('invalid');
+        setReferralValidationMsg(result.message || 'Invalid referral code.');
+        try {
+          localStorage.removeItem('pulse_referral_pro_boost');
+          localStorage.removeItem('pulse_incoming_referral');
+        } catch {}
+      }
+    }, 350);
+
+    return () => clearTimeout(timer);
+  }, [referralCode]);
 
   // Mobile App Install Modal State
   const [showInstallModal, setShowInstallModal] = useState(false);
@@ -272,7 +318,8 @@ export const AuthPage = ({ initialMode }) => {
 
     try {
       if (mode === 'signup') {
-        const result = await signUpWithEmail(cleanEmail, password, name, referralCode);
+        const verifiedRef = referralStatus === 'valid' ? referralCode.trim() : '';
+        const result = await signUpWithEmail(cleanEmail, password, name, verifiedRef);
         
         // Supabase user enumeration protection: if email already exists, identities is empty and no email is sent
         if (result?.user && Array.isArray(result.user.identities) && result.user.identities.length === 0) {
@@ -704,7 +751,7 @@ export const AuthPage = ({ initialMode }) => {
                     <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
                       Referral / Invite Code (Optional)
                     </label>
-                    {referralCode.trim() && (
+                    {referralStatus === 'valid' && (
                       <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
                         <Sparkles className="w-3 h-3 text-amber-500 fill-amber-500" />
                         14-Day Pro Free
@@ -718,25 +765,38 @@ export const AuthPage = ({ initialMode }) => {
                       placeholder="Enter referral or invite code"
                       value={referralCode}
                       onChange={e => {
-                        const val = e.target.value;
-                        setReferralCode(val);
-                        if (val.trim()) {
-                          try {
-                            localStorage.setItem('pulse_referral_pro_boost', 'true');
-                            localStorage.setItem('pulse_incoming_referral', JSON.stringify({
-                              code: val.trim(),
-                              capturedAt: new Date().toISOString()
-                            }));
-                          } catch {}
-                        }
+                        setReferralCode(e.target.value);
                       }}
-                      className="w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-base sm:text-xs font-mono text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500"
+                      className={`w-full pl-9 pr-9 py-2 bg-slate-50 dark:bg-slate-950 border rounded-xl text-base sm:text-xs font-mono text-slate-900 dark:text-slate-100 focus:outline-none ${
+                        referralStatus === 'valid'
+                          ? 'border-emerald-500/80 focus:border-emerald-500'
+                          : referralStatus === 'invalid'
+                          ? 'border-amber-500/80 focus:border-amber-500'
+                          : 'border-slate-300 dark:border-slate-800 focus:border-indigo-500'
+                      }`}
                     />
+                    <div className="absolute right-3 top-2.5">
+                      {referralStatus === 'validating' && (
+                        <Loader2 className="w-4 h-4 text-slate-400 animate-spin" />
+                      )}
+                      {referralStatus === 'valid' && (
+                        <Check className="w-4 h-4 text-emerald-500" />
+                      )}
+                      {referralStatus === 'invalid' && (
+                        <AlertCircle className="w-4 h-4 text-amber-500" />
+                      )}
+                    </div>
                   </div>
-                  {referralCode.trim() && (
+                  {referralStatus === 'valid' && (
                     <p className="text-[10px] text-emerald-600 dark:text-emerald-400 mt-1 flex items-center gap-1">
-                      <Check className="w-3 h-3" />
+                      <Check className="w-3 h-3 flex-shrink-0" />
                       <span>Referral code active! You will unlock 14 days of free Pro preview upon signup.</span>
+                    </p>
+                  )}
+                  {referralStatus === 'invalid' && (
+                    <p className="text-[10px] text-amber-600 dark:text-amber-400 mt-1 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3 flex-shrink-0" />
+                      <span>{referralValidationMsg || 'Invalid referral code.'}</span>
                     </p>
                   )}
                 </div>
