@@ -239,6 +239,11 @@ export const AuthPage = ({ initialMode }) => {
         setAuthError('');
         setAuthSuccess('');
         setMode('password-reset-success');
+        if (typeof window !== 'undefined') {
+          try {
+            window.history.replaceState(null, '', `${window.location.pathname}#/login?reset=success`);
+          } catch {}
+        }
       } catch (err) {
         setAuthError(err.message || 'Failed to update password. Your recovery link may have expired.');
       } finally {
@@ -366,6 +371,7 @@ export const AuthPage = ({ initialMode }) => {
     try {
       sessionStorage.removeItem('pulse_recovery_mode');
       sessionStorage.removeItem('pulse_recovery_email');
+      sessionStorage.removeItem('pulse_email_verified');
     } catch {}
     setIsPasswordRecovery(false);
     setPasswordResetCompleted(true);
@@ -381,10 +387,8 @@ export const AuthPage = ({ initialMode }) => {
       try {
         window.history.replaceState(null, '', `${window.location.pathname}#/login`);
       } catch {}
-      window.location.replace(`${window.location.origin}${window.location.pathname}#/login`);
-    } else {
-      navigate('/login', { replace: true });
     }
+    navigate('/login', { replace: true });
   };
 
   const handleProceedToSignInFromVerified = () => {
@@ -632,8 +636,13 @@ export const AuthPage = ({ initialMode }) => {
                   <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                   <input
                     type="email"
+                    name="pulse_user_email"
+                    id="pulse_user_email"
                     required
                     autoComplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="none"
+                    spellCheck="false"
                     placeholder="name@domain.com"
                     value={email}
                     onChange={e => {
@@ -671,8 +680,13 @@ export const AuthPage = ({ initialMode }) => {
                   <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                   <input
                     type="password"
+                    name="pulse_user_auth_key"
+                    id="pulse_user_auth_key"
                     required
                     autoComplete="new-password"
+                    autoCorrect="off"
+                    autoCapitalize="none"
+                    spellCheck="false"
                     placeholder="••••••••"
                     value={password}
                     onChange={e => {
