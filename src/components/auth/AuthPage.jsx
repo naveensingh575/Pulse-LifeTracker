@@ -701,7 +701,7 @@ export const AuthPage = ({ initialMode }) => {
                     <Gift className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                     <input
                       type="text"
-                      placeholder="e.g. pulse-sam89"
+                      placeholder="Enter referral or invite code"
                       value={referralCode}
                       onChange={e => {
                         const val = e.target.value;
