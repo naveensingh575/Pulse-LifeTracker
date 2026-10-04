@@ -84,9 +84,14 @@ export const AuthPage = ({ initialMode }) => {
     if (
       hash.includes('type=signup') ||
       search.includes('type=signup') ||
+      href.includes('type=signup') ||
+      hash.includes('verified=true') ||
+      search.includes('verified=true') ||
+      href.includes('verified=true') ||
       hash.includes('type=email_change') ||
       search.includes('type=email_change') ||
-      emailVerified
+      emailVerified ||
+      (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('pulse_email_verified') === 'true')
     ) {
       return 'signup-verified';
     }
@@ -153,12 +158,15 @@ export const AuthPage = ({ initialMode }) => {
 
     const hash = typeof window !== 'undefined' ? window.location.hash : '';
     const search = typeof window !== 'undefined' ? window.location.search : '';
+    const href = typeof window !== 'undefined' ? window.location.href : '';
     const hasValidToken = (hash.includes('type=recovery') && (hash.includes('access_token=') || hash.includes('token_hash='))) ||
                           (search.includes('type=recovery') && (search.includes('code=') || search.includes('token_hash='))) ||
                           hash.includes('type=recovery') || search.includes('type=recovery');
 
-    const hasSignupToken = hash.includes('type=signup') || search.includes('type=signup') ||
-                           hash.includes('type=email_change') || search.includes('type=email_change');
+    const hasSignupToken = hash.includes('type=signup') || search.includes('type=signup') || href.includes('type=signup') ||
+                           hash.includes('verified=true') || search.includes('verified=true') || href.includes('verified=true') ||
+                           hash.includes('type=email_change') || search.includes('type=email_change') ||
+                           (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('pulse_email_verified') === 'true');
 
     if (
       (!passwordResetCompleted && initialMode === 'update-password') ||
@@ -379,6 +387,31 @@ export const AuthPage = ({ initialMode }) => {
     }
   };
 
+  const handleProceedToSignInFromVerified = () => {
+    try {
+      sessionStorage.removeItem('pulse_email_verified');
+      sessionStorage.removeItem('pulse_recovery_mode');
+      sessionStorage.removeItem('pulse_recovery_email');
+    } catch {}
+    setEmailVerified(false);
+    setEmail('');
+    setPassword('');
+    setConfirmPassword('');
+    setName('');
+    setAuthError('');
+    setAuthSuccess('');
+    setMode('signin');
+
+    if (typeof window !== 'undefined') {
+      try {
+        window.history.replaceState(null, '', `${window.location.pathname}#/login`);
+      } catch {}
+      window.location.replace(`${window.location.origin}${window.location.pathname}#/login`);
+    } else {
+      navigate('/login', { replace: true });
+    }
+  };
+
   return (
     <div
       className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col justify-start md:justify-center md:items-center px-4 relative overflow-y-auto transition-colors"
@@ -472,7 +505,7 @@ export const AuthPage = ({ initialMode }) => {
                 {mode === 'signup' && 'Create a New Account'}
                 {mode === 'forgot' && 'Reset Your Password'}
                 {mode === 'update-password' && 'Verification Successful'}
-                {mode === 'signup-verified' && 'Verification Successful!'}
+                {mode === 'signup-verified' && 'Welcome to Pulse!'}
                 {mode === 'password-reset-success' && 'Password Changed Successfully!'}
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -480,7 +513,7 @@ export const AuthPage = ({ initialMode }) => {
                 {mode === 'signup' && 'Sign up with your email to start tracking your daily operating pulse.'}
                 {mode === 'forgot' && 'Enter your registered email to receive a secure password reset link.'}
                 {mode === 'update-password' && 'Your recovery link has been verified. Please create and confirm your new password below.'}
-                {mode === 'signup-verified' && 'Your email address has been verified and your account is active.'}
+                {mode === 'signup-verified' && 'Your account has been created. Please sign in with your credentials to access your dashboard.'}
                 {mode === 'password-reset-success' && 'Your new password has been set. You can now sign in with your updated credentials.'}
               </p>
             </div>
@@ -831,32 +864,23 @@ export const AuthPage = ({ initialMode }) => {
               <div className="space-y-2 max-w-sm mx-auto">
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[11px] font-bold">
                   <Check className="w-3 h-3" />
-                  <span>Email Confirmed</span>
+                  <span>Account is created</span>
                 </div>
-                <h4 className="text-lg font-bold text-slate-900 dark:text-white">
-                  Verification Successful!
+                <h4 className="text-xl font-black text-slate-900 dark:text-white">
+                  Welcome to Pulse!
                 </h4>
                 <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                  Your email address has been verified and your account is active. Please sign in below with your email and password to access your dashboard.
+                  Your email address has been verified and your account is created. Please sign in below with your email and password to access your dashboard.
                 </p>
               </div>
 
               <div className="pt-2">
                 <button
                   type="button"
-                  onClick={() => {
-                    setEmailVerified(false);
-                    setEmail('');
-                    setPassword('');
-                    setName('');
-                    setConfirmPassword('');
-                    setAuthError('');
-                    setAuthSuccess('');
-                    setMode('signin');
-                  }}
+                  onClick={handleProceedToSignInFromVerified}
                   className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-indigo-600/30 transition flex items-center justify-center space-x-2 cursor-pointer active:scale-95"
                 >
-                  <span>Proceed to Sign In</span>
+                  <span>Sign In to Your Account</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>

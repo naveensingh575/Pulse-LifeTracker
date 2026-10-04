@@ -53,11 +53,14 @@ const checkIsEmailConfirmUrl = () => {
     if (typeof window === 'undefined') return false;
     const hash = window.location.hash || '';
     const search = window.location.search || '';
-    // Supabase sends ?token_hash=...&type=signup or #access_token=...&type=signup
+    const href = window.location.href || '';
+    // Supabase sends ?token_hash=...&type=signup or #access_token=...&type=signup or ?code=...
     return Boolean(
-      (hash.includes('type=signup') || search.includes('type=signup')) ||
-      (hash.includes('type=email_change') || search.includes('type=email_change')) ||
-      (hash.includes('type=invite') || search.includes('type=invite'))
+      hash.includes('type=signup') || search.includes('type=signup') || href.includes('type=signup') ||
+      hash.includes('verified=true') || search.includes('verified=true') || href.includes('verified=true') ||
+      hash.includes('type=email_change') || search.includes('type=email_change') || href.includes('type=email_change') ||
+      hash.includes('type=invite') || search.includes('type=invite') || href.includes('type=invite') ||
+      (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('pulse_email_verified') === 'true')
     );
   } catch {
     return false;
@@ -146,15 +149,20 @@ export const AuthProvider = ({ children }) => {
     supabase.auth.getSession().then(async ({ data: { session: currentSession } }) => {
       // If landing from signup email verification link: do NOT auto-sign in!
       if (checkIsEmailConfirmUrl()) {
+        try {
+          sessionStorage.setItem('pulse_email_verified', 'true');
+        } catch {}
         setEmailVerified(true);
         setUser(null);
         setSession(null);
         try {
           await supabase.auth.signOut();
         } catch {}
-        try {
-          window.history.replaceState(null, '', window.location.pathname);
-        } catch {}
+        if (typeof window !== 'undefined') {
+          try {
+            window.history.replaceState(null, '', `${window.location.pathname}#/login?verified=true`);
+          } catch {}
+        }
         setLoading(false);
         return;
       }
@@ -213,15 +221,15 @@ export const AuthProvider = ({ children }) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
       // When user clicks the signup email verification link, Supabase fires SIGNED_IN.
       // We explicitly clear the session so they are NEVER auto-signed into the dashboard.
-      if (checkIsEmailConfirmUrl()) {
+      if (checkIsEmailConfirmUrl() || (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('pulse_email_verified') === 'true')) {
+        try {
+          sessionStorage.setItem('pulse_email_verified', 'true');
+        } catch {}
         setEmailVerified(true);
         setUser(null);
         setSession(null);
         try {
           await supabase.auth.signOut();
-        } catch {}
-        try {
-          window.history.replaceState(null, '', window.location.pathname);
         } catch {}
         setLoading(false);
         return;
@@ -335,7 +343,7 @@ export const AuthProvider = ({ children }) => {
       password,
       options: {
         data: signUpMetadata,
-        emailRedirectTo: getAppBaseUrl()
+        emailRedirectTo: `${getAppBaseUrl()}/#/login?type=signup`
       }
     });
     if (error) throw error;
@@ -359,7 +367,7 @@ export const AuthProvider = ({ children }) => {
       type: 'signup',
       email: email.trim().toLowerCase(),
       options: {
-        emailRedirectTo: getAppBaseUrl()
+        emailRedirectTo: `${getAppBaseUrl()}/#/login?type=signup`
       }
     });
     if (error) throw error;
