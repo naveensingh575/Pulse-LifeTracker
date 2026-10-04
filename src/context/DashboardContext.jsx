@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from './AuthContext';
 import {
@@ -393,9 +393,10 @@ export const DashboardProvider = ({ children }) => {
       return res;
     }
 
-    setSubscriptionTier(res.tier);
+    const targetTier = res.tier || 'lifetime';
+    setSubscriptionTier(targetTier);
     setFounderCode(res.code);
-    localStorage.setItem('pulse_subscription_tier', res.tier);
+    localStorage.setItem('pulse_subscription_tier', targetTier);
     localStorage.setItem('pulse_founder_code', res.code);
 
     const nextCount = Math.min(100, currentCount + 1);
@@ -413,22 +414,26 @@ export const DashboardProvider = ({ children }) => {
             user_email: user.email || '',
             redeemed_at: new Date().toISOString()
           }, { onConflict: 'code,user_id' });
+      } catch (err) {
+        console.warn('Could not sync redemption to Supabase coupon_redemptions:', err);
+      }
 
+      try {
         await supabase.auth.updateUser({
           data: {
-            subscription_tier: res.tier,
+            subscription_tier: targetTier,
             founder_code: res.code,
             is_premium: true,
             founder_redeemed_at: new Date().toISOString()
           }
         });
       } catch (err) {
-        console.warn('Could not sync redemption to Supabase:', err);
+        console.warn('Could not sync redemption to Supabase auth:', err);
       }
     }
 
-    return res;
-  }, [user, occupiedCouponSeats]);
+    return { ...res, tier: targetTier };
+  }, [user?.id, user?.email, occupiedCouponSeats]);
 
   // Sync tier if Supabase user object updates
   useEffect(() => {
@@ -615,10 +620,12 @@ export const DashboardProvider = ({ children }) => {
     localStorage.setItem('pulse_theme', theme);
   }, [theme]);
 
+  const hasLoadedOnceRef = useRef(false);
+
   // --- Fetch All User Data from Supabase or Guest Demo Sandbox ---
-  const fetchUserData = useCallback(async () => {
+  const fetchUserData = useCallback(async (forceLoader = false) => {
     if (user?.isGuest || !userId || userId === 'guest-user') {
-      setIsLoadingData(true);
+      if (!hasLoadedOnceRef.current || forceLoader) setIsLoadingData(true);
       const demo = getGuestDemoData();
       setHabits(demo.habits.map(normalizeHabit));
       setGoals(demo.goals.map(normalizeGoal));
@@ -629,10 +636,13 @@ export const DashboardProvider = ({ children }) => {
       setDeadlines(demo.deadlines);
       setMonthlyAllocations(demo.monthlyAllocations);
       setIsLoadingData(false);
+      hasLoadedOnceRef.current = true;
       return;
     }
 
-    setIsLoadingData(true);
+    if (!hasLoadedOnceRef.current || forceLoader) {
+      setIsLoadingData(true);
+    }
 
     // Session health check: verify the JWT is alive before querying.
     // Supabase RLS silently returns empty arrays (HTTP 200, no error) when
@@ -869,8 +879,9 @@ export const DashboardProvider = ({ children }) => {
       console.error('[PULSE Supabase Fetch Error]:', err);
     } finally {
       setIsLoadingData(false);
+      hasLoadedOnceRef.current = true;
     }
-  }, [userId, user]);
+  }, [userId, user?.isGuest]);
 
   useEffect(() => {
     if (isCloudUser || user?.isGuest) {

@@ -47,11 +47,11 @@ export const CURRENCY_LABELS = {
 
 export const VALID_PROMO_CODES = {
   FAMILY100: {
-    tier: "founder",
+    tier: "lifetime",
     discountPct: 100,
-    label: "Friends & Family VIP Founder Pass",
+    label: "Friends & Family VIP Lifetime Pass",
     badge: "Founder Lifetime",
-    icon: "🛡️",
+    icon: "👑",
     maxLimit: MAX_FAMILY100_ACCOUNTS
   }
 };

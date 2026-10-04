@@ -102,7 +102,7 @@ export const Navbar = ({ onOpenQuickCapture }) => {
                     {user.name}
                   </span>
                   <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium leading-tight">
-                    {subscriptionTier === 'founder' || subscriptionTier === 'lifetime' ? '👑 Founder' :
+                    {subscriptionTier === 'founder' || subscriptionTier === 'lifetime' ? '👑 Lifetime' :
                      subscriptionTier === 'yearly' || subscriptionTier === 'monthly' ? '✨ Pro' :
                      '🌱 Free'}
                   </span>
