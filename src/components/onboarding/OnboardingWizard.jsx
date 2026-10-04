@@ -599,8 +599,8 @@ export const OnboardingWizard = ({ onDismiss }) => {
                 <Tag className="w-3.5 h-3.5 text-indigo-500" />
                 <span>Have a VIP Invite Code?</span>
               </span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-semibold">
-                e.g. Family100
+              <span className="text-[10px] text-slate-400 font-medium">
+                Exclusive Early-Access
               </span>
             </div>
 
@@ -616,7 +616,7 @@ export const OnboardingWizard = ({ onDismiss }) => {
                   }
                 }}
                 disabled={promoApplied}
-                placeholder="Enter VIP invite code (e.g. Family100)"
+                placeholder="Enter VIP invite code"
                 className="flex-1 px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-mono font-bold text-slate-900 dark:text-white uppercase focus:outline-none focus:border-indigo-500 disabled:opacity-70"
               />
               <button
