@@ -28,7 +28,7 @@ export const Navbar = ({ onOpenQuickCapture }) => {
     <>
       <header
         className="sticky top-0 z-50 w-full backdrop-blur-xl bg-white/80 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800/80 transition-colors"
-        style={{ paddingTop: 'env(safe-area-inset-top)' }}
+        style={{ paddingTop: user?.isGuest ? '0px' : 'env(safe-area-inset-top)' }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           
