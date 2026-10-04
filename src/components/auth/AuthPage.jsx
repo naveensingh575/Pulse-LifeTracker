@@ -103,6 +103,7 @@ export const AuthPage = ({ initialMode }) => {
     return 'signin';
   });
 
+  const [passwordResetCompleted, setPasswordResetCompleted] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -148,7 +149,7 @@ export const AuthPage = ({ initialMode }) => {
 
   // Check URL hash / auth recovery / email verification event on mount
   useEffect(() => {
-    if (mode === 'password-reset-success') return;
+    if (mode === 'password-reset-success' || passwordResetCompleted) return;
 
     const hash = typeof window !== 'undefined' ? window.location.hash : '';
     const search = typeof window !== 'undefined' ? window.location.search : '';
@@ -160,7 +161,7 @@ export const AuthPage = ({ initialMode }) => {
                            hash.includes('type=email_change') || search.includes('type=email_change');
 
     if (
-      initialMode === 'update-password' ||
+      (!passwordResetCompleted && initialMode === 'update-password') ||
       hasValidToken ||
       isPasswordRecovery ||
       (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('pulse_recovery_mode') === 'true')
@@ -173,7 +174,7 @@ export const AuthPage = ({ initialMode }) => {
       setAuthSuccess('');
       setAuthError('');
     }
-  }, [initialMode, isPasswordRecovery, emailVerified, mode]);
+  }, [initialMode, isPasswordRecovery, emailVerified, mode, passwordResetCompleted]);
 
   // RFC 5322 Compliant Email Validation
   const validateEmail = (emailStr) => {
@@ -223,6 +224,8 @@ export const AuthPage = ({ initialMode }) => {
       setIsSubmitting(true);
       try {
         await updateUserPassword(password);
+        setPasswordResetCompleted(true);
+        setEmail('');
         setPassword('');
         setConfirmPassword('');
         setAuthError('');
@@ -330,8 +333,10 @@ export const AuthPage = ({ initialMode }) => {
     }
     try {
       sessionStorage.removeItem('pulse_recovery_mode');
+      sessionStorage.removeItem('pulse_recovery_email');
     } catch {}
     setIsPasswordRecovery(false);
+    setPasswordResetCompleted(true);
     setPassword('');
     setConfirmPassword('');
     setEmail('');
@@ -339,21 +344,39 @@ export const AuthPage = ({ initialMode }) => {
     setAuthSuccess('');
     setResetEmailSent(false);
     setMode('signin');
-    navigate('/login', { replace: true });
+    if (typeof window !== 'undefined') {
+      try {
+        window.history.replaceState(null, '', `${window.location.pathname}#/login`);
+      } catch {}
+      window.location.replace(`${window.location.origin}${window.location.pathname}#/login`);
+    } else {
+      navigate('/login', { replace: true });
+    }
   };
 
   const handleBackToSignInFromResetSuccess = () => {
     try {
       sessionStorage.removeItem('pulse_recovery_mode');
+      sessionStorage.removeItem('pulse_recovery_email');
     } catch {}
     setIsPasswordRecovery(false);
+    setPasswordResetCompleted(true);
     setEmail('');
     setPassword('');
     setConfirmPassword('');
+    setName('');
     setAuthError('');
     setAuthSuccess('');
     setMode('signin');
-    navigate('/login', { replace: true });
+
+    if (typeof window !== 'undefined') {
+      try {
+        window.history.replaceState(null, '', `${window.location.pathname}#/login`);
+      } catch {}
+      window.location.replace(`${window.location.origin}${window.location.pathname}#/login`);
+    } else {
+      navigate('/login', { replace: true });
+    }
   };
 
   return (
